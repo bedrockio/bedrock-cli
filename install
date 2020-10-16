@@ -1,0 +1,39 @@
+#!/bin/bash
+
+DIR=~/.bedrock
+BIN=~/.bin/bedrock
+
+YELLOW="\033[0;33m"
+NC='\033[0m'
+
+cleanup () {
+  # Cleanup previous versions.
+  rm -rf $DIR
+}
+
+install () {
+  git clone --quiet git@github.com:bedrockio/bedrock-cli.git $DIR > /dev/null
+  pushd $DIR > /dev/null
+  yarn install > /dev/null
+  popd
+}
+
+link () {
+  ln -sf "$DIR/cli" $BIN
+}
+
+echo -e "${YELLOW}Installing Bedrock...${NC}"
+cleanup
+install
+link
+
+cat <<-EOM
+
+Done!
+
+You can now run Bedrock commands:
+
+Create new project:
+bedrock create
+
+EOM

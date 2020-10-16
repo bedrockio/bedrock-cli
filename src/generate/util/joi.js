@@ -1,6 +1,6 @@
-const { replaceBlock } = require('./source');
+import { replaceBlock } from './source';
 
-function replaceSchema(source, schema, operation) {
+export function replaceSchema(source, schema, operation) {
   const output = outputSchema(schema, operation);
   return replaceBlock(source, output, operation);
 }
@@ -64,7 +64,3 @@ function getJoiDefaultType(field) {
   }
   return src;
 }
-
-module.exports = {
-  replaceSchema,
-};

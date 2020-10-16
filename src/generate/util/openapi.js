@@ -1,16 +1,16 @@
-const { kebabCase } = require('lodash');
-const { assertPath } = require('./util');
-const { getPlural } = require('./lang');
-const { writeLocalFile } = require('./source');
+import { kebabCase } from 'lodash';
+import { plural } from 'pluralize';
+import { assertPath } from '../../util/file';
+import { writeLocalFile } from './source';
 
 const OPENAPI_DIR = 'services/api/src/v1/__openapi__';
 
-async function generateOpenApi(options) {
+export async function generateOpenApi(options) {
   const { camelLower, camelUpper, pluralLower } = options;
   const kebab = kebabCase(pluralLower);
   const paramPath = `/:${camelLower}Id`;
 
-  const openApiDir = await assertPath(OPENAPI_DIR, options);
+  const openApiDir = await assertPath(OPENAPI_DIR);
 
   const obj = {
     objects: [
@@ -156,7 +156,7 @@ function getFieldDescription(field, options) {
   }
   if (isArray) {
     let last = tokens[tokens.length - 1];
-    tokens[tokens.length - 1] = getPlural(last);
+    tokens[tokens.length - 1] = plural(last);
   }
   return `${camelUpper} ${tokens.join(' ')}`;
 }
@@ -232,7 +232,3 @@ function getSearchFields() {
     },
   ];
 }
-
-module.exports = {
-  generateOpenApi,
-};

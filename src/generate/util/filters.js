@@ -1,16 +1,15 @@
-const { startCase } = require('lodash');
-const { replaceBlock } = require('./source');
-const { block } = require('./util');
+import { startCase } from 'lodash';
+import { replaceBlock } from './source';
+import { block } from './template';
 
-function replaceFilters(source, options) {
+export function replaceFilters(source, options) {
   return replaceBlock(source, getFilters(options), 'filters');
 }
 
 function getFilters(options) {
   const { camelLower } = options;
   return options.schema.map((field) => {
-    const { private } = field;
-    if (!private) {
+    if (!field.private) {
       return getFilterForField(field, camelLower);
     }
   })
@@ -125,7 +124,3 @@ function getMultiDropdownFilter(field) {
     `;
     }
 }
-
-module.exports = {
-  replaceFilters,
-};

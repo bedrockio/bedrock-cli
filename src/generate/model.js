@@ -1,20 +1,19 @@
-const { assertPath } = require('./util');
-const { outputSchema } = require('./schema');
-const { yellow } = require('kleur');
-
-const {
+import { yellow } from 'kleur';
+import { assertPath } from '../util/file';
+import { outputSchema } from './util/schema';
+import {
   readSourceFile,
   writeLocalFile,
   replaceBlock,
   replacePrimary,
-} = require('./source');
+} from './util/source';
 
 const MODELS_DIR = 'services/api/src/models';
 
-async function generateModel(options) {
+export async function generateModel(options) {
   const { camelLower } = options;
 
-  const modelsDir = await assertPath(MODELS_DIR, options);
+  const modelsDir = await assertPath(MODELS_DIR);
 
   let source = await readSourceFile(modelsDir, 'shop.js');
   source = replacePrimary(source, options);
@@ -43,7 +42,3 @@ function hasObjectId(schema) {
     return field.schemaType === 'ObjectId';
   });
 }
-
-module.exports = {
-  generateModel,
-};

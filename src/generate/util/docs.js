@@ -1,21 +1,20 @@
-const { snakeCase } = require('lodash');
-const { assertPath } = require('./util');
-const { patchIndex } = require('./patches');
-const {
+import { snakeCase } from 'lodash';
+import { assertPath } from '../../util/file';
+import { patchIndex } from './patch';
+import {
   readSourceFile,
   writeLocalFile,
   replacePrimary,
-} = require('./source');
-
+} from './source';
 
 const DOCS_DIR = 'services/web/src/docs';
 
-async function generateDocs(options) {
+export async function generateDocs(options) {
   const { pluralLower } = options;
 
   const isAn = pluralLower.match(/^[aeiou]|ho/);
 
-  const docsDir = await assertPath(DOCS_DIR, options);
+  const docsDir = await assertPath(DOCS_DIR);
   let source = await readSourceFile(docsDir, 'SHOPS.md');
   source = replacePrimary(source, options);
 
@@ -31,7 +30,3 @@ async function generateDocs(options) {
   await writeLocalFile(source, docsDir, `${filename}.md`);
   await patchIndex(docsDir, filename, 'md');
 }
-
-module.exports = {
-  generateDocs,
-};

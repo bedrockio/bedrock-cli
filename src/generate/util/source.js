@@ -1,7 +1,7 @@
-const path = require('path');
-const fetch = require('node-fetch');
-const fs = require('fs').promises;
-const { indent } = require('./util');
+import path from 'path';
+import fetch from 'node-fetch';
+import { indent } from './template';
+import { promises as fs } from 'fs';
 
 // Set to true for testing.
 const USE_LOCAL = true;
@@ -10,7 +10,7 @@ const GITHUB_RAW_BASE = 'https://raw.githubusercontent.com/bedrockio/bedrock-cor
 
 const GENERATOR_REG = /^([^\n]*)(\/\/|\{\/\*) --- Generator: BLOCK[\s\S]+?--- Generator: end(?: \*\/\})?$/gm;
 
-function replaceBlock(source, inject, block) {
+export function replaceBlock(source, inject, block) {
   const src = GENERATOR_REG.source.replace(/BLOCK/, block);
   const reg = RegExp(src, 'gm');
   source = source.replace(reg, (match, tabs) => {
@@ -20,7 +20,7 @@ function replaceBlock(source, inject, block) {
   return source;
 }
 
-function replacePrimary(source, resource) {
+export function replacePrimary(source, resource) {
   source = replaceToken(source, /Shops/g, resource.pluralUpper);
   source = replaceToken(source, /shops/g, resource.pluralLower);
   source = replaceToken(source, /Shop/g, resource.camelUpper);
@@ -28,7 +28,7 @@ function replacePrimary(source, resource) {
   return source;
 }
 
-function replaceSecondary(source, resource) {
+export function replaceSecondary(source, resource) {
   source = replaceToken(source, /Products/g, resource.pluralUpper);
   source = replaceToken(source, /products/g, resource.pluralLower);
   source = replaceToken(source, /Product/g, resource.camelUpper);
@@ -36,14 +36,7 @@ function replaceSecondary(source, resource) {
   return source;
 }
 
-function replaceToken(source, reg, token) {
-  if (token) {
-    source = source.replace(reg, token);
-  }
-  return source;
-}
-
-function readSourceFile(...args) {
+export function readSourceFile(...args) {
   if (USE_LOCAL) {
     return readLocalFile(...args);
   } else {
@@ -51,17 +44,17 @@ function readSourceFile(...args) {
   }
 }
 
-async function writeLocalFile(source, ...args) {
+export async function writeLocalFile(source, ...args) {
   return await fs.writeFile(path.resolve(...args), source, 'utf8');
 }
 
-async function readRemoteFile(...args) {
+export async function readRemoteFile(...args) {
   const url = `${GITHUB_RAW_BASE}/${path.resolve(...args)}`;
   const response = await fetch(url);
   return response.text();
 }
 
-async function readLocalDirectory(...args) {
+export async function readLocalDirectory(...args) {
   const dir = path.resolve(...args);
   const entries = await fs.readdir(dir);
   return Promise.all(
@@ -73,16 +66,14 @@ async function readLocalDirectory(...args) {
   );
 }
 
-function readLocalFile(...args) {
+export function readLocalFile(...args) {
   return fs.readFile(path.resolve(...args), 'utf8');
 }
 
-module.exports = {
-  readSourceFile,
-  replaceBlock,
-  replacePrimary,
-  replaceSecondary,
-  readLocalFile,
-  readLocalDirectory,
-  writeLocalFile,
-};
+function replaceToken(source, reg, token) {
+  if (token) {
+    source = source.replace(reg, token);
+  }
+  return source;
+}
+

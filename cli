@@ -3,6 +3,7 @@
 import path from 'path';
 import { program } from 'commander';
 import { promptFill } from './src/util/prompt';
+import { restoreSnapshot } from './src/util/snapshot';
 import { version } from './package.json';
 import descriptor from './command.json';
 
@@ -21,15 +22,15 @@ function addCommand(command, descriptor) {
   for (let option of options || []) {
     const { name, type, short, description, default: def } = option;
     const opts = [];
+    if (short) {
+      opts.push(`-${short}`);
+    }
     if (name) {
       let l = `--${name}`;
-      if (type) {
+      if (type && type !== 'boolean') {
         l += ` <${type}>`;
       }
       opts.push(l);
-    }
-    if (short) {
-      opts.push(`-${short}`);
     }
     command.option(opts.join(', '), description, def);
   }
@@ -40,11 +41,20 @@ function addCommand(command, descriptor) {
     const handler = require(path.resolve(__dirname, 'src', name)).default;
     addCommand(subcommand, sub);
     subcommand.action(async () => {
-      const options = subcommand.opts();
-      subcommand.args.forEach((arg, i) => {
-        const { name } = sub.arguments[i];
-        options[name] = arg;
-      });
+      const { snapshot, ...options } = subcommand.opts();
+      if (snapshot) {
+        Object.assign(options, await restoreSnapshot(snapshot));
+      } else {
+        const args = sub.arguments || [];
+        if (args.length === 1 && args[0].type === 'multiple') {
+          options[args[0].name] = subcommand.args;
+        } else {
+          subcommand.args.forEach((arg, i) => {
+            const { name } = sub.arguments[i];
+            options[name] = arg;
+          });
+        }
+      }
       await promptFill(options, sub.arguments);
       await promptFill(options, sub.options);
       await handler(options);

@@ -1,16 +1,15 @@
-const { yellow, gray } = require('kleur');
-const { parseDate } = require('./date');
-const { block, indent } = require('./util');
-const { getPlural } = require('./lang');
-const prompt = require('./prompt');
-const {
+import { yellow, gray } from 'kleur';
+import { block, indent } from './template';
+import { prompt } from '../../util/prompt';
+import {
+  validateEnum,
   validateDate,
   validateString,
   validateNumber,
   validateRegExp,
   validateBoolean,
   validateCamelUpper
-} = require('./validations');
+} from '../../util/validation';
 
 let initialBuild = false;
 
@@ -85,7 +84,6 @@ const SCHEMA_OPTIONS = [
     prompt: {
       type: 'list',
       message: 'Allowed values (comma separated):',
-      validate: validateString,
     },
   },
   {
@@ -209,48 +207,7 @@ const SCHEMA_OPTIONS = [
   },
 ];
 
-function toCode(str, type) {
-  switch (type) {
-    case 'String':
-      return `'${str}'`;
-    case 'Number':
-    case 'Boolean':
-      return str;
-    case 'Date':
-      if (str === 'now') {
-        return 'Date.now';
-      } else {
-        return `Date.parse('${parseDate(str).toISOString()}')`;
-      }
-  }
-}
-
-function enumToCode(arr, type) {
-  arr = arr.map((el) => toCode(el, type));
-  return `[${arr.join(', ')}]`;
-}
-
-function validateDefault(str, type, options) {
-  if (options['enum'] && !options['enum'].includes(str)) {
-    return 'Default value must be included in enum.';
-  }
-  return validateMixed(str, type);
-}
-
-function validateMixed(str, type) {
-  switch (type) {
-    case 'String':
-      return validateString(str);
-    case 'Number':
-      return validateNumber(str);
-    case 'Boolean':
-      return validateBoolean(str);
-    case 'Date':
-      return validateDate(str);
-  }
-}
-
-async function getSchema(fields = []) {
+export async function getSchema(fields = []) {
   initialBuild = fields.length > 0;
   let action;
   while (action !== 'build') {
@@ -269,8 +226,66 @@ async function getSchema(fields = []) {
       fields.splice(action, 1, await getField(fields[action], fields.length));
     }
   }
-  console.log(yellow('Schema built!'));
   return fields;
+}
+
+export function outputSchema(fields, hints) {
+  return fields
+    .map((field) => {
+      if (field.type.match(/Array/)) {
+        return outputArrayField(field, hints);
+      } else {
+        return outputField(field, hints);
+      }
+    })
+    .join('\n');
+}
+
+
+function toCode(str, type) {
+  switch (type) {
+    case 'String':
+      return `'${str}'`;
+    case 'Number':
+    case 'Boolean':
+      return str;
+    case 'Date':
+      if (str === 'now') {
+        return 'Date.now';
+      } else {
+        return `Date.parse('${new Date(str).toISOString()}')`;
+      }
+  }
+}
+
+function enumToCode(arr, type) {
+  arr = arr.map((el) => toCode(el, type));
+  return `[${arr.join(', ')}]`;
+}
+
+function validateDefault(str, type, options) {
+  if (options.enum) {
+    return validateEnum(str, {
+      required: true,
+      choices: options.enum.map((value) => {
+        return { value };
+      }),
+    });
+  }
+  return validateMixed(str, type);
+}
+
+function validateMixed(str, type) {
+  switch (type) {
+    case 'String':
+      return validateString(str);
+    case 'Number':
+      return validateNumber(str);
+    case 'Boolean':
+      return validateBoolean(str);
+    case 'Date':
+      return validateDate(str);
+  }
 }
 
 async function getAction(fields) {
@@ -338,7 +353,6 @@ async function getField(field) {
   }
 
   let ref;
-  let refPlural;
   let schemaType = type;
 
   if (schemaType.match(/Array/)) {
@@ -357,12 +371,6 @@ async function getField(field) {
       message: 'Ref (ex. UserImage):',
       validate: validateCamelUpper,
     });
-    refPlural = await prompt({
-      type: 'text',
-      validate: validateCamelUpper,
-      initial: getPlural(ref),
-      message: 'Confirm plural name in camel case (ex. UserImages):',
-    });
   }
 
   const options = await getFieldOptions(type, field);
@@ -371,7 +379,6 @@ async function getField(field) {
     name,
     type,
     ref,
-    refPlural,
     schemaType,
     ...options,
   };
@@ -455,18 +462,6 @@ function getInitialType(field) {
   return idx === -1 ? 0 : idx;
 }
 
-function outputSchema(fields, hints) {
-  return fields
-    .map((field) => {
-      if (field.type.match(/Array/)) {
-        return outputArrayField(field, hints);
-      } else {
-        return outputField(field, hints);
-      }
-    })
-    .join('\n');
-}
-
 function outputField(field, hints) {
   return block`
     ${field.name}: {
@@ -536,8 +531,3 @@ function outputFieldInteger(field) {
     `;
   }
 }
-
-module.exports = {
-  getSchema,
-  outputSchema,
-};

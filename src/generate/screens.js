@@ -1,21 +1,24 @@
-const { yellow } = require('kleur');
-const { startCase } = require('lodash');
-const { replaceFilters } = require('./filters');
-const { assertPath, mkdir, block } = require('./util');
-const { patchAppEntrypoint, patchIndex } = require('./patches');
-const {
+import path from 'path';
+import mkdir from 'mkdirp';
+import { yellow } from 'kleur';
+import { startCase } from 'lodash';
+import { replaceFilters } from './util/filters';
+import { assertPath } from '../util/file';
+import { block } from './util/template';
+import { patchAppEntrypoint, patchIndex } from './util/patch';
+import {
   readSourceFile,
   writeLocalFile,
   replaceBlock,
   replacePrimary,
   replaceSecondary,
-} = require('./source');
+} from './util/source';
 
 const FILES = ['index.js', 'List.js', 'Overview.js', 'Menu.js'];
 
 const SCREENS_DIR = 'services/web/src/Screens';
 
-async function generateScreens(options) {
+export async function generateScreens(options) {
   const { pluralUpper } = options;
 
   const screensDir = await getScreensDir(options);
@@ -44,11 +47,12 @@ async function generateScreens(options) {
   console.log(yellow('Screens generated!'));
 }
 
-async function generateSubScreens(options) {
+export async function generateSubScreens(options) {
   const screensDir = await getScreensDir(options);
   const source = await readSourceFile(screensDir, 'Shops/Products.js');
   await generateSubScreensFor(screensDir, source, [options], options.subScreens);
   await generateSubScreensFor(screensDir, source, options.externalSubScreens, [options]);
+  console.log(yellow('Subscreens generated!'));
 }
 
 async function generateSubScreensFor(screensDir, source, primary, secondary) {
@@ -76,13 +80,13 @@ async function generateSubScreensFor(screensDir, source, primary, secondary) {
 
 async function getScreensDir(options) {
   const { pluralUpper } = options;
-  const screensDir = await assertPath(SCREENS_DIR, options);
-  await mkdir(screensDir, pluralUpper);
+  const screensDir = await assertPath(SCREENS_DIR);
+  await mkdir(path.join(screensDir, pluralUpper));
   return screensDir;
 }
 
 function replaceSubScreenImports(source, options) {
-  const { subScreens } = options;
+  const { subScreens = [] } = options;
   const imports = subScreens.map((resource) => {
     const { pluralUpper } = resource;
     return `import ${pluralUpper} from './${pluralUpper}';`;
@@ -92,7 +96,8 @@ function replaceSubScreenImports(source, options) {
 }
 
 function replaceSubScreenRoutes(source, options) {
-  const imports = options.subScreens
+  const { subScreens = [] } = options;
+  const imports = subScreens
     .map(({ pluralLower, pluralUpper }) => {
       return block`
       <Route
@@ -113,7 +118,8 @@ function replaceSubScreenRoutes(source, options) {
 }
 
 function replaceSubScreenMenus(source, options) {
-  const imports = options.subScreens
+  const { subScreens = [] } = options;
+  const imports = subScreens
     .map(({ pluralLower, pluralUpper }) => {
       return block`
       <Menu.Item
@@ -322,8 +328,3 @@ function getSummaryFields(options) {
   }
   return summaryFields;
 }
-
-module.exports = {
-  generateScreens,
-  generateSubScreens,
-};

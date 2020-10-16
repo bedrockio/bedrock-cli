@@ -1,20 +1,21 @@
-const { assertPath, block } = require('./util');
-const { replaceSchema } = require('./joi');
-const { kebabCase } = require('lodash');
-const { yellow } = require('kleur');
-const { generateDocs } = require('./docs');
-const { generateTests } = require('./tests');
-const { generateOpenApi } = require('./openapi');
-const {
+import { yellow } from 'kleur';
+import { kebabCase } from 'lodash';
+import { block } from './util/template';
+import { assertPath } from '../util/file';
+import { replaceSchema } from './util/joi';
+import { generateDocs } from './util/docs';
+import { generateTests } from './util/tests';
+import { generateOpenApi } from './util/openapi';
+import {
   readSourceFile,
   writeLocalFile,
   replaceBlock,
   replacePrimary,
-} = require('./source');
+} from './util/source';
 
 const ROUTES_DIR = 'services/api/src/v1';
 
-async function generateRoutes(options) {
+export async function generateRoutes(options) {
   const { schema, pluralLower } = options;
 
   const routesDir = await assertPath(ROUTES_DIR, options);
@@ -121,7 +122,3 @@ function replaceSearchQuery(source, schema) {
   source = replaceBlock(source, queries, 'queries');
   return source;
 }
-
-module.exports = {
-  generateRoutes,
-};

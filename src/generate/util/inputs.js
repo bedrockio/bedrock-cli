@@ -1,16 +1,16 @@
-const { startCase } = require('lodash');
-const { replaceBlock } = require('./source');
-const { block } = require('./util');
+import { plural } from 'pluralize';
+import { startCase } from 'lodash';
+import { replaceBlock } from './source';
+import { block } from './template';
 
-function replaceInputs(source, options) {
+export function replaceInputs(source, options) {
   return replaceBlock(source, getInputs(options), 'fields');
 }
 
 function getInputs(options) {
   return options.schema
     .map((field) => {
-      const { private } = field;
-      if (!private) {
+      if (!field.private) {
         return getInputForField(field, options);
       }
     })
@@ -161,7 +161,7 @@ function getDateInput(field, options) {
 }
 
 function getReferenceInput(field, options) {
-  const { refPlural, name, type, required } = field;
+  const { ref, name, type, required } = field;
   const isArray = type.match(/Array/);
   return block`
       {!this.props.${name} && (
@@ -171,7 +171,7 @@ function getReferenceInput(field, options) {
           label="${startCase(name)}"
           value={${options.camelLower}.${name}${isArray ? ' || []' : ''}}
           onChange={(data) => this.setField(null, data)}
-          resource="${refPlural}"
+          resource="${plural(ref)}"
         />
       )}
     `;
@@ -236,7 +236,3 @@ function getBooleanInput(field, options) {
     />
   `;
 }
-
-module.exports = {
-  replaceInputs,
-};

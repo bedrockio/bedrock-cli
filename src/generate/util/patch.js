@@ -1,6 +1,7 @@
-const { yellow } = require('kleur');
-const { assertPath, block, indent } = require('./util');
-const { readLocalFile, writeLocalFile } = require('./source');
+import { yellow } from 'kleur';
+import { assertPath } from '../../util/file';
+import { block, indent } from './template';
+import { readLocalFile, writeLocalFile } from './source';
 
 // App Entrypoint
 
@@ -9,10 +10,10 @@ const APP_ENTRYPOINT_PATH = 'services/web/src/App.js';
 const ROUTE_REG = /^(\s*)(<(AuthSwitch|Protected|Route)[\s\S]+?\/>)/m;
 const IMPORTS_REG = /(import {)(\s+)([^}]+?} from ['"]screens)/m;
 
-async function patchAppEntrypoint(options) {
+export async function patchAppEntrypoint(options) {
   const { pluralLower, pluralUpper } = options;
 
-  const entrypointPath = await assertPath(APP_ENTRYPOINT_PATH, options);
+  const entrypointPath = await assertPath(APP_ENTRYPOINT_PATH);
   let source = await readLocalFile(entrypointPath);
   const jsx = `<Protected path="/${pluralLower}/:id?" allowed={${pluralUpper}} />\n`;
   if (!source.includes(jsx)) {
@@ -29,7 +30,7 @@ async function patchAppEntrypoint(options) {
 
 // Index Entrypoints
 
-async function patchIndex(dir, name, ext = '') {
+export async function patchIndex(dir, name, ext = '') {
   ext = ext ? `.${ext}` : '';
   const line = `export { default as ${name} } from './${name}${ext}';`;
   let source = await readLocalFile(dir, 'index.js');
@@ -48,10 +49,10 @@ async function patchIndex(dir, name, ext = '') {
 const HEADER_PATH = 'services/web/src/components/Header.js';
 const MENU_ITEM_REG = /<Menu\.Item[\s\S]+?<\/Menu\.Item>/gm;
 
-async function patchMainMenu(options) {
+export async function patchMainMenu(options) {
   const { pluralLower, pluralUpper } = options;
 
-  const headerPath = await assertPath(HEADER_PATH, options);
+  const headerPath = await assertPath(HEADER_PATH);
   let source = await readLocalFile(headerPath);
 
   const match = source.match(MENU_ITEM_REG);
@@ -79,9 +80,3 @@ async function patchMainMenu(options) {
 
   console.log(yellow('Main menu link generated!'));
 }
-
-module.exports = {
-  patchIndex,
-  patchMainMenu,
-  patchAppEntrypoint,
-};

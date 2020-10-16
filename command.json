@@ -17,16 +17,14 @@
       "options": [
         {
           "name": "domain",
-          "type": "string",
-          "validate": "domain",
+          "type": "domain",
           "description": "Domain",
           "required": true,
           "prompt": true
         },
         {
           "name": "repository",
-          "type": "string",
-          "validate": "repository",
+          "type": "repository",
           "description": "Git repository",
           "prompt": true
         },
@@ -37,6 +35,61 @@
           "prompt": true
         }
       ]
+    },
+    {
+      "name": "generate",
+      "description": "Generates new Bedrock resources.\nTakes a comma separated list of components to output.",
+      "arguments": [
+        {
+          "name": "components",
+          "type": "multiple",
+          "description": "Components to be generated",
+          "choices": [
+            {
+              "title": "Model",
+              "value": "model",
+              "selected": true,
+              "description": "Generates Mongoose models"
+            },
+            {
+              "title": "Routes",
+              "value": "routes",
+              "selected": true,
+              "description": "Generates API routes"
+            },
+            {
+              "title": "Screens",
+              "value": "screens",
+              "selected": true,
+              "description": "Generates top level screens"
+            },
+            {
+              "title": "Subscreens",
+              "value": "subscreens",
+              "selected": true,
+              "description": "Generates sub level screens for references"
+            },
+            {
+              "title": "Modals",
+              "value": "modals",
+              "selected": true,
+              "description": "Generates create/update modals"
+            }
+          ],
+          "required": true,
+          "prompt": true
+        }
+      ],
+      "options": [
+        {
+          "name": "snapshot",
+          "short": "s",
+          "type": "string",
+          "description": "Path to a snapshot file."
+        }
+      ]
+
+
     }
   ]
 }

@@ -1,22 +1,22 @@
-const { yellow } = require('kleur');
-const { assertPath, block } = require('./util');
-const { replaceInputs } = require('./inputs');
-const { patchIndex } = require('./patches');
-const { getCamelLower } = require('./lang');
-
-const {
+import { yellow } from 'kleur';
+import { camelCase } from 'lodash';
+import { assertPath } from '../util/file';
+import { block } from './util/template';
+import { replaceInputs } from './util/inputs';
+import { patchIndex } from './util/patch';
+import {
   readSourceFile,
   writeLocalFile,
   replaceSecondary,
   replaceBlock,
-} = require('./source');
+} from './util/source';
 
 const MODALS_DIR = 'services/web/src/modals';
 
-async function generateModals(options) {
+export async function generateModals(options) {
   const { camelUpper } = options;
 
-  const modalsDir = await assertPath(MODALS_DIR, options);
+  const modalsDir = await assertPath(MODALS_DIR);
 
   let source = await readSourceFile(modalsDir, 'EditProduct.js');
   source = replaceSecondary(source, options);
@@ -64,7 +64,7 @@ function replaceRefs(source, options) {
     .filter((field) => {
       return field.type === 'ObjectId';
     }).map((field) => {
-      const camelLower = getCamelLower(field.ref);
+      const camelLower = camelCase(field.ref);
       return block`
         ...(this.props.${camelLower} && {
           ${camelLower}: this.props.${camelLower}.id,
@@ -89,7 +89,3 @@ function replaceNameReference(source, options) {
 
   return source;
 }
-
-module.exports = {
-  generateModals,
-};

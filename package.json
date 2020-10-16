@@ -1,0 +1,21 @@
+{
+  "name": "bedrock-cli",
+  "version": "0.0.1",
+  "description": "Bedrock CLI",
+  "repository": "git@github.com:bedrockio/bedrock-cli.git",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^6.1.0",
+    "esm": "^3.2.25",
+    "execa": "^4.0.3",
+    "glob": "^7.1.6",
+    "inquirer": "^7.3.3",
+    "kleur": "^4.1.3",
+    "listr": "^0.14.3",
+    "lodash": "^4.17.20",
+    "rimraf": "^3.0.2"
+  },
+  "devDependencies": {
+    "eslint": "^7.11.0"
+  }
+}

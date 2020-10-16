@@ -1,0 +1,55 @@
+#!/usr/bin/env node -r esm
+
+import path from 'path';
+import { program } from 'commander';
+import { promptFill } from './src/util/prompt';
+import { version } from './package.json';
+import descriptor from './command.json';
+
+program.version(version);
+addCommand(program, descriptor);
+
+function addCommand(command, descriptor) {
+  const { description, arguments: args, options } = descriptor;
+  command.description(description);
+  if (args && args.length) {
+    command.arguments(args.map((arg) => {
+      const { name, required, prompt } = arg;
+      return required && !prompt ? `<${name}>` : `[${name}]`;
+    }).join(' '));
+  }
+  for (let option of options || []) {
+    const { name, type, short, description, default: def } = option;
+    const opts = [];
+    if (name) {
+      let l = `--${name}`;
+      if (type) {
+        l += ` <${type}>`;
+      }
+      opts.push(l);
+    }
+    if (short) {
+      opts.push(`-${short}`);
+    }
+    command.option(opts.join(', '), description, def);
+  }
+  for (let sub of descriptor.commands || []) {
+    const { name } = sub;
+    const subcommand = command.command(name);
+    subcommand.storeOptionsAsProperties(false);
+    const handler = require(path.resolve(__dirname, 'src', name)).default;
+    addCommand(subcommand, sub);
+    subcommand.action(async () => {
+      const options = subcommand.opts();
+      subcommand.args.forEach((arg, i) => {
+        const { name } = sub.arguments[i];
+        options[name] = arg;
+      });
+      await promptFill(options, sub.arguments);
+      await promptFill(options, sub.options);
+      await handler(options);
+    });
+  }
+}
+
+program.parse(process.argv);

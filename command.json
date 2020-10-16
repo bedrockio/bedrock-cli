@@ -1,0 +1,42 @@
+{
+  "name": "bedrock",
+  "description": "The main bedrock script. (ADD DESCRIPTION)",
+  "commands": [
+    {
+      "name": "create",
+      "description": "Create a new Bedrock project.",
+      "arguments": [
+        {
+          "name": "project",
+          "type": "string",
+          "description": "Project name",
+          "required": true,
+          "prompt": true
+        }
+      ],
+      "options": [
+        {
+          "name": "domain",
+          "type": "string",
+          "validate": "domain",
+          "description": "Domain",
+          "required": true,
+          "prompt": true
+        },
+        {
+          "name": "repository",
+          "type": "string",
+          "validate": "repository",
+          "description": "Git repository",
+          "prompt": true
+        },
+        {
+          "name": "address",
+          "type": "string",
+          "description": "Company address",
+          "prompt": true
+        }
+      ]
+    }
+  ]
+}

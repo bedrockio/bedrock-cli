@@ -44,6 +44,20 @@ export async function promptFill(answers, options = []) {
   Object.assign(answers, filled);
 }
 
+export async function prompt(arg) {
+  const answers = await prompts(arg, {
+    onCancel: () => {
+      process.exit(1);
+    }
+  });
+  if (!Array.isArray(arg)) {
+    return Object.values(answers)[0];
+  } else {
+    return answers;
+  }
+}
+
+
 function getPromptOptions(option) {
   const { type: optionType, description, required, choices } = option;
   const lower = lowerFirst(description);
@@ -73,19 +87,6 @@ function getPromptOptions(option) {
       type: 'text',
       message: `Enter ${lower}${required ? '' : ' (optional)'}:`,
     };
-  }
-}
-
-export async function prompt(arg) {
-  const answers = await prompts(arg, {
-    onCancel: () => {
-      process.exit(1);
-    }
-  });
-  if (!Array.isArray(arg)) {
-    return Object.values(answers)[0];
-  } else {
-    return answers;
   }
 }
 

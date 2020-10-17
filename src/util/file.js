@@ -44,3 +44,15 @@ export async function assertPath(dir) {
 function getRelativePath(...args) {
   return path.relative(process.cwd(), ...args);
 }
+
+export async function readFile(file) {
+  if (file.match(/\.json$/)) {
+    return require(file);
+  } else {
+    await fs.readFile(file, 'utf8');
+  }
+}
+
+export async function writeFile(file, data) {
+  await fs.writeFile(file, data, 'utf8');
+}

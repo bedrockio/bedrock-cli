@@ -2,7 +2,7 @@ import path from 'path';
 import fetch from 'node-fetch';
 import { once } from 'lodash';
 import { homedir } from 'os';
-import { promises as fs } from 'fs';
+import { readFile, writeFile } from './file';
 
 // TODO: change to bedrock.io
 const API_URL = 'http://localhost:2300';
@@ -32,16 +32,16 @@ export async function request(options) {
   return data;
 }
 
-export const loadCredentials = once(() => {
+export const loadCredentials = once(async () => {
   try {
-    return require(CREDENTIALS_FILE);
+    return await readFile(CREDENTIALS_FILE);
   } catch(err) {
     return {};
   }
 });
 
 export async function writeCredentials(credentials) {
-  await fs.writeFile(CREDENTIALS_FILE, JSON.stringify(credentials, null, 2), 'utf8');
+  await writeFile(CREDENTIALS_FILE, JSON.stringify(credentials, null, 2));
 }
 
 async function getCurrentToken() {

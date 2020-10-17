@@ -4,6 +4,9 @@
   "description": "Bedrock CLI",
   "repository": "git@github.com:bedrockio/bedrock-cli.git",
   "license": "MIT",
+  "scripts": {
+    "test": "jest"
+  },
   "dependencies": {
     "commander": "^6.1.0",
     "esm": "^3.2.25",
@@ -19,6 +22,16 @@
     "rimraf": "^3.0.2"
   },
   "devDependencies": {
-    "eslint": "^7.11.0"
+    "@babel/core": "^7.12.3",
+    "@babel/plugin-transform-runtime": "^7.12.1",
+    "@babel/preset-env": "^7.12.1",
+    "babel-jest": "^26.5.2",
+    "eslint": "^7.11.0",
+    "eslint-plugin-jest": "^24.1.0",
+    "jest": "^26.5.3"
+  },
+  "volta": {
+    "node": "12.19.0",
+    "yarn": "1.22.10"
   }
 }

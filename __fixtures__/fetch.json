@@ -1,0 +1,14 @@
+{
+  "/1/auth/login": {
+    "data": {
+      "token": "token"
+    }
+  },
+  "/1/users/me": {
+    "data": {
+      "id": "id",
+      "name": "User",
+      "email": "fake@email.com"
+    }
+  }
+}

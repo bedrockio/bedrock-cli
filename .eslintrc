@@ -14,4 +14,11 @@
   "extends": [
     "eslint:recommended",
   ],
+  "rules": {
+    "no-unused-vars": ["error", {
+      "args": "after-used",
+      "caughtErrors": "none",
+      "ignoreRestSiblings": true
+    }],
+  }
 }

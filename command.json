@@ -88,8 +88,37 @@
           "description": "Path to a snapshot file."
         }
       ]
-
-
+    },
+    {
+      "name": "auth",
+      "description": "Authenticates with your bedrock.io account.",
+      "commands": [
+        {
+          "name": "login",
+          "description": "Login to your account",
+          "options": [
+            {
+              "name": "email",
+              "type": "email",
+              "description": "Email",
+              "required": true,
+              "prompt": true
+            }
+          ]
+        },
+        {
+          "name": "list",
+          "description": "List authorized accounts"
+        },
+        {
+          "name": "set",
+          "description": "Set current account"
+        },
+        {
+          "name": "remove",
+          "description": "Set authorized account"
+        }
+      ]
     }
   ]
 }

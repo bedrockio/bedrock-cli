@@ -33,7 +33,6 @@ export async function promptFill(answers, options = []) {
         name,
         initial: answers[name],
         validate: validator,
-        //askAnswered: !isValid,
         ...promptOptions,
       };
     }), {

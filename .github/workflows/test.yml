@@ -1,7 +1,7 @@
-name: test
+name: Run Tests
 on: [push]
 jobs:
-  api:
+  test:
     runs-on: ubuntu-latest
     strategy:
       matrix:

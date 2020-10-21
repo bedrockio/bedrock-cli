@@ -44,19 +44,21 @@ function addCommand(command, descriptor) {
     const handler = getHandler(sub);
     if (handler) {
       subcommand.action(async () => {
-        const { snapshot, ...options } = subcommand.opts();
+        let { snapshot, ...options } = subcommand.opts();
+        const args = sub.arguments || [];
+        if (args.length === 1 && args[0].type === 'multiple') {
+          options[args[0].name] = subcommand.args;
+        } else if (sub.arguments) {
+          subcommand.args.forEach((arg, i) => {
+            const { name } = sub.arguments[i];
+            options[name] = arg;
+          });
+        }
         if (snapshot) {
-          Object.assign(options, await restoreSnapshot(snapshot));
-        } else {
-          const args = sub.arguments || [];
-          if (args.length === 1 && args[0].type === 'multiple') {
-            options[args[0].name] = subcommand.args;
-          } else if (sub.arguments) {
-            subcommand.args.forEach((arg, i) => {
-              const { name } = sub.arguments[i];
-              options[name] = arg;
-            });
-          }
+          options = {
+            ...await restoreSnapshot(snapshot),
+            ...options,
+          };
         }
         await promptFill(options, sub.arguments);
         await promptFill(options, sub.options);

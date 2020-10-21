@@ -1,18 +1,25 @@
+import path from 'path';
 import { kebabCase } from 'lodash';
 import {
   generateScreens,
   generateSubScreens,
 } from './screens';
+
+import { assertBedrockRoot } from '../util/dir';
+import { setGenerateOptions } from './util/options';
+import { saveSnapshot } from '../util/snapshot';
+
 import { generateModel } from './model';
 import { generateRoutes } from './routes';
 import { generateModals } from './modals';
 import { patchMainMenu } from './util/patch';
 
-import { setGenerateOptions } from './util/options';
-import { saveSnapshot } from '../util/snapshot';
-
 export default async function generate(options) {
   const { components } = options;
+
+  const dir = process.cwd();
+
+  await assertBedrockRoot();
 
   await setGenerateOptions(options);
 
@@ -35,6 +42,6 @@ export default async function generate(options) {
     await patchMainMenu(options);
   }
 
-  await saveSnapshot(`${kebabCase(options.name)}.json`, options);
+  await saveSnapshot(path.resolve(dir, `${kebabCase(options.name)}.json`), options);
 
 }

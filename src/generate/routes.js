@@ -1,7 +1,7 @@
 import { yellow } from 'kleur';
-import { kebabCase } from 'lodash';
 import { block } from './util/template';
 import { assertPath } from '../util/file';
+import { patchRoutesEntrypoint } from './util/patch';
 import { replaceSchema } from './util/joi';
 import { generateDocs } from './util/docs';
 import { generateTests } from './util/tests';
@@ -37,43 +37,6 @@ export async function generateRoutes(options) {
   await patchRoutesEntrypoint(routesDir, options);
 
   console.log(yellow('Routes generated!'));
-}
-
-// Entrypoint
-
-const REQUIRE_REG = /^const \w+ = require\('.+'\);$/gm;
-const ROUTES_REG = /^router.use\(.+\);$/gm;
-
-async function patchRoutesEntrypoint(routesDir, options) {
-  const { pluralLower } = options;
-  const kebab = kebabCase(pluralLower);
-  let source = await readSourceFile(routesDir, 'index.js');
-
-  const requires = `const ${pluralLower} = require('./${pluralLower}');`;
-  const routes = `router.use('/${kebab}', ${pluralLower}.routes());`;
-
-  source = injectByReg(source, requires, REQUIRE_REG);
-  source = injectByReg(source, routes, ROUTES_REG);
-
-  await writeLocalFile(source, routesDir, 'index.js');
-}
-
-function injectByReg(source, replace, reg) {
-  if (!source.includes(replace)) {
-    const match = source.match(reg);
-    if (match) {
-      const last = match[match.length - 1];
-      const index = source.indexOf(last) + last.length;
-
-      let src = '';
-      src += source.slice(0, index);
-      src += '\n';
-      src += replace;
-      src += source.slice(index);
-      source = src;
-    }
-  }
-  return source;
 }
 
 function getSearchSchema(schema) {

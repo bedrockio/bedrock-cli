@@ -122,8 +122,7 @@ function getTimestamps() {
 }
 
 function getSchemaFields(options, type) {
-  const setRequired = type !== 'attributes';
-  const typeRequired = type === 'create';
+  const typeRequired = type === 'create' || type === 'attributes';
   return options.schema.map((field) => {
     const { name, required } = field;
     const schema = getOpenApiSchema(field);
@@ -132,9 +131,7 @@ function getSchemaFields(options, type) {
       name,
       description,
       schema,
-      ...(setRequired && {
-        required: required && typeRequired,
-      }),
+      required: required && typeRequired,
     };
   });
 }

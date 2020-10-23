@@ -4,7 +4,7 @@ import destroyer from 'server-destroy';
 
 const PORT = 8080;
 
-export async function getOAuthToken(authUrl, redirectParam) {
+export function getOAuthToken(authUrl, redirectParam) {
   return new Promise((resolve, reject) => {
     const base = `http://localhost:${PORT}`;
     const server = http.createServer(async (req, res) => {

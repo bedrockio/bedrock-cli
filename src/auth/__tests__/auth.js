@@ -1,14 +1,14 @@
 import path from 'path';
 import { homedir } from 'os';
 import { getWrittenData } from 'util/file';
-import { login } from '../index';
+import { loginWithPassword } from '../index';
 
 jest.mock('util/file');
 
-describe('login', () => {
+describe('loginWithPassword', () => {
 
-  it('should write to crendentials file from login', async () => {
-    await login({
+  it('should write to crendentials file on login with password', async () => {
+    await loginWithPassword({
       email: 'fake@email.com',
       password: 'fakepassword',
     });

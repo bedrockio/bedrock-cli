@@ -1,9 +1,23 @@
 import kleur from 'kleur';
 import { prompt } from '../util/prompt';
 import { request, loadCredentials, writeCredentials } from '../util/api';
+import { getOAuthToken } from '../util/authorize';
 
-export async function login(options) {
-  const credentials = await loadCredentials();
+// TODO: change me!
+const OAUTH_ENDPOINT = 'http://localhost:2300/1/auth/something';
+const OAUTH_REDIRECT_PARAM = 'redirect_uri';
+
+export async function login() {
+  try {
+    const token = await getOAuthToken(OAUTH_ENDPOINT, OAUTH_REDIRECT_PARAM);
+    await setCredentialsWithToken(token);
+    console.log(kleur.yellow('Successfully logged in!'));
+  } catch(err) {
+    console.log(kleur.red(`Unable to login: ${err.message}`));
+  }
+}
+
+export async function loginWithPassword(options) {
   const { email } = options;
   const password = await prompt({
     type: 'password',
@@ -12,18 +26,23 @@ export async function login(options) {
   });
   try {
     const token = await getToken(email, password);
-    const { id, name } = await getUser(token);
-    credentials[id] = {
-      name,
-      email,
-      token,
-    };
-    credentials.current = id;
-    await writeCredentials(credentials);
+    await setCredentialsWithToken(token);
     console.log(kleur.yellow('Successfully logged in!'));
   } catch(err) {
     console.log(kleur.red(`Unable to login: ${err.message}`));
   }
+}
+
+export async function setCredentialsWithToken(token) {
+  const credentials = await loadCredentials();
+  const { id, email, name } = await getUserInfo(token);
+  credentials[id] = {
+    name,
+    email,
+    token,
+  };
+  credentials.current = id;
+  await writeCredentials(credentials);
 }
 
 export async function list() {
@@ -31,7 +50,11 @@ export async function list() {
   accounts = accounts.map(({ name, email, current }) => {
     return `${current ? kleur.cyan('❯') : ' ' } ${name} ${kleur.dim(`<${email}>`)}`;
   });
-  console.log(kleur.white(accounts.join('\n')));
+  if (accounts.length) {
+    console.log(kleur.white(accounts.join('\n')));
+  } else {
+    console.log(kleur.white('No authenticated users'));
+  }
 }
 
 export async function set() {
@@ -111,7 +134,7 @@ async function getToken(email, password) {
   return token;
 }
 
-async function getUser(token) {
+async function getUserInfo(token) {
   return await request({
     token,
     path: '/1/users/me',

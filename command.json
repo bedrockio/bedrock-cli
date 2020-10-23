@@ -95,16 +95,7 @@
       "commands": [
         {
           "name": "login",
-          "description": "Login to your account",
-          "options": [
-            {
-              "name": "email",
-              "type": "email",
-              "description": "Email",
-              "required": true,
-              "prompt": true
-            }
-          ]
+          "description": "Login to your account"
         },
         {
           "name": "list",

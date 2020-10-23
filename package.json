@@ -17,9 +17,11 @@
     "lodash": "^4.17.20",
     "mkdirp": "^1.0.4",
     "node-fetch": "^2.6.1",
+    "open": "^7.3.0",
     "pluralize": "^8.0.0",
     "prompts": "^2.3.2",
-    "rimraf": "^3.0.2"
+    "rimraf": "^3.0.2",
+    "server-destroy": "^1.0.1"
   },
   "devDependencies": {
     "@babel/core": "^7.12.3",

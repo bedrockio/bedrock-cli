@@ -11,7 +11,7 @@ import {
 const MODELS_DIR = 'services/api/src/models';
 
 export async function generateModel(options) {
-  const { camelLower } = options;
+  const { kebab } = options;
 
   const modelsDir = await assertPath(MODELS_DIR);
 
@@ -20,7 +20,7 @@ export async function generateModel(options) {
   source = replaceBlock(source, outputSchema(options.schema), 'schema');
   source = replaceBlock(source, getRequires(options.schema), 'requires');
   source = replaceBlock(source, getAutopopulate(options.schema), 'autopopulate');
-  await writeLocalFile(source, modelsDir, `${camelLower}.js`);
+  await writeLocalFile(source, modelsDir, `${kebab}.js`);
 
   console.log(yellow('Model generated!'));
 }

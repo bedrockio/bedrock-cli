@@ -1,5 +1,4 @@
 import { plural } from 'pluralize';
-import { camelCase } from 'lodash';
 import { validateCamelUpper } from '../../util/validation';
 import { assertPath } from '../../util/file';
 import { prompt } from '../../util/prompt';
@@ -108,16 +107,8 @@ async function getSubScreens(options) {
     selectedNames = selectedNames.concat(otherNames);
   }
 
-  for (let camelUpper of selectedNames) {
-    const camelLower = camelCase(camelUpper);
-    const pluralUpper = plural(camelUpper);
-    const pluralLower = plural(camelLower);
-    references.push({
-      camelLower,
-      camelUpper,
-      pluralLower,
-      pluralUpper,
-    });
+  for (let name of selectedNames) {
+    references.push(getInflections(name));
   }
 
   return references;

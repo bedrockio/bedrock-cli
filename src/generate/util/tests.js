@@ -15,7 +15,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
 `;
 
 export async function generateTests(options) {
-  const { pluralLower } = options;
+  const { pluralKebab } = options;
   const testsDir = await assertPath(TESTS_DIR);
   let source = await readSourceFile(testsDir, 'shops.js');
   source = replacePrimary(source, options);
@@ -26,7 +26,7 @@ export async function generateTests(options) {
   source = replaceTestPost(source, options);
   source = replaceTestPatch(source, options);
   source = replaceTestDelete(source, options);
-  await writeLocalFile(source, testsDir, `${pluralLower}.js`);
+  await writeLocalFile(source, testsDir, `${pluralKebab}.js`);
 }
 
 function replaceTestSearch(source, options) {
@@ -49,9 +49,9 @@ function replaceTestSearch(source, options) {
     const body = response.body;
     expect(body.meta.total).toBe(2);
 
-    ${getRequiredExpects(options, 'body.data[0]', `${camelLower}2`)}
+    ${getRequiredExpects(options, 'body.data[0]')}
 
-    ${getRequiredExpects(options, 'body.data[1]', `${camelLower}1`)}
+    ${getRequiredExpects(options, 'body.data[1]')}
   `;
   return replaceBlock(source, body, 'test-search');
 }
@@ -66,7 +66,7 @@ function replaceTestGet(source, options) {
     });
     const response = await request('GET', \`/1/${kebab}/\${${camelLower}.id}\`, {}, { user });
     expect(response.status).toBe(200);
-    ${getRequiredExpects(options, 'response.body.data', camelLower)}
+    ${getRequiredExpects(options, 'response.body.data')}
   `;
   return replaceBlock(source, body, 'test-get');
 }
@@ -102,7 +102,7 @@ function replaceTestPatch(source, options) {
     }, { user });
     expect(response.status).toBe(200);
     ${camelLower} = await ${camelUpper}.findById(${camelLower}.id);
-    ${getRequiredExpects(options, camelLower, null, true)}
+    ${getRequiredExpects(options, camelLower, true)}
   `;
   return replaceBlock(source, body, 'test-patch');
 }
@@ -141,7 +141,7 @@ function getRequiredFixtures(options, tab, alternate) {
     .join('\n' + '  '.repeat(tab));
 }
 
-function getRequiredExpects(options, expect, assert, alternate) {
+function getRequiredExpects(options, expect, alternate) {
   return options.schema
     .filter((field) => {
       // Reference field may or may not be populated, so hard to
@@ -152,9 +152,6 @@ function getRequiredExpects(options, expect, assert, alternate) {
       const { name, type } = field;
       let method;
       let expected;
-      if (assert) {
-        expected = `${assert}.${name}`;
-      }
       if (type.match(/Array/)) {
         method = 'toEqual';
         if (!expected) {
@@ -175,23 +172,23 @@ function getFixtureValue(field, alternate = false) {
   const { name, schemaType } = field;
   if (schemaType === 'String') {
     if (field.enum) {
-      return `"${field.enum[0]}"`;
+      return `'${field.enum[0]}'`;
     } else if (field.minlength || field.maxlength) {
       const max = Math.min(field.maxlength, Math.max(field.minlength, 10));
-      return `"${LOREM.slice(0, max)}"`;
+      return `'${LOREM.slice(0, max)}'`;
     } else {
       const fake = alternate ? 'other fake' : 'fake';
-      return `"${fake} ${name}"`;
+      return `'${fake} ${name}'`;
     }
   } else if (schemaType === 'Number') {
-    let min = field.min || 1;
-    let max = field.max || 10;
+    let min = Number(field.min) || 1;
+    let max = Number(field.max) || 10;
     return Math.floor((min + max) / (alternate ? 3 : 2));
   } else if (schemaType === 'Boolean') {
     return alternate ? 'false' : 'true';
   } else if (schemaType === 'Date') {
-    const str = alternate ? '2020-01-01T00:00:00' : '2020-01-02T00:00:00';
-    return `"${str}"`;
+    const str = alternate ? '2020-01-01T00:00:00.000Z' : '2020-01-02T00:00:00.000Z';
+    return `'${str}'`;
   } else if (schemaType === 'ObjectId') {
     return 'mongoose.Types.ObjectId()';
   }

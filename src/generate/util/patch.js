@@ -116,12 +116,11 @@ function injectByReg(source, replace, reg) {
 
 export async function patchRoutesEntrypoint(routesDir, options) {
   await runAsOptionalTask('Patching Routes Entrypoint', async () => {
-    const { pluralLower } = options;
-    const kebab = kebabCase(pluralLower);
+    const { pluralLower, pluralKebab } = options;
     let source = await readLocalFile(routesDir, 'index.js');
 
-    const requires = `const ${pluralLower} = require('./${pluralLower}');`;
-    const routes = `router.use('/${kebab}', ${pluralLower}.routes());`;
+    const requires = `const ${pluralLower} = require('./${pluralKebab}');`;
+    const routes = `router.use('/${pluralKebab}', ${pluralLower}.routes());`;
 
     source = injectByReg(source, requires, REQUIRE_REG);
     source = injectByReg(source, routes, ROUTES_REG);

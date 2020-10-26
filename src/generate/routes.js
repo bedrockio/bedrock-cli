@@ -16,7 +16,7 @@ import {
 const ROUTES_DIR = 'services/api/src/v1';
 
 export async function generateRoutes(options) {
-  const { schema, pluralLower } = options;
+  const { schema, pluralKebab } = options;
 
   const routesDir = await assertPath(ROUTES_DIR, options);
 
@@ -29,7 +29,7 @@ export async function generateRoutes(options) {
   source = replaceSchema(source, searchSchema, 'search');
   source = replaceSearchQuery(source, searchSchema);
 
-  await writeLocalFile(source, routesDir, `${pluralLower}.js`);
+  await writeLocalFile(source, routesDir, `${pluralKebab}.js`);
 
   await generateDocs(options);
   await generateTests(options);

@@ -8,9 +8,9 @@ import { indent } from './template';
 const USE_LOCAL = false;
 
 // Until PR lands:
-const GITHUB_RAW_BASE = 'https://raw.githubusercontent.com/bedrockio/bedrock-core/generator';
+const GITHUB_RAW_BASE =
+  'https://raw.githubusercontent.com/bedrockio/bedrock-core/generator';
 //const GITHUB_RAW_BASE = 'https://raw.githubusercontent.com/bedrockio/bedrock-core/master';
-
 
 const GENERATOR_REG = /^([^\n]*)(\/\/|\{\/\*) --- Generator: BLOCK[\s\S]+?--- Generator: end(?: \*\/\})?$/gm;
 
@@ -25,18 +25,46 @@ export function replaceBlock(source, inject, block) {
 }
 
 export function replacePrimary(source, resource) {
-  source = replaceToken(source, /Shops/g, resource.pluralUpper);
-  source = replaceToken(source, /shops/g, resource.pluralLower);
-  source = replaceToken(source, /Shop/g, resource.camelUpper);
-  source = replaceToken(source, /shop/g, resource.camelLower);
+  const {
+    kebab,
+    camelLower,
+    camelUpper,
+    pluralLower,
+    pluralUpper,
+    pluralKebab,
+  } = resource;
+  source = replaceToken(
+    source,
+    /require\((.*)shops/g,
+    `require($1${pluralKebab})`
+  );
+  source = replaceToken(source, /require\((.*?)shop\b/g, `require($1${kebab}`);
+  source = replaceToken(source, /Shops/g, pluralUpper);
+  source = replaceToken(source, /shops/g, pluralLower);
+  source = replaceToken(source, /Shop/g, camelUpper);
+  source = replaceToken(source, /shop/g, camelLower);
   return source;
 }
 
 export function replaceSecondary(source, resource) {
-  source = replaceToken(source, /Products/g, resource.pluralUpper);
-  source = replaceToken(source, /products/g, resource.pluralLower);
-  source = replaceToken(source, /Product/g, resource.camelUpper);
-  source = replaceToken(source, /product/g, resource.camelLower);
+  const {
+    kebab,
+    camelLower,
+    camelUpper,
+    pluralLower,
+    pluralUpper,
+    pluralKebab,
+  } = resource;
+  source = replaceToken(
+    source,
+    /require\((.*)products/g,
+    `require($1${pluralKebab})`
+  );
+  source = replaceToken(source, /require\((.*?)product\b/g, `require($1${kebab}`);
+  source = replaceToken(source, /Products/g, pluralUpper);
+  source = replaceToken(source, /products/g, pluralLower);
+  source = replaceToken(source, /Product/g, camelUpper);
+  source = replaceToken(source, /product/g, camelLower);
   return source;
 }
 
@@ -54,7 +82,7 @@ export async function writeLocalFile(source, ...args) {
 
 export async function readRemoteFile(...args) {
   const file = args.join('/');
-  return await runAsTask('Reading Source', async() => {
+  return await runAsTask('Reading Source', async () => {
     const response = await fetch(`${GITHUB_RAW_BASE}/${file}`);
     return await response.text();
   });
@@ -65,10 +93,10 @@ export async function readLocalDirectory(...args) {
   const entries = await fs.readdir(dir);
   return Promise.all(
     entries
-    .filter((file) => file.match(/\.js$/))
-    .map((file) => {
-      return readLocalFile(dir, file);
-    })
+      .filter((file) => file.match(/\.js$/))
+      .map((file) => {
+        return readLocalFile(dir, file);
+      })
   );
 }
 
@@ -82,4 +110,3 @@ function replaceToken(source, reg, token) {
   }
   return source;
 }
-

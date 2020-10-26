@@ -1,4 +1,4 @@
-import { capitalize, camelCase } from 'lodash';
+import { camelCase, upperFirst } from 'lodash';
 
 const REPO_REG = /^[a-z-]+\/[a-z-]+/;
 
@@ -69,7 +69,7 @@ export function validateCamelUpper(str) {
 }
 
 function camelUpper(str) {
-  return capitalize(camelCase(str));
+  return upperFirst(camelCase(str));
 }
 
 export function validateNumber(str) {

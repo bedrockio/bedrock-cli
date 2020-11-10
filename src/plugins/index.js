@@ -261,8 +261,7 @@ export async function info(options) {
 }
 
 export async function apply(options) {
-  //const destination = await assertBedrockRoot();
-  const destination = process.cwd();
+  const destination = await assertBedrockRoot();
   const repoPath = options.name.replace('@', '');
   console.info(`Cloning plugin into temporary directory`);
   const source = tmp.dirSync().name;

@@ -14,11 +14,18 @@ addCommand(program, descriptor);
 function addCommand(command, descriptor) {
   const { description, arguments: args, options } = descriptor;
   command.description(description);
+  command.on('--help', () => {
+    console.log('');
+  });
   if (args && args.length) {
-    command.arguments(args.map((arg) => {
-      const { name, required, prompt } = arg;
-      return required && !prompt ? `<${name}>` : `[${name}]`;
-    }).join(' '));
+    command.arguments(
+      args
+        .map((arg) => {
+          const { name, required, prompt } = arg;
+          return required && !prompt ? `<${name}>` : `[${name}]`;
+        })
+        .join(' ')
+    );
   }
   for (let option of options || []) {
     const { name, type, short, description, default: def } = option;
@@ -56,7 +63,7 @@ function addCommand(command, descriptor) {
         }
         if (snapshot) {
           options = {
-            ...await restoreSnapshot(snapshot),
+            ...(await restoreSnapshot(snapshot)),
             ...options,
           };
         }
@@ -73,7 +80,9 @@ function getHandler(descriptor) {
   if (parent.name === 'bedrock') {
     return require(path.resolve(__dirname, 'src', name)).default;
   } else {
-    return require(path.resolve(__dirname, 'src', parent.name))[camelCase(name)];
+    return require(path.resolve(__dirname, 'src', parent.name))[
+      camelCase(name)
+    ];
   }
 }
 

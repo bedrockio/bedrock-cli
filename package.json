@@ -21,7 +21,8 @@
     "pluralize": "^8.0.0",
     "prompts": "^2.3.2",
     "rimraf": "^3.0.2",
-    "server-destroy": "^1.0.1"
+    "server-destroy": "^1.0.1",
+    "tmp": "^0.2.1"
   },
   "devDependencies": {
     "@babel/core": "^7.12.3",

@@ -3,10 +3,10 @@
 import path from 'path';
 import { program } from 'commander';
 import { camelCase } from 'lodash';
-import { promptFill } from './src/util/prompt';
-import { restoreSnapshot } from './src/util/snapshot';
-import { version } from './package.json';
-import descriptor from './command.json';
+import { promptFill } from '../src/util/prompt';
+import { restoreSnapshot } from '../src/util/snapshot';
+import { version } from '../package.json';
+import descriptor from '../command.json';
 
 program.version(version);
 addCommand(program, descriptor);
@@ -71,9 +71,9 @@ function addCommand(command, descriptor) {
 function getHandler(descriptor) {
   const { name, parent } = descriptor;
   if (parent.name === 'bedrock') {
-    return require(path.resolve(__dirname, 'src', name)).default;
+    return require(path.resolve(__dirname, '../src', name)).default;
   } else {
-    return require(path.resolve(__dirname, 'src', parent.name))[camelCase(name)];
+    return require(path.resolve(__dirname, '../src', parent.name))[camelCase(name)];
   }
 }
 

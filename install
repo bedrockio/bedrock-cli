@@ -1,7 +1,6 @@
 #!/bin/bash
 
 DIR=~/.bedrock
-BIN=~/.bin/bedrock
 
 YELLOW="\033[0;33m"
 NC='\033[0m'
@@ -18,9 +17,20 @@ install () {
   popd
 }
 
-link () {
-  ln -sf "$DIR/cli" $BIN
+try_profile()
+{
+  if [ -f "$1" ]; then
+    grep -qxF 'export PATH="$HOME/.bedrock/bin:$PATH"' $1 || echo 'export PATH="$HOME/.bedrock/bin:$PATH"' >> $1
+  fi
 }
+
+link () {
+  try_profile $HOME/.zshenv
+  try_profile $HOME/.bashrc
+  try_profile $HOME/.bash_profile
+  try_profile $HOME/.config/fish/config.fish
+}
+
 
 echo -e "${YELLOW}Installing Bedrock...${NC}"
 cleanup

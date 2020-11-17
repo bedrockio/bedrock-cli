@@ -32,15 +32,17 @@ link () {
   try_profile $HOME/.bash_profile
   try_profile $HOME/.config/fish/config.fish
 
-  # Link once for the current shell
-  export PATH="$HOME/.bedrock/bin:$PATH"
 }
 
 
 echo -e "${YELLOW}Installing Bedrock...${NC}"
+
 cleanup
 install
 link
+
+# Link once for the current shell
+export PATH="$HOME/.bedrock/bin:$PATH"
 
 cat <<-EOM
 

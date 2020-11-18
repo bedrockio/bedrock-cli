@@ -1,56 +1,99 @@
 #!/bin/bash
 
-DIR=~/.bedrock
+# This script installs the new Bedrock CLI:
+#
+#     curl https://get.bedrock.io | bash
+#
+# Note: this script is inspired by: https://sandstorm.io/news/2015-09-24-is-curl-bash-insecure-pgp-verified-install
+#
 
-YELLOW="\033[0;33m"
-NC='\033[0m'
+if test -z "$BASH_VERSION"; then
+  echo "Please run this script using bash, not sh or any other shell." >&2
+  exit 1
+fi
 
-cleanup () {
-  # Cleanup previous versions.
-  rm -rf $DIR
-}
+# We wrap the entire script in a big function which we only call at the very end, in order to
+# protect against the possibility of the connection dying mid-script. This protects us against
+# the problem described in this blog post:
+#   http://blog.existentialize.com/dont-pipe-to-your-shell.html
+_() {
 
-install () {
-  git clone --quiet git@github.com:bedrockio/bedrock-cli.git $DIR > /dev/null
-  pushd $DIR > /dev/null
-  yarn install > /dev/null
-  popd
-}
+  DIR=~/.bedrock
 
-try_profile()
-{
-  if [ -f "$1" ]; then
-    grep -qxF 'export PATH="$HOME/.bedrock/bin:$PATH"' $1 || echo 'export PATH="$HOME/.bedrock/bin:$PATH"' >> $1
+  YELLOW="\033[0;33m"
+  NC='\033[0m'
+
+  cleanup () {
+    # Cleanup previous versions.
+    rm -rf $DIR
+  }
+
+  install () {
+    git clone --quiet git@github.com:bedrockio/bedrock-cli.git $DIR > /dev/null
+    pushd $DIR > /dev/null
+    yarn install > /dev/null 2>&1
+    popd
+  }
+
+  PROFILE_PATH=""
+
+  try_profile()
+  {
+    if [ -f "$1" ]; then
+      grep -qxF 'export PATH="$HOME/.bedrock/bin:$PATH"' $1 || echo 'export PATH="$HOME/.bedrock/bin:$PATH"' >> $1
+      PROFILE_PATH=$1
+    fi
+  }
+
+  try_fish_profile()
+  {
+    if [ -f "$1" ]; then
+      grep -qxF 'set -gx PATH $PATH ~/.bedrock/bin' $1 || echo 'set -gx PATH $PATH ~/.bedrock/bin' >> $1
+      PROFILE_PATH=$1
+    fi
+  }
+
+  link () {
+    # Attempt to add to the following shell profiles
+    # if the files exist and are not already linked.
+    try_profile $HOME/.bashrc
+    try_profile $HOME/.bash_profile
+    try_profile $HOME/.zshenv
+    try_profile $HOME/.zshrc
+    try_fish_profile $HOME/.config/fish/config.fish  
+  }
+
+
+  echo -e "${YELLOW}Installing Bedrock...${NC}"
+
+  cleanup
+  install
+  link
+
+  if [ -f /System/Library/Sounds/Glass.aiff ]; then
+    afplay /System/Library/Sounds/Glass.aiff 2> /dev/null
   fi
-}
 
-link () {
-  # Attempt to add to the following shell profiles
-  # if the files exist and are not already linked.
-  try_profile $HOME/.zshenv
-  try_profile $HOME/.bashrc
-  try_profile $HOME/.bash_profile
-  try_profile $HOME/.config/fish/config.fish
+  echo ""
+  echo ""
+  echo " ______  _______ ______   ______  _____  _______ _     _  "
+  echo " |_____] |______ |     \ |_____/ |     | |       |____/   "
+  echo " |_____] |______ |_____/ |    \_ |_____| |_____  |    \_  "
+  echo ""
+  echo ""
 
-}
+  cat <<-EOM
 
+Installation completed. In order to update your \$PATH open a new shell or run:
 
-echo -e "${YELLOW}Installing Bedrock...${NC}"
+  . $PROFILE_PATH
 
-cleanup
-install
-link
+Then, to create a new Bedrock project run:
 
-# Link once for the current shell
-export PATH="$HOME/.bedrock/bin:$PATH"
-
-cat <<-EOM
-
-Done!
-
-You can now run Bedrock commands:
-
-Create new project:
-bedrock create
+  bedrock create
 
 EOM
+
+}
+
+_ "$0" "$@"

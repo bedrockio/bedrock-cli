@@ -7,7 +7,7 @@ export default function fetch(url) {
     return {
       json: async () => {
         return data;
-      }
+      },
     };
   }
 }

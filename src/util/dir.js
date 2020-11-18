@@ -11,7 +11,7 @@ export async function assertBedrockRoot() {
     try {
       await fs.access(path.resolve(dir, 'services', 'api'), constants.W_OK);
       break;
-    } catch(err) {
+    } catch (err) {
       dir = path.resolve(dir, '..');
       if (dir === '/') {
         console.info(kleur.red('Could not find Bedrock root directory!'));
@@ -23,4 +23,6 @@ export async function assertBedrockRoot() {
   if (dir !== process.cwd()) {
     process.chdir(dir);
   }
+
+  return dir;
 }

@@ -28,10 +28,25 @@ _() {
     rm -rf $DIR
   }
 
+  check() {
+    if ! [ -x "$(command -v git)" ]; then
+      echo 'Error: Git is not installed (https://git-scm.com/)' >&2
+      exit 1
+    fi
+    if [ "$(command -v yarn)" ]; then
+      PKG_CMD="yarn"
+    elif [ "$(command -v npm)" ]; then
+      PKG_CMD="npm"
+    else
+      echo 'Error: Either yarn or npm must be installed (https://www.npmjs.com/)' >&2
+      exit 1
+    fi
+  }
+
   install () {
     git clone --quiet git@github.com:bedrockio/bedrock-cli.git $DIR > /dev/null
     pushd $DIR > /dev/null
-    yarn install > /dev/null 2>&1
+    $PKG_CMD install > /dev/null 2>&1
     popd
   }
 
@@ -67,6 +82,7 @@ _() {
   echo -e "${YELLOW}Installing Bedrock...${NC}"
 
   cleanup
+  check
   install
   link
 

@@ -176,6 +176,33 @@
               "prompt": false
             }
           ]
+        },
+        {
+          "name": "build",
+          "description": "Build service container",
+          "arguments": [
+            {
+              "name": "service",
+              "type": "string",
+              "description": "Service (e.g. api)",
+              "required": true,
+              "prompt": false
+            },
+            {
+              "name": "subservice",
+              "type": "string",
+              "description": "SubService (e.g. cli)",
+              "required": false,
+              "prompt": false
+            },
+            {
+              "name": "tag",
+              "type": "string",
+              "description": "Image Tag, defaults to latest (e.g. v1.2)",
+              "required": false,
+              "prompt": false
+            }
+          ]
         }
       ]
     }

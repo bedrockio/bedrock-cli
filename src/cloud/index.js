@@ -48,3 +48,25 @@ export async function status(options) {
   console.info(await exec('kubectl get nodes'), '\n');
   console.info(await exec('kubectl get pods'));
 }
+
+// function buildImage(service, subservice, tag) {}
+
+export async function build(options) {
+  const { service, subservice, tag = 'latest' } = options;
+
+  // await assertBedrockRoot();
+  // const config = await getConfig(environment);
+  const platformName = path.basename(process.cwd()); // || config.platformName
+  console.log(platformName);
+
+  await process.chdir('./services/api');
+  if (!subservice) {
+    const imageName = `${platformName}-services-${service}:${tag}`;
+    console.info(`=> Building "${imageName}"`);
+    console.info(await exec(`docker build -t ${imageName} .`));
+  } else {
+    const imageName = `${platformName}-services-${service}-${subservice}:${tag}`;
+    console.info(`=> Building "${imageName}"`);
+    console.info(await exec(`docker build -t ${imageName} -f Dockerfile.${subservice} .`));
+  }
+}

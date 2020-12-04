@@ -146,6 +146,38 @@
           ]
         }
       ]
+    },
+    {
+      "name": "cloud",
+      "description": "Cloud Controls for deployment and provisioning",
+      "commands": [
+        {
+          "name": "authorize",
+          "description": "Authorize cloud environment",
+          "arguments": [
+            {
+              "name": "environment",
+              "type": "string",
+              "description": "Environment (e.g. staging)",
+              "required": true,
+              "prompt": false
+            }
+          ]
+        },
+        {
+          "name": "status",
+          "description": "Get status of cloud deployment",
+          "arguments": [
+            {
+              "name": "environment",
+              "type": "string",
+              "description": "Environment (e.g. staging)",
+              "required": true,
+              "prompt": false
+            }
+          ]
+        }
+      ]
     }
   ]
 }

@@ -203,6 +203,40 @@
               "prompt": false
             }
           ]
+        },
+        {
+          "name": "push",
+          "description": "Push service container to gcr.io",
+          "arguments": [
+            {
+              "name": "environment",
+              "type": "string",
+              "description": "Environment (e.g. staging)",
+              "required": true,
+              "prompt": false
+            },
+            {
+              "name": "service",
+              "type": "string",
+              "description": "Service (e.g. api)",
+              "required": false,
+              "prompt": false
+            },
+            {
+              "name": "subservice",
+              "type": "string",
+              "description": "SubService (e.g. cli)",
+              "required": false,
+              "prompt": false
+            },
+            {
+              "name": "tag",
+              "type": "string",
+              "description": "Image Tag, defaults to latest (e.g. v1.2)",
+              "required": false,
+              "prompt": false
+            }
+          ]
         }
       ]
     }

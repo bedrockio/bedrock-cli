@@ -1,15 +1,14 @@
-import fetch from 'node-fetch';
-import fs from 'fs';
 import path from 'path';
 import kleur from 'kleur';
-import tmp from 'tmp';
-import { homedir } from 'os';
-import { prompt } from '../util/prompt';
 import { assertBedrockRoot } from '../util/dir';
 import { readFile } from '../util/file';
 import { exec } from '../util/shell';
 import { exit } from '../util/exit';
 import { setGCloudConfig, checkGCloudConfig } from './authorize';
+import { buildImage } from './build';
+import { dockerPush } from './push';
+
+const devMode = true;
 
 async function getConfig(environment) {
   const configFilePath = path.resolve('deployment/environments', environment, 'config.json');
@@ -24,10 +23,14 @@ async function getConfig(environment) {
   return config;
 }
 
+function getPlatformName() {
+  return path.basename(process.cwd());
+}
+
 export async function authorize(options) {
   const { environment } = options;
+  if (!devMode) await assertBedrockRoot();
 
-  // await assertBedrockRoot();
   const config = await getConfig(environment);
   await setGCloudConfig(config.gcloud);
   console.info(kleur.green(`Successfully authorized ${environment}`));
@@ -35,8 +38,8 @@ export async function authorize(options) {
 
 export async function status(options) {
   const { environment } = options;
+  if (!devMode) assertBedrockRoot();
 
-  // await assertBedrockRoot();
   const config = await getConfig(environment);
   const valid = await checkGCloudConfig(environment, config.gcloud);
   if (!valid) exit('Invalid Google Cloud config');
@@ -49,24 +52,24 @@ export async function status(options) {
   console.info(await exec('kubectl get pods'));
 }
 
-// function buildImage(service, subservice, tag) {}
-
 export async function build(options) {
   const { service, subservice, tag = 'latest' } = options;
+  if (!devMode) await assertBedrockRoot();
 
-  // await assertBedrockRoot();
-  // const config = await getConfig(environment);
-  const platformName = path.basename(process.cwd()); // || config.platformName
-  console.log(platformName);
+  const platformName = getPlatformName();
+  await buildImage(platformName, service, subservice, tag);
+}
 
-  await process.chdir('./services/api');
-  if (!subservice) {
-    const imageName = `${platformName}-services-${service}:${tag}`;
-    console.info(`=> Building "${imageName}"`);
-    console.info(await exec(`docker build -t ${imageName} .`));
-  } else {
-    const imageName = `${platformName}-services-${service}-${subservice}:${tag}`;
-    console.info(`=> Building "${imageName}"`);
-    console.info(await exec(`docker build -t ${imageName} -f Dockerfile.${subservice} .`));
-  }
+export async function push(options) {
+  const { environment, service, subservice, tag = 'latest' } = options;
+  if (!devMode) assertBedrockRoot();
+
+  const config = await getConfig(environment);
+  const valid = await checkGCloudConfig(environment, config.gcloud);
+  if (!valid) exit('Invalid Google Cloud config');
+
+  const platformName = getPlatformName();
+  const { project } = config.gcloud;
+
+  await dockerPush(project, platformName, service, subservice, tag);
 }

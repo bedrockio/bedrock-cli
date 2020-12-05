@@ -1,6 +1,21 @@
-import { exit } from '../util/exit';
+import path from 'path';
 import kleur from 'kleur';
+import { exit } from '../util/exit';
 import { exec } from '../util/shell';
+import { readFile } from '../util/file';
+
+export async function getConfig(environment) {
+  const configFilePath = path.resolve('deployment/environments', environment, 'config.json');
+  let config = {};
+  try {
+    config = await readFile(configFilePath);
+  } catch (e) {
+    exit(
+      `Could not find config.json for environment: "${environment}", file path: "${configFilePath}"`
+    );
+  }
+  return config;
+}
 
 export async function setGCloudConfig(options) {
   const { project, computeZone, kubernetes } = options;
@@ -23,7 +38,7 @@ export async function setGCloudConfig(options) {
   }
 }
 
-export async function checkGCloudConfig(environment, options) {
+async function checkGCloudConfig(environment, options) {
   const { project, computeZone, kubernetes } = options;
   if (!kubernetes) exit('Missing kubernetes settings in config');
   try {
@@ -74,4 +89,9 @@ export async function checkGCloudConfig(environment, options) {
   } catch (e) {
     exit(e.message);
   }
+}
+
+export async function checkConfig(environment, config) {
+  const valid = await checkGCloudConfig(environment, config.gcloud);
+  if (!valid) exit('Invalid Google Cloud config');
 }

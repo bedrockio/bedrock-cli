@@ -1,6 +1,6 @@
 import execa from 'execa';
 
-export async function exec(commands, stdErr = false) {
+export async function exec(commands, std = `stdout`) {
   try {
     if (typeof commands === 'string') {
       commands = [commands];
@@ -9,7 +9,7 @@ export async function exec(commands, stdErr = false) {
     for (let command of commands) {
       const [first, ...rest] = command.match(/".+"|\S+/g);
       const execResult = await execa(first, rest);
-      output = stdErr ? execResult.stderr : execResult.stdout;
+      output = std == 'stderr' ? execResult.stderr : execResult.stdout;
     }
     return output;
   } catch (err) {

@@ -6,19 +6,18 @@ export async function setGCloudConfig(options) {
   const { project, computeZone, kubernetes } = options;
   if (!kubernetes) exit('Missing kubernetes settings in config');
   try {
-    const stdErr = true; // gcloud returns output on stderr
-
+    // gcloud returns output on stderr
     if (!project) exit('Missing project');
-    console.log(await exec(`gcloud config set project ${project}`, stdErr));
+    console.log(await exec(`gcloud config set project ${project}`, 'stderr'));
 
     if (!computeZone) exit('Missing computeZone');
-    console.info(await exec(`gcloud config set compute/zone ${computeZone}`, stdErr));
+    console.info(await exec(`gcloud config set compute/zone ${computeZone}`, 'stderr'));
 
     const { clusterName } = kubernetes;
     if (!clusterName) exit('Missing kubernetes.clusterName');
 
-    console.info(await exec(`gcloud container clusters get-credentials ${clusterName}`, stdErr));
-    console.info(await exec(`gcloud config set container/cluster ${clusterName}`, stdErr));
+    console.info(await exec(`gcloud container clusters get-credentials ${clusterName}`, 'stderr'));
+    console.info(await exec(`gcloud config set container/cluster ${clusterName}`, 'stderr'));
   } catch (e) {
     exit(e.message);
   }

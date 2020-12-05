@@ -31,8 +31,8 @@ export async function dockerPush(project, platformName, service, subservice, tag
       images = repositories.filter((repo) => repo.startsWith(`${platformName}-services-`));
     }
 
-    console.info('Images:');
-    console.info('-', images.join('\r\n- '));
+    images.length ? console.info('Images:') : console.info(kleur.yellow('No images found'));
+    images.forEach((image) => console.log('-', image));
 
     for (const image of images) {
       await pushImage(project, image, tag);

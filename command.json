@@ -325,6 +325,26 @@
               "prompt": false
             }
           ]
+        },
+        {
+          "name": "provision",
+          "description": "Deployment info",
+          "arguments": [
+            {
+              "name": "environment",
+              "type": "string",
+              "description": "Environment (e.g. staging)",
+              "required": true,
+              "prompt": false
+            },
+            {
+              "name": "terraform",
+              "type": "string",
+              "description": "Terraform command (e.g. apply or plan)",
+              "required": true,
+              "prompt": false
+            }
+          ]
         }
       ]
     }

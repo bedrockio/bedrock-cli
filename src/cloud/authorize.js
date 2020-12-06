@@ -5,7 +5,7 @@ import { exec } from '../util/shell';
 import { readFile } from '../util/file';
 
 export async function getConfig(environment) {
-  const configFilePath = path.resolve('deployment/environments', environment, 'config.json');
+  const configFilePath = path.resolve('deployment', 'environments', environment, 'config.json');
   let config = {};
   try {
     config = await readFile(configFilePath);
@@ -38,19 +38,23 @@ export async function setGCloudConfig(options) {
   }
 }
 
+export async function checkGCloudProject(project) {
+  if (!project) exit('Missing project');
+  const currentProject = await exec('gcloud config get-value project');
+  if (project != currentProject) {
+    console.info(
+      kleur.red(`Invalid Google Cloud config (use authorize script): project = ${currentProject}`)
+    );
+    return false;
+  }
+  return true;
+}
+
 async function checkGCloudConfig(environment, options) {
   const { project, computeZone, kubernetes } = options;
   if (!kubernetes) exit('Missing kubernetes settings in config');
   try {
-    let valid = true;
-    if (!project) exit('Missing project');
-    const currentProject = await exec('gcloud config get-value project');
-    if (project != currentProject) {
-      valid = false;
-      console.info(
-        kleur.red(`Invalid Google Cloud config (use authorize script): project = ${currentProject}`)
-      );
-    }
+    let valid = checkGCloudProject(project);
 
     if (!computeZone) exit('Missing computeZone');
     const currentComputeZone = await exec('gcloud config get-value compute/zone');

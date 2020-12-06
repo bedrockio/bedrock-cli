@@ -3,7 +3,7 @@ import kleur from 'kleur';
 import { assertBedrockRoot } from '../util/dir';
 import { exec } from '../util/shell';
 import { prompt } from '../util/prompt';
-import { getConfig, setGCloudConfig, checkConfig } from './authorize';
+import { getConfig, setGCloudConfig, checkConfig, checkGCloudProject } from './authorize';
 import { buildImage } from './build';
 import { dockerPush } from './push';
 import { rolloutDeployment, getDeployment } from './rollout';
@@ -119,4 +119,55 @@ export async function info(options) {
   const { annotations } = deploymentInfo.spec.template.metadata;
   console.info(`Deployment "${deployment}" annotations:`);
   console.log(annotations);
+}
+
+async function plan(options, planFile) {
+  const { project, computeZone, kubernetes, bucketPrefix, envName } = options;
+  // computeZone example: us-east1-c
+  const region = computeZone.slice(0, -2); // e.g. us-east1
+  const zone = computeZone.slice(-1); // e.g. c
+  const { clusterName, nodePoolCount, minNodeCount, maxNodeCount, machineType } = kubernetes;
+  const execSync = require('child_process').execSync;
+  console.info(
+    await execSync(
+      `terraform plan -var "project=${project}" -var "environment=${envName}" -var "cluster_name=${clusterName}" -var "bucket_prefix=${bucketPrefix}" -var "region=${region}" -var "zone=${zone}" -var "node_pool_count=${nodePoolCount}" -var "min_node_count=${minNodeCount}" -var "max_node_count=${maxNodeCount}" -var "machine_type=${machineType}" -out="${planFile}"`,
+      { encoding: 'utf-8' }
+    )
+  );
+}
+
+export async function provision(options) {
+  const { environment, terraform } = options;
+  if (!devMode) assertBedrockRoot();
+
+  const config = await getConfig(environment);
+  const { gcloud } = config;
+  const { project, computeZone, envName, bucketPrefix } = gcloud;
+  await checkGCloudProject(project);
+  const region = computeZone.slice(0, -2);
+
+  const planFile = await exec('mktemp');
+  console.info(`planFile: ${planFile}`);
+
+  if (terraform == 'init') {
+    const terraformBucket = `${bucketPrefix}-terraform-system-state`;
+    console.info(kleur.green(`Terraform bucket: ${terraformBucket}`));
+    try {
+      await exec(`gsutil ls gs://${terraformBucket}`);
+    } catch (e) {
+      if (e.message.includes('BucketNotFoundException')) {
+        console.info(kleur.yellow(`${terraformBucket} does not exist. Creating now...`));
+        await exec(`gsutil mb -l ${region} gs://${terraformBucket}`);
+      }
+    }
+    process.chdir(path.resolve('deployment', 'environments', environment, 'provisioning'));
+    console.info('Initialization can take several minutes...');
+    let command = `terraform init -backend-config="bucket=${terraformBucket}" -backend-config="prefix=${envName}"`;
+    console.info(command);
+    const execSync = require('child_process').execSync;
+    console.info(await execSync(command, { encoding: 'utf-8' }));
+  } else if (terraform == 'plan') {
+    process.chdir(path.resolve('deployment', 'environments', environment, 'provisioning'));
+    await plan(gcloud, planFile);
+  }
 }

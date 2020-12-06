@@ -3,6 +3,13 @@ import { exec } from '../util/shell';
 import fs from 'fs';
 import path from 'path';
 
+export function getDeployment(service, subservice) {
+  let deployment = service;
+  if (subservice) deployment += `-${subservice}`;
+  deployment += '-deployment';
+  return deployment;
+}
+
 async function getTag() {
   let tag = await exec('git tag --points-at HEAD');
   if (!tag) tag = await exec('git rev-parse --short --verify HEAD');
@@ -25,10 +32,7 @@ async function getMetaData() {
 }
 
 export async function rolloutDeployment(environment, service, subservice) {
-  let deployment = service;
-  if (subservice) deployment += `-${subservice}`;
-  deployment += '-deployment';
-
+  const deployment = getDeployment(service, subservice);
   console.info(kleur.yellow(`\n=> Rolling out ${environment} ${deployment}`));
 
   const deploymentFile = path.resolve(

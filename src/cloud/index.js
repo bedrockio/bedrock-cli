@@ -6,7 +6,7 @@ import { prompt } from '../util/prompt';
 import { getConfig, setGCloudConfig, checkConfig } from './authorize';
 import { buildImage } from './build';
 import { dockerPush } from './push';
-import { rolloutDeployment } from './rollout';
+import { rolloutDeployment, getDeployment } from './rollout';
 
 const devMode = true;
 
@@ -97,4 +97,26 @@ export async function deploy(options) {
   await buildImage(platformName, service, subservice, tag);
   await dockerPush(project, platformName, service, subservice, tag);
   await rolloutDeployment(environment, service, subservice);
+}
+
+export async function info(options) {
+  const { environment, service, subservice } = options;
+  if (!devMode) assertBedrockRoot();
+
+  const config = await getConfig(environment);
+  await checkConfig(environment, config);
+
+  const deployment = getDeployment(service, subservice);
+
+  const deploymentInfoJSON = await exec(
+    `kubectl get deployment ${deployment} -o jsonpath='{@}' --ignore-not-found`
+  );
+  if (!deploymentInfoJSON) {
+    console.info(`Deployment "${deployment}" could not be found`);
+    process.exit(0);
+  }
+  const deploymentInfo = JSON.parse(deploymentInfoJSON.slice(1, -1));
+  const { annotations } = deploymentInfo.spec.template.metadata;
+  console.info(`Deployment "${deployment}" annotations:`);
+  console.log(annotations);
 }

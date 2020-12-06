@@ -112,7 +112,7 @@ export async function info(options) {
     `kubectl get deployment ${deployment} -o jsonpath='{@}' --ignore-not-found`
   );
   if (!deploymentInfoJSON) {
-    console.info(`Deployment "${deployment}" could not be found`);
+    console.info(kleur.yellow(`Deployment "${deployment}" could not be found`));
     process.exit(0);
   }
   const deploymentInfo = JSON.parse(deploymentInfoJSON.slice(1, -1));

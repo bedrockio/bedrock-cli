@@ -1,3 +1,4 @@
+import kleur from 'kleur';
 import { exec } from '../util/shell';
 import fs from 'fs';
 import path from 'path';
@@ -28,7 +29,7 @@ export async function rolloutDeployment(environment, service, subservice) {
   if (subservice) deployment += `-${subservice}`;
   deployment += '-deployment';
 
-  console.info(`Rolling out ${environment} ${deployment}`);
+  console.info(kleur.yellow(`\n=> Rolling out ${environment} ${deployment}`));
 
   const deploymentFile = path.resolve(
     'deployment',
@@ -53,5 +54,6 @@ export async function rolloutDeployment(environment, service, subservice) {
   // console.info(patchCommand);
   // Note: exec does not work with escaped double quotes
   const execSync = require('child_process').execSync;
+
   console.info(execSync(patchCommand, { encoding: 'utf-8' }));
 }

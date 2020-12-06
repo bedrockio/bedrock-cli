@@ -10,7 +10,7 @@ async function pushImage(project, image, tag) {
   console.info(pushOutput.split('\n').slice(-1)[0]);
 }
 
-export async function dockerPush(project, platformName, service, subservice, tag) {
+export async function dockerPush(project, platformName, service, subservice, tag = 'latest') {
   try {
     const dockerImages = await exec(`docker images --format "{{json . }}"`);
     const dockerImagesJSON = dockerImages.split('\n').map((image) => {
@@ -31,7 +31,9 @@ export async function dockerPush(project, platformName, service, subservice, tag
       images = repositories.filter((repo) => repo.startsWith(`${platformName}-services-`));
     }
 
-    images.length ? console.info('Images:') : console.info(kleur.yellow('No images found'));
+    images.length
+      ? console.info(kleur.yellow('\n=> Pushing images:'))
+      : console.info(kleur.yellow('No images found'));
     images.forEach((image) => console.log('-', image));
 
     for (const image of images) {

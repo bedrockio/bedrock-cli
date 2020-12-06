@@ -2,6 +2,7 @@ import path from 'path';
 import kleur from 'kleur';
 import { assertBedrockRoot } from '../util/dir';
 import { exec } from '../util/shell';
+import { prompt } from '../util/prompt';
 import { getConfig, setGCloudConfig, checkConfig } from './authorize';
 import { buildImage } from './build';
 import { dockerPush } from './push';
@@ -38,7 +39,7 @@ export async function status(options) {
 }
 
 export async function build(options) {
-  const { service, subservice, tag = 'latest' } = options;
+  const { service, subservice, tag } = options;
   if (!devMode) await assertBedrockRoot();
 
   const platformName = getPlatformName();
@@ -47,7 +48,7 @@ export async function build(options) {
 }
 
 export async function push(options) {
-  const { environment, service, subservice, tag = 'latest' } = options;
+  const { environment, service, subservice, tag } = options;
   if (!devMode) assertBedrockRoot();
 
   const config = await getConfig(environment);
@@ -65,5 +66,35 @@ export async function rollout(options) {
   const config = await getConfig(environment);
   await checkConfig(environment, config);
 
+  await rolloutDeployment(environment, service, subservice);
+}
+
+async function warn(environment) {
+  if (environment == 'production') {
+    console.info(kleur.yellow('---------------------------------------------------------\n'));
+    console.info(kleur.yellow('                 Deploying to production!                \n'));
+    console.info(kleur.yellow('---------------------------------------------------------\n'));
+    const confirmed = await prompt({
+      type: 'confirm',
+      name: 'deploy',
+      message: 'Are you sure?',
+    });
+    if (!confirmed) process.exit(0);
+  }
+}
+
+export async function deploy(options) {
+  const { environment, service, subservice, tag } = options;
+  if (!devMode) assertBedrockRoot();
+
+  const config = await getConfig(environment);
+  await checkConfig(environment, config);
+  const { project } = config.gcloud;
+  const platformName = getPlatformName();
+
+  await warn(environment);
+
+  await buildImage(platformName, service, subservice, tag);
+  await dockerPush(project, platformName, service, subservice, tag);
   await rolloutDeployment(environment, service, subservice);
 }

@@ -5,12 +5,15 @@ export async function buildImage(platformName, service, subservice, tag = 'lates
   await process.chdir('./services/api');
   if (!subservice) {
     const imageName = `${platformName}-services-${service}:${tag}`;
-    console.info(`\n=> Building "${imageName}"`);
-    console.info(await exec(`docker build -t ${imageName} .`));
+    console.info(kleur.yellow(`\n=> Building "${imageName}"`));
+    require('child_process').execSync(`docker build -t ${imageName} .`, { stdio: 'inherit' });
   } else {
     const imageName = `${platformName}-services-${service}-${subservice}:${tag}`;
     console.info(kleur.yellow(`\n=> Building "${imageName}"`));
-    console.info(await exec(`docker build -t ${imageName} -f Dockerfile.${subservice} .`));
+    require('child_process').execSync(
+      `docker build -t ${imageName} -f Dockerfile.${subservice} .`,
+      { stdio: 'inherit' }
+    );
   }
   await process.chdir('../..');
 }

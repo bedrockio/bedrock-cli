@@ -6,8 +6,9 @@ async function pushImage(project, image, tag) {
   const gcrTag = `gcr.io/${project}/${image}:${tag}`;
   console.info(kleur.green(`Pushing ${gcrTag}`));
   await exec(`docker tag ${image}:${tag} ${gcrTag}`);
-  const pushOutput = await exec(`docker push ${gcrTag}`);
-  console.info(pushOutput.split('\n').slice(-1)[0]);
+  require('child_process').execSync(`docker push ${gcrTag}`, {
+    stdio: 'inherit',
+  });
 }
 
 export async function dockerPush(project, platformName, service, subservice, tag = 'latest') {

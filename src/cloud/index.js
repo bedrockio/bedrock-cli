@@ -1,7 +1,9 @@
 import path from 'path';
 import kleur from 'kleur';
+import open from 'open';
 import { assertBedrockRoot } from '../util/dir';
 import { exec, execSyncInherit } from '../util/shell';
+import { prompt } from '../util/prompt';
 import { getConfig, setGCloudConfig, checkConfig, checkGCloudProject } from './authorize';
 import { buildImage } from './build';
 import { dockerPush } from './push';
@@ -159,4 +161,33 @@ export async function shell(options) {
   child.on('exit', function (code) {
     console.info(kleur.green(`Finished bash for pod: "${podName}" (exit code: ${code})`));
   });
+}
+
+export async function logs(options) {
+  const { environment, service, subservice } = options;
+  if (!devMode) assertBedrockRoot();
+
+  const config = await getConfig(environment);
+  await checkConfig(environment, config);
+  const { project, computeZone, kubernetes, label } = config.gcloud;
+
+  let labelName = service;
+  if (subservice) labelName += `-${subservice}`;
+  const podLabel = label || 'app';
+
+  const query = `resource.type="k8s_container"\nresource.labels.project_id="${project}"\nresource.labels.location="${computeZone}"\nresource.labels.cluster_name="${kubernetes.clusterName}"\nresource.labels.namespace_name="default"\nlabels.k8s-pod/${podLabel}="${labelName}"`;
+
+  const params = new URLSearchParams({ query });
+
+  const url = `https://console.cloud.google.com/logs/query;${params.toString()}?project=${project}`;
+  console.info(kleur.green(`=> Opening Logs in GCloud UI`));
+  console.info(url);
+  let confirmed = await prompt({
+    type: 'confirm',
+    name: 'open',
+    message: 'Open URL in browser?',
+    initial: true,
+  });
+  if (!confirmed) process.exit(0);
+  await open(url);
 }

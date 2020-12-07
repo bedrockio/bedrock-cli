@@ -10,7 +10,8 @@
             "minNodeCount": 2,
             "maxNodeCount": 3,
             "machineType": "n2-standard-2"
-        }
+        },
+        "label": "app"
     },
     "platformName": "bedrock-foundation"
 }

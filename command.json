@@ -399,6 +399,33 @@
               "prompt": false
             }
           ]
+        },
+        {
+          "name": "logs",
+          "description": "Open Google Cloud logs explorer UI in your browser",
+          "arguments": [
+            {
+              "name": "environment",
+              "type": "string",
+              "description": "Environment (e.g. staging)",
+              "required": true,
+              "prompt": false
+            },
+            {
+              "name": "service",
+              "type": "string",
+              "description": "Service (e.g. api)",
+              "required": true,
+              "prompt": false
+            },
+            {
+              "name": "subservice",
+              "type": "string",
+              "description": "SubService (e.g. cli)",
+              "required": false,
+              "prompt": false
+            }
+          ]
         }
       ]
     }

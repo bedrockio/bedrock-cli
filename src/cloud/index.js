@@ -1,7 +1,7 @@
 import path from 'path';
 import kleur from 'kleur';
 import { assertBedrockRoot } from '../util/dir';
-import { execSyncInherit } from '../util/shell';
+import { exec, execSyncInherit } from '../util/shell';
 import { getConfig, setGCloudConfig, checkConfig, checkGCloudProject } from './authorize';
 import { buildImage } from './build';
 import { dockerPush } from './push';
@@ -119,4 +119,44 @@ export async function provision(options) {
   await checkGCloudProject(config.gcloud);
 
   await provisionTerraform(environment, terraform, config.gcloud);
+}
+
+export async function shell(options) {
+  const { environment, service, subservice } = options;
+  if (!devMode) assertBedrockRoot();
+
+  const config = await getConfig(environment);
+  await checkConfig(environment, config);
+
+  const podsJSON = await exec(`kubectl get pods -o jsonpath='{.items}' --ignore-not-found`);
+  if (!podsJSON) {
+    console.info(kleur.yellow(`No running pods`));
+    process.exit(0);
+  }
+  const pods = JSON.parse(podsJSON.slice(1, -1));
+
+  let deployment = 'api-cli-deployment';
+  if (service) {
+    deployment = getDeployment(service, subservice);
+  }
+
+  const filteredPods = pods.filter((pod) => pod.metadata.name.startsWith(deployment));
+
+  if (!filteredPods.length) {
+    console.info(kleur.yellow(`No running pods for deployment "${deployment}"`));
+    process.exit(0);
+  }
+
+  const podName = filteredPods[0].metadata.name;
+  console.info(kleur.green(`=> Starting bash for pod: "${podName}"`));
+
+  const { spawn } = require('child_process');
+
+  const child = spawn('kubectl', ['exec', '-it', podName, '--', 'bash'], {
+    stdio: 'inherit',
+  });
+
+  child.on('exit', function (code) {
+    console.info(kleur.green(`Finished bash for pod: "${podName}" (exit code: ${code})`));
+  });
 }

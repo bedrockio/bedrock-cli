@@ -372,6 +372,33 @@
               "prompt": false
             }
           ]
+        },
+        {
+          "name": "shell",
+          "description": "Start remote bash shell on deployment container",
+          "arguments": [
+            {
+              "name": "environment",
+              "type": "string",
+              "description": "Environment (e.g. staging)",
+              "required": true,
+              "prompt": false
+            },
+            {
+              "name": "service",
+              "type": "string",
+              "description": "Service (e.g. api)",
+              "required": false,
+              "prompt": false
+            },
+            {
+              "name": "subservice",
+              "type": "string",
+              "description": "SubService (e.g. cli)",
+              "required": false,
+              "prompt": false
+            }
+          ]
         }
       ]
     }

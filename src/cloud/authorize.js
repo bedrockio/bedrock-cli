@@ -17,7 +17,7 @@ export async function getConfig(environment) {
   return config;
 }
 
-export async function setGCloudConfig(options) {
+export async function setGCloudConfig(options = {}) {
   const { project, computeZone, kubernetes } = options;
   if (!kubernetes) exit('Missing kubernetes settings in config');
   try {
@@ -38,7 +38,8 @@ export async function setGCloudConfig(options) {
   }
 }
 
-export async function checkGCloudProject(project) {
+export async function checkGCloudProject(options = {}) {
+  const { project } = options;
   if (!project) exit('Missing project');
   const currentProject = await exec('gcloud config get-value project');
   if (project != currentProject) {
@@ -50,11 +51,11 @@ export async function checkGCloudProject(project) {
   return true;
 }
 
-async function checkGCloudConfig(environment, options) {
+async function checkGCloudConfig(environment, options = {}) {
   const { project, computeZone, kubernetes } = options;
   if (!kubernetes) exit('Missing kubernetes settings in config');
   try {
-    let valid = checkGCloudProject(project);
+    let valid = checkGCloudProject(options);
 
     if (!computeZone) exit('Missing computeZone');
     const currentComputeZone = await exec('gcloud config get-value compute/zone');
@@ -81,11 +82,13 @@ async function checkGCloudConfig(environment, options) {
 
     // TODO: add check for secrets folder: deployment/environments/$ENVIRONMENT/secrets
 
-    console.info(
-      kleur.green(
-        `Using Google Cloud environment ${environment} (project=${project}, compute/zone=${computeZone}, cluster=${clusterName})`
-      )
-    );
+    if (valid) {
+      console.info(
+        kleur.green(
+          `Using Google Cloud environment ${environment} (project=${project}, compute/zone=${computeZone}, cluster=${clusterName})`
+        )
+      );
+    }
 
     // TODO: add optional fallback to authorize current values
 
@@ -96,6 +99,8 @@ async function checkGCloudConfig(environment, options) {
 }
 
 export async function checkConfig(environment, config) {
+  if (!config) exit('Missing config');
+  if (!config.gcloud) exit('Missing gcloud field in config');
   const valid = await checkGCloudConfig(environment, config.gcloud);
-  if (!valid) exit('Invalid Google Cloud config');
+  if (!valid) process.exit(1);
 }

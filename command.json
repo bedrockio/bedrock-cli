@@ -300,6 +300,33 @@
           ]
         },
         {
+          "name": "undeploy",
+          "description": "Delete deployment from cluster",
+          "arguments": [
+            {
+              "name": "environment",
+              "type": "string",
+              "description": "Environment (e.g. staging)",
+              "required": true,
+              "prompt": false
+            },
+            {
+              "name": "service",
+              "type": "string",
+              "description": "Service (e.g. api)",
+              "required": true,
+              "prompt": false
+            },
+            {
+              "name": "subservice",
+              "type": "string",
+              "description": "SubService (e.g. cli)",
+              "required": false,
+              "prompt": false
+            }
+          ]
+        },
+        {
           "name": "info",
           "description": "Deployment info",
           "arguments": [

@@ -58,3 +58,37 @@ export async function rolloutDeployment(environment, service, subservice) {
   // console.info(patchCommand);
   execSyncInherit(patchCommand);
 }
+
+export async function deleteDeployment(environment, service, subservice) {
+  const deployment = getDeployment(service, subservice);
+  console.info(kleur.yellow(`\n=> Deleting ${environment} ${deployment}`));
+
+  const deploymentFile = path.resolve(
+    'deployment',
+    'environments',
+    environment,
+    'services',
+    `${deployment}.yml`
+  );
+
+  // Check for config file as it might not exist if the
+  // deployment was dynamically created for a feature branch.
+  if (fs.existsSync(deploymentFile)) {
+    const deleteCommand = `kubectl delete -f ${deploymentFile}`;
+    // console.info(deleteCommand);
+    await execSyncInherit(deleteCommand);
+  }
+}
+
+export async function checkDeployment(service, subservice) {
+  const deployment = getDeployment(service, subservice);
+
+  const deploymentInfoJSON = await exec(
+    `kubectl get deployment ${deployment} -o jsonpath='{@}' --ignore-not-found`
+  );
+  if (!deploymentInfoJSON) {
+    console.info(kleur.yellow(`Deployment "${deployment}" could not be found`));
+    process.exit(0);
+  }
+  return JSON.parse(deploymentInfoJSON.slice(1, -1));
+}

@@ -1,12 +1,12 @@
 import path from 'path';
 import kleur from 'kleur';
 import { assertBedrockRoot } from '../util/dir';
-import { exec, execSyncInherit } from '../util/shell';
+import { execSyncInherit } from '../util/shell';
 import { getConfig, setGCloudConfig, checkConfig, checkGCloudProject } from './authorize';
 import { buildImage } from './build';
 import { dockerPush } from './push';
 import { warn } from './deploy';
-import { rolloutDeployment, getDeployment } from './rollout';
+import { rolloutDeployment, getDeployment, deleteDeployment, checkDeployment } from './rollout';
 import { provisionTerraform } from './provision';
 
 const devMode = true;
@@ -87,23 +87,25 @@ export async function deploy(options) {
   await rolloutDeployment(environment, service, subservice);
 }
 
+export async function undeploy(options) {
+  const { environment, service, subservice } = options;
+  if (!devMode) assertBedrockRoot();
+
+  const config = await getConfig(environment);
+  await checkConfig(environment, config);
+  await checkDeployment(service, subservice);
+
+  await deleteDeployment(environment, service, subservice);
+}
+
 export async function info(options) {
   const { environment, service, subservice } = options;
   if (!devMode) assertBedrockRoot();
 
   const config = await getConfig(environment);
   await checkConfig(environment, config);
-
   const deployment = getDeployment(service, subservice);
-
-  const deploymentInfoJSON = await exec(
-    `kubectl get deployment ${deployment} -o jsonpath='{@}' --ignore-not-found`
-  );
-  if (!deploymentInfoJSON) {
-    console.info(kleur.yellow(`Deployment "${deployment}" could not be found`));
-    process.exit(0);
-  }
-  const deploymentInfo = JSON.parse(deploymentInfoJSON.slice(1, -1));
+  const deploymentInfo = await checkDeployment(service, subservice);
   const { annotations } = deploymentInfo.spec.template.metadata;
   console.info(`Deployment "${deployment}" annotations:`);
   console.log(annotations);

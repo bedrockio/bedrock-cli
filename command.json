@@ -240,7 +240,7 @@
         },
         {
           "name": "rollout",
-          "description": "Rollout deployment to cluster",
+          "description": "Rollout service to cluster",
           "arguments": [
             {
               "name": "environment",
@@ -267,7 +267,7 @@
         },
         {
           "name": "deploy",
-          "description": "Rollout deployment to cluster",
+          "description": "Build, push and rollout service to cluster",
           "arguments": [
             {
               "name": "environment",
@@ -301,7 +301,7 @@
         },
         {
           "name": "undeploy",
-          "description": "Delete deployment from cluster",
+          "description": "Delete service from cluster",
           "arguments": [
             {
               "name": "environment",
@@ -355,7 +355,7 @@
         },
         {
           "name": "provision",
-          "description": "Deployment info",
+          "description": "Provision cluster on glcoud with Terraform",
           "arguments": [
             {
               "name": "environment",
@@ -375,7 +375,7 @@
         },
         {
           "name": "shell",
-          "description": "Start remote bash shell on deployment container",
+          "description": "Start remote bash shell on service container",
           "arguments": [
             {
               "name": "environment",

@@ -1,14 +1,12 @@
 import { exit } from '../util/exit';
 import kleur from 'kleur';
-import { exec } from '../util/shell';
+import { exec, execSyncInherit } from '../util/shell';
 
 async function pushImage(project, image, tag) {
   const gcrTag = `gcr.io/${project}/${image}:${tag}`;
   console.info(kleur.green(`Pushing ${gcrTag}`));
   await exec(`docker tag ${image}:${tag} ${gcrTag}`);
-  require('child_process').execSync(`docker push ${gcrTag}`, {
-    stdio: 'inherit',
-  });
+  execSyncInherit(`docker push ${gcrTag}`);
 }
 
 export async function dockerPush(project, platformName, service, subservice, tag = 'latest') {

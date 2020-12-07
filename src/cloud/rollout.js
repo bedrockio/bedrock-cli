@@ -1,5 +1,5 @@
 import kleur from 'kleur';
-import { exec } from '../util/shell';
+import { exec, execSyncInherit } from '../util/shell';
 import fs from 'fs';
 import path from 'path';
 
@@ -48,7 +48,7 @@ export async function rolloutDeployment(environment, service, subservice) {
   if (fs.existsSync(deploymentFile)) {
     const applyCommand = `kubectl apply -f ${deploymentFile} --record`;
     // console.info(applyCommand);
-    console.info(await exec(applyCommand));
+    await execSyncInherit(applyCommand);
   }
 
   const metaData = await getMetaData();
@@ -56,8 +56,5 @@ export async function rolloutDeployment(environment, service, subservice) {
   // perform a rolling update as long as imagePullPolicy: Always is specified.
   const patchCommand = `kubectl patch deployment ${deployment} -p "${metaData}" --record`;
   // console.info(patchCommand);
-  // Note: exec does not work with escaped double quotes
-  const execSync = require('child_process').execSync;
-
-  console.info(execSync(patchCommand, { encoding: 'utf-8' }));
+  execSyncInherit(patchCommand);
 }

@@ -33,7 +33,7 @@ export async function dockerPush(project, platformName, service, subservice, tag
     images.length
       ? console.info(kleur.yellow('\n=> Pushing images:'))
       : console.info(kleur.yellow('No images found'));
-    images.forEach((image) => console.log('-', image));
+    images.forEach((image) => console.info('-', image));
 
     for (const image of images) {
       await pushImage(project, image, tag);

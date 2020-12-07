@@ -23,7 +23,7 @@ export async function setGCloudConfig(options = {}) {
   try {
     // gcloud returns output on stderr
     if (!project) exit('Missing project');
-    console.log(await exec(`gcloud config set project ${project}`, 'stderr'));
+    console.info(await exec(`gcloud config set project ${project}`, 'stderr'));
 
     if (!computeZone) exit('Missing computeZone');
     console.info(await exec(`gcloud config set compute/zone ${computeZone}`, 'stderr'));

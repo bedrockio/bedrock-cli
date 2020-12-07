@@ -108,7 +108,7 @@ export async function info(options) {
   const deploymentInfo = await checkDeployment(service, subservice);
   const { annotations } = deploymentInfo.spec.template.metadata;
   console.info(`Deployment "${deployment}" annotations:`);
-  console.log(annotations);
+  console.info(annotations);
 }
 
 export async function provision(options) {

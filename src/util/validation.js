@@ -50,8 +50,8 @@ export function validateEnum(arg, option) {
   return true;
 }
 
-export function validateString(str) {
-  if (!str) {
+export function validateString(str = '', option) {
+  if (!str && option.required) {
     return 'Cannot be empty.';
   } else if (str.match(/['"]/)) {
     return 'Exclude quotes.';

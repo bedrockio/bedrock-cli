@@ -1,3 +1,4 @@
+import fs from 'fs';
 import path from 'path';
 import kleur from 'kleur';
 import { exit } from '../util/exit';
@@ -98,9 +99,28 @@ async function checkGCloudConfig(environment, options = {}) {
   }
 }
 
+async function checkSecrets(environment) {
+  const secretsDir = path.resolve('deployment', 'environments', environment, 'secrets');
+  if (fs.existsSync(secretsDir)) {
+    const secretFiles = await exec(`ls ${secretsDir}`);
+    if (secretFiles) {
+      console.info(kleur.yellow('---'));
+      console.info(kleur.yellow('---'));
+      console.info(
+        kleur.yellow(
+          `--- Warning: Found files in deployment/environments/${environment}/secrets/ - make sure to remove these!`
+        )
+      );
+      console.info(kleur.yellow('---'));
+      console.info(kleur.yellow('---'));
+    }
+  }
+}
+
 export async function checkConfig(environment, config) {
   if (!config) exit('Missing config');
   if (!config.gcloud) exit('Missing gcloud field in config');
+  await checkSecrets(environment);
   const valid = await checkGCloudConfig(environment, config.gcloud);
   if (!valid) process.exit(1);
 }

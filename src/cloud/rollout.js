@@ -23,12 +23,22 @@ async function getMetaData() {
   const date = new Date().toUTCString();
   const branch = await exec('git branch --show-current');
   const git = await getTag();
-  let fields = `\\"author\\":\\"${author}\\"`;
-  fields += `,\\"date\\":\\"${date}\\"`;
-  fields += `,\\"branch\\":\\"${branch}\\"`;
-  fields += `,\\"git\\":\\"${git}\\"`;
-  const metaData = `{\\"spec\\":{\\"template\\":{\\"metadata\\":{\\"annotations\\":{${fields}}}}}}`;
-  return metaData;
+
+  const metaData = {
+    spec: {
+      template: {
+        metadata: {
+          annotations: {
+            author,
+            date,
+            branch,
+            git,
+          },
+        },
+      },
+    },
+  };
+  return JSON.stringify(metaData).replace(/"/g, '\\"');
 }
 
 export async function rolloutDeployment(environment, service, subservice) {
@@ -46,17 +56,14 @@ export async function rolloutDeployment(environment, service, subservice) {
   // Check for config file as it might not exist if the
   // deployment was dynamically created for a feature branch.
   if (fs.existsSync(deploymentFile)) {
-    const applyCommand = `kubectl apply -f ${deploymentFile} --record`;
-    // console.info(applyCommand);
-    await execSyncInherit(applyCommand);
+    await execSyncInherit(`kubectl apply -f ${deploymentFile} --record`);
   }
 
   const metaData = await getMetaData();
+
   // Patching spec.template forces the container to pull the latest image and
   // perform a rolling update as long as imagePullPolicy: Always is specified.
-  const patchCommand = `kubectl patch deployment ${deployment} -p "${metaData}" --record`;
-  // console.info(patchCommand);
-  execSyncInherit(patchCommand);
+  execSyncInherit(`kubectl patch deployment ${deployment} -p "${metaData}" --record`);
 }
 
 export async function deleteDeployment(environment, service, subservice) {
@@ -74,9 +81,7 @@ export async function deleteDeployment(environment, service, subservice) {
   // Check for config file as it might not exist if the
   // deployment was dynamically created for a feature branch.
   if (fs.existsSync(deploymentFile)) {
-    const deleteCommand = `kubectl delete -f ${deploymentFile}`;
-    // console.info(deleteCommand);
-    await execSyncInherit(deleteCommand);
+    await execSyncInherit(`kubectl delete -f ${deploymentFile}`);
   }
 }
 

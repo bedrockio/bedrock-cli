@@ -41,10 +41,6 @@ _() {
       echo 'Error: Either yarn or npm must be installed (https://www.npmjs.com/)' >&2
       exit 1
     fi
-    if ! [ -x "$(command -v terraform)" ]; then
-      echo 'Error: Terraform is not installed (https://www.terraform.io/)' >&2
-      exit 1
-    fi
     if ! [ -x "$(command -v gcloud)" ]; then
       echo 'Error: Google Cloud SDK (gcloud) is not installed (https://cloud.google.com/sdk/docs/install)' >&2
       exit 1

@@ -2,8 +2,9 @@ import path from 'path';
 import kleur from 'kleur';
 import open from 'open';
 import { assertBedrockRoot } from '../util/dir';
-import { exec, execSyncInherit } from '../util/shell';
+import { exec, execSyncPipe, execSyncInherit } from '../util/shell';
 import { prompt } from '../util/prompt';
+import { exit } from '../util/exit';
 import { getConfig, setGCloudConfig, checkConfig, checkGCloudProject } from './authorize';
 import { buildImage } from './build';
 import { dockerPush } from './push';
@@ -119,6 +120,12 @@ export async function provision(options) {
 
   const config = await getConfig(environment);
   await checkGCloudProject(config.gcloud);
+
+  try {
+    await exec('command -v terraform');
+  } catch (e) {
+    exit('Error: Terraform is not installed (https://www.terraform.io/');
+  }
 
   await provisionTerraform(environment, terraform, config.gcloud);
 }

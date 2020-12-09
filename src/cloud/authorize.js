@@ -1,9 +1,10 @@
 import fs from 'fs';
 import path from 'path';
-import kleur from 'kleur';
+import { red, green } from 'kleur';
 import { exit } from '../util/exit';
-import { exec } from '../util/shell';
+import { exec, execSyncInherit } from '../util/shell';
 import { readFile } from '../util/file';
+import { prompt } from '../util/prompt';
 
 export async function getConfig(environment) {
   const configFilePath = path.resolve('deployment', 'environments', environment, 'config.json');
@@ -24,16 +25,21 @@ export async function setGCloudConfig(options = {}) {
   try {
     // gcloud returns output on stderr
     if (!project) exit('Missing project');
-    console.info(await exec(`gcloud config set project ${project}`, 'stderr'));
+    await execSyncInherit(`gcloud config set project ${project}`);
 
     if (!computeZone) exit('Missing computeZone');
-    console.info(await exec(`gcloud config set compute/zone ${computeZone}`, 'stderr'));
+    await execSyncInherit(`gcloud config set compute/zone ${computeZone}`);
 
     const { clusterName } = kubernetes;
     if (!clusterName) exit('Missing kubernetes.clusterName');
 
-    console.info(await exec(`gcloud container clusters get-credentials ${clusterName}`, 'stderr'));
-    console.info(await exec(`gcloud config set container/cluster ${clusterName}`, 'stderr'));
+    await execSyncInherit(`gcloud container clusters get-credentials ${clusterName}`);
+    await execSyncInherit(`gcloud config set container/cluster ${clusterName}`);
+    console.info(
+      green(
+        `Successfully authorized (project=${project}, compute/zone=${computeZone}, cluster=${clusterName})`
+      )
+    );
   } catch (e) {
     exit(e.message);
   }
@@ -44,9 +50,7 @@ export async function checkGCloudProject(options = {}) {
   if (!project) exit('Missing project');
   const currentProject = await exec('gcloud config get-value project');
   if (project != currentProject) {
-    console.info(
-      kleur.red(`Invalid Google Cloud config (use authorize script): project = ${currentProject}`)
-    );
+    console.info(red(`Invalid Google Cloud config: project = ${currentProject}`));
     return false;
   }
   return true;
@@ -72,11 +76,7 @@ async function checkGCloudConfig(environment, options = {}) {
     const currentComputeZone = await exec('gcloud config get-value compute/zone');
     if (computeZone != currentComputeZone) {
       valid = false;
-      console.info(
-        kleur.red(
-          `Invalid Google Cloud config (use authorize script): compute/zone = ${currentComputeZone}`
-        )
-      );
+      console.info(red(`Invalid Google Cloud config: compute/zone = ${currentComputeZone}`));
     }
 
     const { clusterName } = kubernetes;
@@ -84,27 +84,19 @@ async function checkGCloudConfig(environment, options = {}) {
     const currentClusterName = await exec('gcloud config get-value container/cluster');
     if (clusterName != currentClusterName) {
       valid = false;
-      console.info(
-        kleur.red(
-          `Invalid Google Cloud config (use authorize script): container/cluster = ${currentClusterName}`
-        )
-      );
+      console.info(red(`Invalid Google Cloud config: container/cluster = ${currentClusterName}`));
     }
 
     const kubectlContext = getKubectlContext(project, computeZone, clusterName);
     const currentkubectlContext = await getCurrentKubectlContext();
     if (kubectlContext != currentkubectlContext) {
       valid = false;
-      console.info(
-        kleur.red(
-          `Invalid Google Cloud config (use authorize script): kubectl context = ${currentkubectlContext}`
-        )
-      );
+      console.info(red(`Invalid Google Cloud config: kubectl context = ${currentkubectlContext}`));
     }
 
     if (valid) {
       console.info(
-        kleur.green(
+        green(
           `Using Google Cloud environment ${environment} (project=${project}, compute/zone=${computeZone}, cluster=${clusterName}, kubectl/context=${currentkubectlContext})`
         )
       );
@@ -123,15 +115,15 @@ async function checkSecrets(environment) {
   if (fs.existsSync(secretsDir)) {
     const secretFiles = await exec(`ls ${secretsDir}`);
     if (secretFiles) {
-      console.info(kleur.red('---'));
-      console.info(kleur.red('---'));
+      console.info(red('---'));
+      console.info(red('---'));
       console.info(
-        kleur.red(
+        red(
           `--- Warning: Found files in deployment/environments/${environment}/secrets/ - make sure to remove these!`
         )
       );
-      console.info(kleur.red('---'));
-      console.info(kleur.red('---'));
+      console.info(red('---'));
+      console.info(red('---'));
     }
   }
 }
@@ -141,5 +133,13 @@ export async function checkConfig(environment, config) {
   if (!config.gcloud) exit('Missing gcloud field in config');
   await checkSecrets(environment);
   const valid = await checkGCloudConfig(environment, config.gcloud);
-  if (!valid) process.exit(1);
+  if (!valid) {
+    const confirmed = await prompt({
+      type: 'confirm',
+      name: 'authorize',
+      message: `Would you like to switch and authorize project: "${config.gcloud.project}" for environment: "${environment}"?`,
+    });
+    if (!confirmed) process.exit(0);
+    await setGCloudConfig(config.gcloud);
+  }
 }

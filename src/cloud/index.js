@@ -1,8 +1,5 @@
-import fs from 'fs';
-import path from 'path';
 import kleur from 'kleur';
 import open from 'open';
-import compareVersions from 'compare-versions';
 import { assertBedrockRoot } from '../util/dir';
 import { exec, execSyncInherit } from '../util/shell';
 import { prompt } from '../util/prompt';
@@ -13,72 +10,31 @@ import { dockerPush } from './push';
 import { warn } from './deploy';
 import { rolloutDeployment, getDeployment, deleteDeployment, checkDeployment } from './rollout';
 import { provisionTerraform } from './provision';
+import {
+  checkKubectlVersion,
+  getEnvironmentPrompt,
+  getServicesPrompt,
+  getTagPrompt,
+  getTerraformPrompt,
+  getPlatformName,
+} from './utils';
 
 const devMode = true;
 
-function getPlatformName() {
-  return path.basename(process.cwd());
-}
-
-function getDirectories(folder) {
-  if (fs.existsSync(folder)) {
-    return fs.readdirSync(folder).filter((file) => {
-      const filePath = path.resolve(folder, file);
-      return fs.lstatSync(filePath).isDirectory();
-    });
-  }
-  return [];
-}
-
-function getEnvironments() {
-  return getDirectories(path.resolve('deployment', 'environments')).reverse();
-}
-
-function getServices() {
-  const services = [];
-  const servicesFolders = getDirectories('services');
-  for (const serviceFolder of servicesFolders) {
-    for (const file of fs.readdirSync(path.resolve('services', serviceFolder))) {
-      if (file == 'Dockerfile') {
-        services.push([serviceFolder.toString(), '']);
-      } else if (file.startsWith('Dockerfile.')) {
-        services.push([serviceFolder.toString(), file.toString().replace('Dockerfile.', '')]);
-      }
-    }
-  }
-  return services;
-}
-
-async function checkKubectlVersion(minVersion = 'v1.19.0') {
-  try {
-    const kubectlVersion = await exec('kubectl version --client -o json');
-    const parsed = JSON.parse(kubectlVersion);
-    const version = parsed.clientVersion.gitVersion;
-    if (compareVersions.compare(minVersion, version, '>')) {
-      exit(
-        `Error: Minimum required "kubectl" version is "${minVersion}", you have "${version}". On macos run "brew upgrade kubernetes-cli."`
-      );
-    }
-  } catch (e) {
-    console.error(e);
-    exit('Error: failed to parse kubectl version');
-  }
-}
-
 export async function authorize(options) {
-  const { environment } = options;
   if (!devMode) await assertBedrockRoot();
 
+  const environment = options.environment || (await getEnvironmentPrompt());
   const config = await getConfig(environment);
   await setGCloudConfig(config.gcloud);
   console.info(kleur.green(`Successfully authorized ${environment}`));
 }
 
 export async function status(options) {
-  const { environment } = options;
   if (!devMode) assertBedrockRoot();
-
   await checkKubectlVersion();
+
+  const environment = options.environment || (await getEnvironmentPrompt());
   const config = await getConfig(environment);
   await checkConfig(environment, config);
 
@@ -92,42 +48,71 @@ export async function status(options) {
 }
 
 export async function build(options) {
-  const { service, subservice, tag } = options;
   if (!devMode) await assertBedrockRoot();
 
+  const { service, subservice, tag } = options;
   const platformName = getPlatformName();
 
-  await buildImage(platformName, service, subservice, tag);
+  if (!service) {
+    const services = await getServicesPrompt();
+    if (!services.length) process.exit(0);
+    const enteredTag = await getTagPrompt();
+
+    for (const [service, subservice] of services) {
+      await buildImage(platformName, service, subservice, enteredTag);
+    }
+  } else {
+    await buildImage(platformName, service, subservice, tag);
+  }
 }
 
 export async function push(options) {
-  const { environment, service, subservice, tag } = options;
   if (!devMode) assertBedrockRoot();
 
+  const { service, subservice, tag } = options;
+  const environment = options.environment || (await getEnvironmentPrompt());
   const config = await getConfig(environment);
   await checkConfig(environment, config);
   const { project } = config.gcloud;
   const platformName = getPlatformName();
 
-  await dockerPush(project, platformName, service, subservice, tag);
+  if (!service) {
+    const services = await getServicesPrompt();
+    if (!services.length) process.exit(0);
+    const enteredTag = await getTagPrompt();
+    for (const [service, subservice] of services) {
+      await dockerPush(project, platformName, service, subservice, enteredTag);
+    }
+  } else {
+    await dockerPush(project, platformName, service, subservice, tag);
+  }
 }
 
 export async function rollout(options) {
-  const { environment, service, subservice } = options;
   if (!devMode) assertBedrockRoot();
-
   await checkKubectlVersion();
+
+  const { service, subservice } = options;
+  const environment = options.environment || (await getEnvironmentPrompt());
   const config = await getConfig(environment);
   await checkConfig(environment, config);
 
-  await rolloutDeployment(environment, service, subservice);
+  if (!service) {
+    const services = await getServicesPrompt();
+    for (const [service, subservice] of services) {
+      await rolloutDeployment(environment, service, subservice);
+    }
+  } else {
+    await rolloutDeployment(environment, service, subservice);
+  }
 }
 
 export async function deploy(options) {
-  const { environment, service, subservice, tag } = options;
   if (!devMode) assertBedrockRoot();
-
   await checkKubectlVersion();
+
+  const { service, subservice, tag } = options;
+  const environment = options.environment || (await getEnvironmentPrompt());
   const config = await getConfig(environment);
   await checkConfig(environment, config);
   const { project } = config.gcloud;
@@ -135,20 +120,40 @@ export async function deploy(options) {
 
   await warn(environment);
 
-  await buildImage(platformName, service, subservice, tag);
-  await dockerPush(project, platformName, service, subservice, tag);
-  await rolloutDeployment(environment, service, subservice);
+  if (!service) {
+    const services = await getServicesPrompt();
+    if (!services.length) process.exit(0);
+    const enteredTag = await getTagPrompt();
+    for (const [service, subservice] of services) {
+      await buildImage(platformName, service, subservice, enteredTag);
+      await dockerPush(project, platformName, service, subservice, enteredTag);
+      await rolloutDeployment(environment, service, subservice);
+    }
+  } else {
+    await buildImage(platformName, service, subservice, tag);
+    await dockerPush(project, platformName, service, subservice, tag);
+    await rolloutDeployment(environment, service, subservice);
+  }
 }
 
 export async function undeploy(options) {
-  const { environment, service, subservice } = options;
   if (!devMode) assertBedrockRoot();
 
+  const { service, subservice } = options;
+  const environment = options.environment || (await getEnvironmentPrompt());
   const config = await getConfig(environment);
   await checkConfig(environment, config);
-  await checkDeployment(service, subservice);
 
-  await deleteDeployment(environment, service, subservice);
+  if (!service) {
+    const services = await getServicesPrompt();
+    for (const [service, subservice] of services) {
+      const exists = await checkDeployment(service, subservice);
+      if (exists) await deleteDeployment(environment, service, subservice);
+    }
+  } else {
+    const exists = await checkDeployment(service, subservice);
+    if (exists) await deleteDeployment(environment, service, subservice);
+  }
 }
 
 async function showDeploymentInfo(service, subservice) {
@@ -162,39 +167,17 @@ async function showDeploymentInfo(service, subservice) {
 }
 
 export async function info(options) {
-  let environment, service, subservice;
-  ({ environment, service, subservice } = options);
   if (!devMode) assertBedrockRoot();
-
-  if (!environment) {
-    environment = await prompt({
-      type: 'select',
-      message: 'Select environment:',
-      choices: getEnvironments().map((value) => {
-        return { title: value, value };
-      }),
-    });
-  }
-
   await checkKubectlVersion();
+
+  const { service, subservice } = options;
+  const environment = options.environment || (await getEnvironmentPrompt());
   const config = await getConfig(environment);
   await checkConfig(environment, config);
 
   if (!service) {
-    const services = getServices();
-    const selected = await prompt({
-      type: 'multiselect',
-      message: 'Select service / subservice:',
-      hint: '- Space or arrow-keys to select. Press "a" to select all. Return to submit.',
-      instructions: false,
-      choices: services.map(([service, subservice]) => {
-        let title = service;
-        if (subservice) title = `${service} / ${subservice}`;
-        return { title, value: [service, subservice] };
-      }),
-    });
-
-    for (const [service, subservice] of selected) {
+    const services = await getServicesPrompt();
+    for (const [service, subservice] of services) {
       await showDeploymentInfo(service, subservice);
     }
   } else {
@@ -203,9 +186,10 @@ export async function info(options) {
 }
 
 export async function provision(options) {
-  const { environment, terraform } = options;
   if (!devMode) assertBedrockRoot();
 
+  const environment = options.environment || (await getEnvironmentPrompt());
+  const terraform = options.terraform || (await getTerraformPrompt());
   const config = await getConfig(environment);
   await checkGCloudProject(config.gcloud);
 
@@ -219,8 +203,10 @@ export async function provision(options) {
 }
 
 export async function shell(options) {
-  const { environment, service, subservice } = options;
+  const { service, subservice } = options;
   if (!devMode) assertBedrockRoot();
+
+  const environment = options.environment || (await getEnvironmentPrompt());
 
   await checkKubectlVersion();
   const config = await getConfig(environment);

@@ -161,7 +161,7 @@
               "name": "environment",
               "type": "string",
               "description": "Environment (e.g. staging)",
-              "required": true,
+              "required": false,
               "prompt": false
             }
           ]
@@ -174,7 +174,7 @@
               "name": "environment",
               "type": "string",
               "description": "Environment (e.g. staging)",
-              "required": true,
+              "required": false,
               "prompt": false
             }
           ]
@@ -187,7 +187,7 @@
               "name": "service",
               "type": "string",
               "description": "Service (e.g. api)",
-              "required": true,
+              "required": false,
               "prompt": false
             },
             {
@@ -214,7 +214,7 @@
               "name": "environment",
               "type": "string",
               "description": "Environment (e.g. staging)",
-              "required": true,
+              "required": false,
               "prompt": false
             },
             {
@@ -248,14 +248,14 @@
               "name": "environment",
               "type": "string",
               "description": "Environment (e.g. staging)",
-              "required": true,
+              "required": false,
               "prompt": false
             },
             {
               "name": "service",
               "type": "string",
               "description": "Service (e.g. api)",
-              "required": true,
+              "required": false,
               "prompt": false
             },
             {
@@ -275,14 +275,14 @@
               "name": "environment",
               "type": "string",
               "description": "Environment (e.g. staging)",
-              "required": true,
+              "required": false,
               "prompt": false
             },
             {
               "name": "service",
               "type": "string",
               "description": "Service (e.g. api)",
-              "required": true,
+              "required": false,
               "prompt": false
             },
             {
@@ -309,14 +309,14 @@
               "name": "environment",
               "type": "string",
               "description": "Environment (e.g. staging)",
-              "required": true,
+              "required": false,
               "prompt": false
             },
             {
               "name": "service",
               "type": "string",
               "description": "Service (e.g. api)",
-              "required": true,
+              "required": false,
               "prompt": false
             },
             {
@@ -363,14 +363,14 @@
               "name": "environment",
               "type": "string",
               "description": "Environment (e.g. staging)",
-              "required": true,
+              "required": false,
               "prompt": false
             },
             {
               "name": "terraform",
               "type": "string",
               "description": "Terraform command (e.g. apply or plan)",
-              "required": true,
+              "required": false,
               "prompt": false
             }
           ]
@@ -383,7 +383,7 @@
               "name": "environment",
               "type": "string",
               "description": "Environment (e.g. staging)",
-              "required": true,
+              "required": false,
               "prompt": false
             },
             {

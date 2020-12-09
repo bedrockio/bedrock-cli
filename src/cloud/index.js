@@ -1,5 +1,5 @@
-import kleur from 'kleur';
 import open from 'open';
+import { green, yellow } from 'kleur';
 import { assertBedrockRoot } from '../util/dir';
 import { exec, execSyncInherit } from '../util/shell';
 import { prompt } from '../util/prompt';
@@ -27,7 +27,7 @@ export async function authorize(options) {
   const environment = options.environment || (await getEnvironmentPrompt());
   const config = await getConfig(environment);
   await setGCloudConfig(config.gcloud);
-  console.info(kleur.green(`Successfully authorized ${environment}`));
+  console.info(green(`Successfully authorized ${environment}`));
 }
 
 export async function status(options) {
@@ -161,7 +161,7 @@ async function showDeploymentInfo(service, subservice) {
   const deploymentInfo = await checkDeployment(service, subservice);
   if (deploymentInfo) {
     const { annotations } = deploymentInfo.spec.template.metadata;
-    console.info(kleur.green(`Deployment "${deployment}" annotations:`));
+    console.info(green(`Deployment "${deployment}" annotations:`));
     console.info(annotations);
   }
 }
@@ -213,7 +213,7 @@ export async function shell(options) {
 
   const podsJSON = await exec(`kubectl get pods -o json --ignore-not-found`);
   if (!podsJSON) {
-    console.info(kleur.yellow(`No running pods`));
+    console.info(yellow(`No running pods`));
     process.exit(0);
   }
   const pods = JSON.parse(podsJSON).items;
@@ -226,12 +226,12 @@ export async function shell(options) {
   const filteredPods = pods.filter((pod) => pod.metadata.name.startsWith(deployment));
 
   if (!filteredPods.length) {
-    console.info(kleur.yellow(`No running pods for deployment "${deployment}"`));
+    console.info(yellow(`No running pods for deployment "${deployment}"`));
     process.exit(0);
   }
 
   const podName = filteredPods[0].metadata.name;
-  console.info(kleur.yellow(`=> Starting bash for pod: "${podName}"`));
+  console.info(yellow(`=> Starting bash for pod: "${podName}"`));
 
   const { spawn } = require('child_process');
 
@@ -240,7 +240,7 @@ export async function shell(options) {
   });
 
   child.on('exit', function (code) {
-    console.info(kleur.green(`Finished bash for pod: "${podName}" (exit code: ${code})`));
+    console.info(green(`Finished bash for pod: "${podName}" (exit code: ${code})`));
   });
 }
 
@@ -261,7 +261,7 @@ export async function logs(options) {
   const params = new URLSearchParams({ query });
 
   const url = `https://console.cloud.google.com/logs/query;${params.toString()}?project=${project}`;
-  console.info(kleur.green(`=> Opening Logs in GCloud UI`));
+  console.info(green(`=> Opening Logs in GCloud UI`));
   console.info(url);
   let confirmed = await prompt({
     type: 'confirm',

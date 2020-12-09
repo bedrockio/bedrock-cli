@@ -84,11 +84,11 @@ export async function checkDeployment(service, subservice) {
   const deployment = getDeployment(service, subservice);
 
   const deploymentInfoJSON = await exec(
-    `kubectl get deployment ${deployment} -o jsonpath='{@}' --ignore-not-found`
+    `kubectl get deployment ${deployment} -o json --ignore-not-found`
   );
   if (!deploymentInfoJSON) {
     console.info(kleur.yellow(`Deployment "${deployment}" could not be found`));
     process.exit(0);
   }
-  return JSON.parse(deploymentInfoJSON.slice(1, -1));
+  return JSON.parse(deploymentInfoJSON);
 }

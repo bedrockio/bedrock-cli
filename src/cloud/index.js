@@ -159,12 +159,12 @@ export async function shell(options) {
   const config = await getConfig(environment);
   await checkConfig(environment, config);
 
-  const podsJSON = await exec(`kubectl get pods -o jsonpath='{.items}' --ignore-not-found`);
+  const podsJSON = await exec(`kubectl get pods -o json --ignore-not-found`);
   if (!podsJSON) {
     console.info(kleur.yellow(`No running pods`));
     process.exit(0);
   }
-  const pods = JSON.parse(podsJSON.slice(1, -1));
+  const pods = JSON.parse(podsJSON).items;
 
   let deployment = 'api-cli-deployment';
   if (service) {
@@ -179,7 +179,7 @@ export async function shell(options) {
   }
 
   const podName = filteredPods[0].metadata.name;
-  console.info(kleur.green(`=> Starting bash for pod: "${podName}"`));
+  console.info(kleur.yellow(`=> Starting bash for pod: "${podName}"`));
 
   const { spawn } = require('child_process');
 

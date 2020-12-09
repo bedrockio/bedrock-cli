@@ -52,6 +52,16 @@ export async function checkGCloudProject(options = {}) {
   return true;
 }
 
+function getKubectlContext(project, computeZone, clusterName) {
+  return `gke_${project}_${computeZone}_${clusterName}`;
+}
+
+async function getCurrentKubectlContext() {
+  const kubectlConfigJSON = await exec('kubectl config view -o json');
+  const kubectlConfig = JSON.parse(kubectlConfigJSON);
+  return kubectlConfig['current-context']; // e.g. 'gke_bedrock-foundation_us-east1-c_cluster-2'
+}
+
 async function checkGCloudConfig(environment, options = {}) {
   const { project, computeZone, kubernetes } = options;
   if (!kubernetes) exit('Missing kubernetes settings in config');
@@ -81,10 +91,21 @@ async function checkGCloudConfig(environment, options = {}) {
       );
     }
 
+    const kubectlContext = getKubectlContext(project, computeZone, clusterName);
+    const currentkubectlContext = await getCurrentKubectlContext();
+    if (kubectlContext != currentkubectlContext) {
+      valid = false;
+      console.info(
+        kleur.red(
+          `Invalid Google Cloud config (use authorize script): kubectl context = ${currentkubectlContext}`
+        )
+      );
+    }
+
     if (valid) {
       console.info(
         kleur.green(
-          `Using Google Cloud environment ${environment} (project=${project}, compute/zone=${computeZone}, cluster=${clusterName})`
+          `Using Google Cloud environment ${environment} (project=${project}, compute/zone=${computeZone}, cluster=${clusterName}, kubectl/context=${currentkubectlContext})`
         )
       );
     }

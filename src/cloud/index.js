@@ -1,8 +1,9 @@
 import path from 'path';
 import kleur from 'kleur';
 import open from 'open';
+import compareVersions from 'compare-versions';
 import { assertBedrockRoot } from '../util/dir';
-import { exec, execSyncPipe, execSyncInherit } from '../util/shell';
+import { exec, execSyncInherit } from '../util/shell';
 import { prompt } from '../util/prompt';
 import { exit } from '../util/exit';
 import { getConfig, setGCloudConfig, checkConfig, checkGCloudProject } from './authorize';
@@ -18,6 +19,22 @@ function getPlatformName() {
   return path.basename(process.cwd());
 }
 
+async function checkKubectlVersion(minVersion = 'v1.19.0') {
+  try {
+    const kubectlVersion = await exec('kubectl version --client -o json');
+    const parsed = JSON.parse(kubectlVersion);
+    const version = parsed.clientVersion.gitVersion;
+    if (compareVersions.compare(minVersion, version, '>')) {
+      exit(
+        `Error: Minimum required "kubectl" version is "${minVersion}", you have "${version}". On macos run "brew upgrade kubernetes-cli."`
+      );
+    }
+  } catch (e) {
+    console.error(e);
+    exit('Error: failed to parse kubectl version');
+  }
+}
+
 export async function authorize(options) {
   const { environment } = options;
   if (!devMode) await assertBedrockRoot();
@@ -31,6 +48,7 @@ export async function status(options) {
   const { environment } = options;
   if (!devMode) assertBedrockRoot();
 
+  await checkKubectlVersion();
   const config = await getConfig(environment);
   await checkConfig(environment, config);
 
@@ -68,6 +86,7 @@ export async function rollout(options) {
   const { environment, service, subservice } = options;
   if (!devMode) assertBedrockRoot();
 
+  await checkKubectlVersion();
   const config = await getConfig(environment);
   await checkConfig(environment, config);
 
@@ -78,6 +97,7 @@ export async function deploy(options) {
   const { environment, service, subservice, tag } = options;
   if (!devMode) assertBedrockRoot();
 
+  await checkKubectlVersion();
   const config = await getConfig(environment);
   await checkConfig(environment, config);
   const { project } = config.gcloud;
@@ -105,6 +125,7 @@ export async function info(options) {
   const { environment, service, subservice } = options;
   if (!devMode) assertBedrockRoot();
 
+  await checkKubectlVersion();
   const config = await getConfig(environment);
   await checkConfig(environment, config);
   const deployment = getDeployment(service, subservice);
@@ -134,6 +155,7 @@ export async function shell(options) {
   const { environment, service, subservice } = options;
   if (!devMode) assertBedrockRoot();
 
+  await checkKubectlVersion();
   const config = await getConfig(environment);
   await checkConfig(environment, config);
 

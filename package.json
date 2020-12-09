@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "commander": "^6.1.0",
+    "compare-versions": "^3.6.0",
     "esm": "^3.2.25",
     "execa": "^4.0.3",
     "glob": "^7.1.6",

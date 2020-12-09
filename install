@@ -52,7 +52,7 @@ _() {
   }
 
   install () {
-    git clone --quiet git@github.com:bedrockio/bedrock-cli.git $DIR > /dev/null
+    git clone --quiet https://github.com/bedrockio/bedrock-cli.git $DIR > /dev/null
     pushd $DIR > /dev/null
     $PKG_CMD install > /dev/null 2>&1
     popd

@@ -26,12 +26,14 @@
           "name": "repository",
           "type": "repository",
           "description": "Git repository",
+          "required": false,
           "prompt": true
         },
         {
           "name": "address",
           "type": "string",
           "description": "Company address",
+          "required": false,
           "prompt": true
         }
       ]

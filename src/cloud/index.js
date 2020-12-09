@@ -203,11 +203,10 @@ export async function provision(options) {
 }
 
 export async function shell(options) {
-  const { service, subservice } = options;
   if (!devMode) assertBedrockRoot();
 
+  const { service, subservice } = options;
   const environment = options.environment || (await getEnvironmentPrompt());
-
   await checkKubectlVersion();
   const config = await getConfig(environment);
   await checkConfig(environment, config);
@@ -246,9 +245,9 @@ export async function shell(options) {
 }
 
 export async function logs(options) {
-  const { environment, service, subservice } = options;
   if (!devMode) assertBedrockRoot();
 
+  const { environment, service, subservice } = options;
   const config = await getConfig(environment);
   await checkConfig(environment, config);
   const { project, computeZone, kubernetes, label } = config.gcloud;

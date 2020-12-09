@@ -20,10 +20,9 @@ export async function exec(commands, std = `stdout`) {
   }
 }
 
+// Use when you need to pass through the corresponding stdio stream to the Node.js script output.
+// This facilitates live updates to the output, e.g., when "watching" output or pushing docker images.
+// See: https://stackoverflow.com/a/31104898
 export async function execSyncInherit(command) {
   await execSync(command, { stdio: 'inherit' });
-}
-
-export async function execSyncPipe(command) {
-  return await execSync(command, { stdio: 'pipe', encoding: 'utf-8' });
 }

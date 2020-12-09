@@ -81,8 +81,6 @@ async function checkGCloudConfig(environment, options = {}) {
       );
     }
 
-    // TODO: add check for secrets folder: deployment/environments/$ENVIRONMENT/secrets
-
     if (valid) {
       console.info(
         kleur.green(
@@ -104,15 +102,15 @@ async function checkSecrets(environment) {
   if (fs.existsSync(secretsDir)) {
     const secretFiles = await exec(`ls ${secretsDir}`);
     if (secretFiles) {
-      console.info(kleur.yellow('---'));
-      console.info(kleur.yellow('---'));
+      console.info(kleur.red('---'));
+      console.info(kleur.red('---'));
       console.info(
-        kleur.yellow(
+        kleur.red(
           `--- Warning: Found files in deployment/environments/${environment}/secrets/ - make sure to remove these!`
         )
       );
-      console.info(kleur.yellow('---'));
-      console.info(kleur.yellow('---'));
+      console.info(kleur.red('---'));
+      console.info(kleur.red('---'));
     }
   }
 }

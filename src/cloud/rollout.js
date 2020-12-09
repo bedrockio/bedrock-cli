@@ -93,7 +93,7 @@ export async function checkDeployment(service, subservice) {
   );
   if (!deploymentInfoJSON) {
     console.info(kleur.yellow(`Deployment "${deployment}" could not be found`));
-    process.exit(0);
+    return false;
   }
   return JSON.parse(deploymentInfoJSON);
 }

@@ -336,14 +336,14 @@
               "name": "environment",
               "type": "string",
               "description": "Environment (e.g. staging)",
-              "required": true,
+              "required": false,
               "prompt": false
             },
             {
               "name": "service",
               "type": "string",
               "description": "Service (e.g. api)",
-              "required": true,
+              "required": false,
               "prompt": false
             },
             {

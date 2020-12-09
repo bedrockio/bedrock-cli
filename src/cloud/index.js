@@ -1,3 +1,4 @@
+import fs from 'fs';
 import path from 'path';
 import kleur from 'kleur';
 import open from 'open';
@@ -17,6 +18,35 @@ const devMode = true;
 
 function getPlatformName() {
   return path.basename(process.cwd());
+}
+
+function getDirectories(folder) {
+  if (fs.existsSync(folder)) {
+    return fs.readdirSync(folder).filter((file) => {
+      const filePath = path.resolve(folder, file);
+      return fs.lstatSync(filePath).isDirectory();
+    });
+  }
+  return [];
+}
+
+function getEnvironments() {
+  return getDirectories(path.resolve('deployment', 'environments')).reverse();
+}
+
+function getServices() {
+  const services = [];
+  const servicesFolders = getDirectories('services');
+  for (const serviceFolder of servicesFolders) {
+    for (const file of fs.readdirSync(path.resolve('services', serviceFolder))) {
+      if (file == 'Dockerfile') {
+        services.push([serviceFolder.toString(), '']);
+      } else if (file.startsWith('Dockerfile.')) {
+        services.push([serviceFolder.toString(), file.toString().replace('Dockerfile.', '')]);
+      }
+    }
+  }
+  return services;
 }
 
 async function checkKubectlVersion(minVersion = 'v1.19.0') {
@@ -121,18 +151,55 @@ export async function undeploy(options) {
   await deleteDeployment(environment, service, subservice);
 }
 
+async function showDeploymentInfo(service, subservice) {
+  const deployment = getDeployment(service, subservice);
+  const deploymentInfo = await checkDeployment(service, subservice);
+  if (deploymentInfo) {
+    const { annotations } = deploymentInfo.spec.template.metadata;
+    console.info(kleur.green(`Deployment "${deployment}" annotations:`));
+    console.info(annotations);
+  }
+}
+
 export async function info(options) {
-  const { environment, service, subservice } = options;
+  let environment, service, subservice;
+  ({ environment, service, subservice } = options);
   if (!devMode) assertBedrockRoot();
+
+  if (!environment) {
+    environment = await prompt({
+      type: 'select',
+      message: 'Select environment:',
+      choices: getEnvironments().map((value) => {
+        return { title: value, value };
+      }),
+    });
+  }
 
   await checkKubectlVersion();
   const config = await getConfig(environment);
   await checkConfig(environment, config);
-  const deployment = getDeployment(service, subservice);
-  const deploymentInfo = await checkDeployment(service, subservice);
-  const { annotations } = deploymentInfo.spec.template.metadata;
-  console.info(`Deployment "${deployment}" annotations:`);
-  console.info(annotations);
+
+  if (!service) {
+    const services = getServices();
+    const selected = await prompt({
+      type: 'multiselect',
+      message: 'Select service / subservice:',
+      hint: '- Space or arrow-keys to select. Press "a" to select all. Return to submit.',
+      instructions: false,
+      choices: services.map(([service, subservice]) => {
+        let title = service;
+        if (subservice) title = `${service} / ${subservice}`;
+        return { title, value: [service, subservice] };
+      }),
+    });
+
+    for (const [service, subservice] of selected) {
+      await showDeploymentInfo(service, subservice);
+    }
+  } else {
+    await showDeploymentInfo(service, subservice);
+  }
 }
 
 export async function provision(options) {

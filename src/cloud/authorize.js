@@ -101,9 +101,6 @@ async function checkGCloudConfig(environment, options = {}) {
         )
       );
     }
-
-    // TODO: add optional fallback to authorize current values
-
     return valid;
   } catch (e) {
     exit(e.message);

@@ -19,10 +19,8 @@ import {
   getPlatformName,
 } from './utils';
 
-const devMode = true;
-
 export async function authorize(options) {
-  if (!devMode) await assertBedrockRoot();
+  await assertBedrockRoot();
 
   const environment = options.environment || (await getEnvironmentPrompt());
   const config = await getConfig(environment);
@@ -31,7 +29,7 @@ export async function authorize(options) {
 }
 
 export async function status(options) {
-  if (!devMode) assertBedrockRoot();
+  await assertBedrockRoot();
   await checkKubectlVersion();
 
   const environment = options.environment || (await getEnvironmentPrompt());
@@ -48,7 +46,7 @@ export async function status(options) {
 }
 
 export async function build(options) {
-  if (!devMode) await assertBedrockRoot();
+  await assertBedrockRoot();
 
   const { service, subservice, tag } = options;
   const platformName = getPlatformName();
@@ -67,7 +65,7 @@ export async function build(options) {
 }
 
 export async function push(options) {
-  if (!devMode) assertBedrockRoot();
+  await assertBedrockRoot();
 
   const { service, subservice, tag } = options;
   const environment = options.environment || (await getEnvironmentPrompt());
@@ -89,7 +87,7 @@ export async function push(options) {
 }
 
 export async function rollout(options) {
-  if (!devMode) assertBedrockRoot();
+  await assertBedrockRoot();
   await checkKubectlVersion();
 
   const { service, subservice } = options;
@@ -108,7 +106,7 @@ export async function rollout(options) {
 }
 
 export async function deploy(options) {
-  if (!devMode) assertBedrockRoot();
+  await assertBedrockRoot();
   await checkKubectlVersion();
 
   const { service, subservice, tag } = options;
@@ -137,7 +135,7 @@ export async function deploy(options) {
 }
 
 export async function undeploy(options) {
-  if (!devMode) assertBedrockRoot();
+  await assertBedrockRoot();
 
   const { service, subservice } = options;
   const environment = options.environment || (await getEnvironmentPrompt());
@@ -167,7 +165,7 @@ async function showDeploymentInfo(service, subservice) {
 }
 
 export async function info(options) {
-  if (!devMode) assertBedrockRoot();
+  await assertBedrockRoot();
   await checkKubectlVersion();
 
   const { service, subservice } = options;
@@ -186,7 +184,7 @@ export async function info(options) {
 }
 
 export async function provision(options) {
-  if (!devMode) assertBedrockRoot();
+  await assertBedrockRoot();
 
   const environment = options.environment || (await getEnvironmentPrompt());
   const terraform = options.terraform || (await getTerraformPrompt());
@@ -203,7 +201,7 @@ export async function provision(options) {
 }
 
 export async function shell(options) {
-  if (!devMode) assertBedrockRoot();
+  await assertBedrockRoot();
 
   const { service, subservice } = options;
   const environment = options.environment || (await getEnvironmentPrompt());
@@ -245,7 +243,7 @@ export async function shell(options) {
 }
 
 export async function logs(options) {
-  if (!devMode) assertBedrockRoot();
+  await assertBedrockRoot();
 
   const { environment, service, subservice } = options;
   const config = await getConfig(environment);

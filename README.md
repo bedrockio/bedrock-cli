@@ -31,6 +31,10 @@ bedrock create \
   seltzer-box
 ```
 
+## Cloud Deployment
+
+To use the bedrock `cloud` commands, check the `bedrock-core` Deployment [README.md](https://github.com/bedrockio/bedrock-core/tree/master/deployment), which includes: gcloud setup, deployment and provisioning.
+
 ## More
 
 ```bash

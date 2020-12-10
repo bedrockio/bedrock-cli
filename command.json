@@ -148,6 +148,288 @@
           ]
         }
       ]
+    },
+    {
+      "name": "cloud",
+      "description": "Cloud Controls for deployment and provisioning",
+      "commands": [
+        {
+          "name": "authorize",
+          "description": "Authorize cloud environment",
+          "arguments": [
+            {
+              "name": "environment",
+              "type": "string",
+              "description": "Environment (e.g. staging)",
+              "required": false,
+              "prompt": false
+            }
+          ]
+        },
+        {
+          "name": "status",
+          "description": "Get status of cloud deployment",
+          "arguments": [
+            {
+              "name": "environment",
+              "type": "string",
+              "description": "Environment (e.g. staging)",
+              "required": false,
+              "prompt": false
+            }
+          ]
+        },
+        {
+          "name": "build",
+          "description": "Build service container",
+          "arguments": [
+            {
+              "name": "service",
+              "type": "string",
+              "description": "Service (e.g. api)",
+              "required": false,
+              "prompt": false
+            },
+            {
+              "name": "subservice",
+              "type": "string",
+              "description": "SubService (e.g. cli)",
+              "required": false,
+              "prompt": false
+            },
+            {
+              "name": "tag",
+              "type": "string",
+              "description": "Image Tag, defaults to latest (e.g. v1.2)",
+              "required": false,
+              "prompt": false
+            }
+          ]
+        },
+        {
+          "name": "push",
+          "description": "Push service container to gcr.io",
+          "arguments": [
+            {
+              "name": "environment",
+              "type": "string",
+              "description": "Environment (e.g. staging)",
+              "required": false,
+              "prompt": false
+            },
+            {
+              "name": "service",
+              "type": "string",
+              "description": "Service (e.g. api)",
+              "required": false,
+              "prompt": false
+            },
+            {
+              "name": "subservice",
+              "type": "string",
+              "description": "SubService (e.g. cli)",
+              "required": false,
+              "prompt": false
+            },
+            {
+              "name": "tag",
+              "type": "string",
+              "description": "Image Tag, defaults to latest (e.g. v1.2)",
+              "required": false,
+              "prompt": false
+            }
+          ]
+        },
+        {
+          "name": "rollout",
+          "description": "Rollout service to cluster",
+          "arguments": [
+            {
+              "name": "environment",
+              "type": "string",
+              "description": "Environment (e.g. staging)",
+              "required": false,
+              "prompt": false
+            },
+            {
+              "name": "service",
+              "type": "string",
+              "description": "Service (e.g. api)",
+              "required": false,
+              "prompt": false
+            },
+            {
+              "name": "subservice",
+              "type": "string",
+              "description": "SubService (e.g. cli)",
+              "required": false,
+              "prompt": false
+            }
+          ]
+        },
+        {
+          "name": "deploy",
+          "description": "Build, push and rollout service to cluster",
+          "arguments": [
+            {
+              "name": "environment",
+              "type": "string",
+              "description": "Environment (e.g. staging)",
+              "required": false,
+              "prompt": false
+            },
+            {
+              "name": "service",
+              "type": "string",
+              "description": "Service (e.g. api)",
+              "required": false,
+              "prompt": false
+            },
+            {
+              "name": "subservice",
+              "type": "string",
+              "description": "SubService (e.g. cli)",
+              "required": false,
+              "prompt": false
+            },
+            {
+              "name": "tag",
+              "type": "string",
+              "description": "Image Tag, defaults to latest (e.g. v1.2)",
+              "required": false,
+              "prompt": false
+            }
+          ]
+        },
+        {
+          "name": "undeploy",
+          "description": "Delete service from cluster",
+          "arguments": [
+            {
+              "name": "environment",
+              "type": "string",
+              "description": "Environment (e.g. staging)",
+              "required": false,
+              "prompt": false
+            },
+            {
+              "name": "service",
+              "type": "string",
+              "description": "Service (e.g. api)",
+              "required": false,
+              "prompt": false
+            },
+            {
+              "name": "subservice",
+              "type": "string",
+              "description": "SubService (e.g. cli)",
+              "required": false,
+              "prompt": false
+            }
+          ]
+        },
+        {
+          "name": "info",
+          "description": "Deployment info",
+          "arguments": [
+            {
+              "name": "environment",
+              "type": "string",
+              "description": "Environment (e.g. staging)",
+              "required": false,
+              "prompt": false
+            },
+            {
+              "name": "service",
+              "type": "string",
+              "description": "Service (e.g. api)",
+              "required": false,
+              "prompt": false
+            },
+            {
+              "name": "subservice",
+              "type": "string",
+              "description": "SubService (e.g. cli)",
+              "required": false,
+              "prompt": false
+            }
+          ]
+        },
+        {
+          "name": "provision",
+          "description": "Provision cluster on glcoud with Terraform",
+          "arguments": [
+            {
+              "name": "environment",
+              "type": "string",
+              "description": "Environment (e.g. staging)",
+              "required": false,
+              "prompt": false
+            },
+            {
+              "name": "terraform",
+              "type": "string",
+              "description": "Terraform command (e.g. apply or plan)",
+              "required": false,
+              "prompt": false
+            }
+          ]
+        },
+        {
+          "name": "shell",
+          "description": "Start remote bash shell on service container",
+          "arguments": [
+            {
+              "name": "environment",
+              "type": "string",
+              "description": "Environment (e.g. staging)",
+              "required": false,
+              "prompt": false
+            },
+            {
+              "name": "service",
+              "type": "string",
+              "description": "Service (e.g. api)",
+              "required": false,
+              "prompt": false
+            },
+            {
+              "name": "subservice",
+              "type": "string",
+              "description": "SubService (e.g. cli)",
+              "required": false,
+              "prompt": false
+            }
+          ]
+        },
+        {
+          "name": "logs",
+          "description": "Open Google Cloud logs explorer UI in your browser",
+          "arguments": [
+            {
+              "name": "environment",
+              "type": "string",
+              "description": "Environment (e.g. staging)",
+              "required": true,
+              "prompt": false
+            },
+            {
+              "name": "service",
+              "type": "string",
+              "description": "Service (e.g. api)",
+              "required": true,
+              "prompt": false
+            },
+            {
+              "name": "subservice",
+              "type": "string",
+              "description": "SubService (e.g. cli)",
+              "required": false,
+              "prompt": false
+            }
+          ]
+        }
+      ]
     }
   ]
 }

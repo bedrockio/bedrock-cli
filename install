@@ -41,6 +41,14 @@ _() {
       echo 'Error: Either yarn or npm must be installed (https://www.npmjs.com/)' >&2
       exit 1
     fi
+    if ! [ -x "$(command -v gcloud)" ]; then
+      echo 'Error: Google Cloud SDK (gcloud) is not installed (https://cloud.google.com/sdk/docs/install)' >&2
+      exit 1
+    fi
+    if ! [ -x "$(command -v kubectl)" ]; then
+      echo 'Error: Kubernetes CLI (kubectl) is not installed (https://kubernetes.io/docs/tasks/tools/install-kubectl/)' >&2
+      exit 1
+    fi
   }
 
   install () {
@@ -75,7 +83,7 @@ _() {
     try_profile $HOME/.bash_profile
     try_profile $HOME/.zshenv
     try_profile $HOME/.zshrc
-    try_fish_profile $HOME/.config/fish/config.fish  
+    try_fish_profile $HOME/.config/fish/config.fish
   }
 
 

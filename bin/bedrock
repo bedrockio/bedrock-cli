@@ -3,6 +3,7 @@
 require = require('esm')(module);
 
 const path = require('path');
+const kleur = require('kleur');
 const { program } = require('commander');
 const { camelCase } = require('lodash');
 const { promptFill } = require('../src/util/prompt');
@@ -59,8 +60,12 @@ function addCommand(command, descriptor) {
           options[args[0].name] = subcommand.args;
         } else if (sub.arguments) {
           subcommand.args.forEach((arg, i) => {
-            const { name } = sub.arguments[i];
-            options[name] = arg;
+            if (sub.arguments[i]) {
+              const { name } = sub.arguments[i];
+              options[name] = arg;
+            } else {
+              console.info(kleur.yellow(`Warning: "${arg}" argument not used`));
+            }
           });
         }
         if (snapshot) {
@@ -82,9 +87,7 @@ function getHandler(descriptor) {
   if (parent.name === 'bedrock') {
     return require(path.resolve(__dirname, '../src', name)).default;
   } else {
-    return require(path.resolve(__dirname, '../src', parent.name))[
-      camelCase(name)
-    ];
+    return require(path.resolve(__dirname, '../src', parent.name))[camelCase(name)];
   }
 }
 

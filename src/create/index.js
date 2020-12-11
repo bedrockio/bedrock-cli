@@ -6,6 +6,7 @@ import { removeFiles } from '../util/file';
 import { replaceAll } from '../util/replace';
 import { exec } from '../util/shell';
 import Listr from 'listr';
+import { randomBytes } from 'crypto';
 
 const BEDROCK_REPO = 'bedrockio/bedrock-core';
 
@@ -18,7 +19,7 @@ const COMPLETE_MESSAGE = `
 `;
 
 export default async function create(options) {
-  const { project, domain = '', repository = '', address = '' } = options;
+  const { project, domain = '', repository = '', address = '', adminPassword = '' } = options;
 
   if (!project) {
     throw new Error('Project name required');
@@ -39,13 +40,14 @@ export default async function create(options) {
     {
       title: 'Configure',
       task: async () => {
-
         const appName = startCase(project);
         const secret = await exec('openssl rand -base64 30');
+        const ADMIN_PASSWORD = adminPassword || randomBytes(8).toString('hex');
 
         await replaceAll(`*.{js,md,yml,tf,conf,json}`, (str) => {
           str = str.replace(/APP_COMPANY_ADDRESS=(.+)/g, `APP_COMPANY_ADDRESS=${address}`);
           str = str.replace(/JWT_SECRET=(.+)/g, `JWT_SECRET=${secret}`);
+          str = str.replace(/ADMIN_PASSWORD=(.+)/g, `ADMIN_PASSWORD=${ADMIN_PASSWORD}`);
           str = str.replace(/bedrockio\/bedrock-core/g, repository);
           str = str.replace(/bedrock-foundation/g, kebab);
           str = str.replace(/bedrock\.foundation/g, domain);
@@ -61,7 +63,6 @@ export default async function create(options) {
         await removeFiles('CONTRIBUTING.md');
         await removeFiles('LICENSE');
         await removeFiles('.git');
-
       },
     },
     {
@@ -74,19 +75,19 @@ export default async function create(options) {
         await exec('yarn install');
 
         process.chdir(path.resolve('..', '..'));
-      }
+      },
     },
     {
       title: 'Finalizing',
       task: async () => {
         await initializeRepository(kebab, repository);
-      }
+      },
     },
   ]);
   try {
     await tasks.run();
     console.log(kleur.yellow(COMPLETE_MESSAGE));
-  } catch(err) {
+  } catch (err) {
     process.exit(1);
   }
 }

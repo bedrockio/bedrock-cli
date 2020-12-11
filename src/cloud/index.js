@@ -45,7 +45,15 @@ export async function status(options) {
   console.info('');
   await execSyncInherit('kubectl get nodes');
   console.info('');
-  await execSyncInherit('kubectl get pods');
+  const podInfo = await exec('kubectl get pods');
+  console.info(podInfo, '\n');
+  if (podInfo.includes('CreateContainerConfigError')) {
+    console.info(
+      yellow(
+        `CreateContainerConfigError: Check if you created the required secrets, e.g., "bedrock cloud secret ${environment} set credentials"`
+      )
+    );
+  }
 }
 
 export async function build(options) {

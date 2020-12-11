@@ -35,6 +35,13 @@
           "description": "Company address",
           "required": false,
           "prompt": true
+        },
+        {
+          "name": "adminPassword",
+          "type": "password",
+          "description": "Admin password",
+          "required": false,
+          "prompt": true
         }
       ]
     },

@@ -3,7 +3,6 @@ import { camelCase } from 'lodash';
 import { assertPath } from '../util/file';
 import { block } from './util/template';
 import { replaceInputs } from './util/inputs';
-import { patchIndex } from './util/patch';
 import {
   readSourceFile,
   writeLocalFile,
@@ -26,7 +25,6 @@ export async function generateModals(options) {
 
   source = replaceInputs(source, options);
   await writeLocalFile(source, modalsDir, `Edit${camelUpper}.js`);
-  await patchIndex(modalsDir, `Edit${camelUpper}`);
 
   console.log(yellow('Modals generated!'));
 }

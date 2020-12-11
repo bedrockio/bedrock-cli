@@ -13,7 +13,7 @@ import {
   replacePrimary,
 } from './util/source';
 
-const ROUTES_DIR = 'services/api/src/v1';
+const ROUTES_DIR = 'services/api/src/routes';
 
 export async function generateRoutes(options) {
   const { schema, pluralKebab } = options;

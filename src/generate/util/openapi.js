@@ -3,7 +3,7 @@ import { plural } from 'pluralize';
 import { assertPath } from '../../util/file';
 import { writeLocalFile } from './source';
 
-const OPENAPI_DIR = 'services/api/src/v1/__openapi__';
+const OPENAPI_DIR = 'services/api/src/routes/__openapi__';
 
 export async function generateOpenApi(options) {
   const { camelLower, camelUpper, pluralLower } = options;

@@ -1,11 +1,9 @@
-import path from 'path';
-import mkdir from 'mkdirp';
 import { yellow } from 'kleur';
 import { startCase } from 'lodash';
 import { replaceFilters } from './util/filters';
 import { assertPath } from '../util/file';
 import { block } from './util/template';
-import { patchAppEntrypoint, patchIndex } from './util/patch';
+import { patchAppEntrypoint } from './util/patch';
 import {
   readSourceFile,
   writeLocalFile,
@@ -14,14 +12,20 @@ import {
   replaceSecondary,
 } from './util/source';
 
-const FILES = ['index.js', 'List.js', 'Overview.js', 'Menu.js'];
+const FILES = [
+  'index.js',
+  'List/index.js',
+  'Detail/index.js',
+  'Detail/Overview.js',
+  'Detail/Menu.js'
+];
 
 const SCREENS_DIR = 'services/web/src/Screens';
 
 export async function generateScreens(options) {
   const { pluralUpper } = options;
 
-  const screensDir = await getScreensDir(options);
+  const screensDir = await assertPath(SCREENS_DIR);
 
   // Do this sequentially to ensure order
   for (let file of FILES) {
@@ -42,14 +46,13 @@ export async function generateScreens(options) {
 
   // Attempt to patch app entrypoint
   await patchAppEntrypoint(options);
-  await patchIndex(screensDir, pluralUpper);
 
   console.log(yellow('Screens generated!'));
 }
 
 export async function generateSubScreens(options) {
-  const screensDir = await getScreensDir(options);
-  const source = await readSourceFile(screensDir, 'Shops/Products.js');
+  const screensDir = await assertPath(SCREENS_DIR);
+  const source = await readSourceFile(screensDir, 'Shops/Detail/Products.js');
   await generateSubScreensFor(screensDir, source, [options], options.subScreens);
   await generateSubScreensFor(screensDir, source, options.externalSubScreens, [options]);
   console.log(yellow('Subscreens generated!'));
@@ -69,6 +72,7 @@ async function generateSubScreensFor(screensDir, source, primary, secondary) {
               source,
               screensDir,
               primary.pluralUpper,
+              'Detail',
               `${secondary.pluralUpper}.js`
             );
           })
@@ -76,13 +80,6 @@ async function generateSubScreensFor(screensDir, source, primary, secondary) {
       })
     );
   }
-}
-
-async function getScreensDir(options) {
-  const { pluralUpper } = options;
-  const screensDir = await assertPath(SCREENS_DIR);
-  await mkdir(path.join(screensDir, pluralUpper));
-  return screensDir;
 }
 
 function replaceSubScreenImports(source, options) {

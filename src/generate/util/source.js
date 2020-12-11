@@ -1,4 +1,5 @@
 import path from 'path';
+import mkdir from 'mkdirp';
 import fetch from 'node-fetch';
 import { promises as fs } from 'fs';
 import { runAsTask } from '../../util/tasks';
@@ -7,10 +8,7 @@ import { indent } from './template';
 // Set to true to test locally
 const USE_LOCAL = false;
 
-// Until PR lands:
-const GITHUB_RAW_BASE =
-  'https://raw.githubusercontent.com/bedrockio/bedrock-core/generator';
-//const GITHUB_RAW_BASE = 'https://raw.githubusercontent.com/bedrockio/bedrock-core/master';
+const GITHUB_RAW_BASE = 'https://raw.githubusercontent.com/bedrockio/bedrock-core/master';
 
 const GENERATOR_REG = /^([^\n]*)(\/\/|\{\/\*) --- Generator: BLOCK[\s\S]+?--- Generator: end(?: \*\/\})?$/gm;
 
@@ -77,7 +75,9 @@ export function readSourceFile(...args) {
 }
 
 export async function writeLocalFile(source, ...args) {
-  return await fs.writeFile(path.resolve(...args), source, 'utf8');
+  const file = path.resolve(...args)
+  await mkdir(path.dirname(file));
+  return await fs.writeFile(file, source, 'utf8');
 }
 
 export async function readRemoteFile(...args) {

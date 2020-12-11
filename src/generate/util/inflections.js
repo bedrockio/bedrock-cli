@@ -6,7 +6,7 @@ export function getInflections(str) {
   const camelLower = camelCase(str);
   const camelUpper = upperFirst(camelLower);
   const pluralLower = plural(camelLower);
-  const pluralUpper = upperFirst(camelUpper);
+  const pluralUpper = upperFirst(pluralLower);
   const pluralKebab = kebabCase(pluralLower);
   return {
     kebab,

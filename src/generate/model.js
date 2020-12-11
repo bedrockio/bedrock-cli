@@ -1,44 +1,38 @@
 import { yellow } from 'kleur';
 import { assertPath } from '../util/file';
-import { outputSchema } from './util/schema';
-import {
-  readSourceFile,
-  writeLocalFile,
-  replaceBlock,
-  replacePrimary,
-} from './util/source';
+import { writeLocalFile } from './util/source';
 
-const MODELS_DIR = 'services/api/src/models';
+const DEFINITIONS_DIR = 'services/api/src/models/definitions';
 
 export async function generateModel(options) {
   const { kebab } = options;
-
-  const modelsDir = await assertPath(MODELS_DIR);
-
-  let source = await readSourceFile(modelsDir, 'shop.js');
-  source = replacePrimary(source, options);
-  source = replaceBlock(source, outputSchema(options.schema), 'schema');
-  source = replaceBlock(source, getRequires(options.schema), 'requires');
-  source = replaceBlock(source, getAutopopulate(options.schema), 'autopopulate');
-  await writeLocalFile(source, modelsDir, `${kebab}.js`);
+  const dir = await assertPath(DEFINITIONS_DIR);
+  const definition = getDefinition(options);
+  await writeLocalFile(JSON.stringify(definition, null, 2), dir, `${kebab}.json`);
 
   console.log(yellow('Model generated!'));
 }
 
-function getRequires(schema) {
-  if (hasObjectId(schema)) {
-    return 'const { ObjectId } = mongoose.Schema.Types;';
-  }
-}
+function getDefinition(options) {
+  const { schema } = options;
+  const attributes = {};
 
-function getAutopopulate(schema) {
-  if (hasObjectId(schema)) {
-    return "schema.plugin(require('mongoose-autopopulate'));";
-  }
-}
+  for (let field of schema) {
+    const { name, type, schemaType, ...rest } = field;
 
-function hasObjectId(schema) {
-  return schema.some((field) => {
-    return field.schemaType === 'ObjectId';
-  });
+    let obj = {
+      type: schemaType,
+      ...rest,
+    };
+
+    if (type.match(/Array/)) {
+      obj = [obj];
+    }
+
+    attributes[name] = obj;
+  }
+
+  return {
+    attributes,
+  }
 }

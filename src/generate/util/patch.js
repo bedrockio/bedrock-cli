@@ -1,5 +1,4 @@
 import path from 'path';
-import { kebabCase } from 'lodash';
 import { runAsOptionalTask } from '../../util/tasks';
 import { assertPath } from '../../util/file';
 import { block, indent } from './template';
@@ -10,7 +9,7 @@ import { readLocalFile, writeLocalFile } from './source';
 const APP_ENTRYPOINT_PATH = 'services/web/src/App.js';
 
 const ROUTE_REG = /^(\s*)(<(AuthSwitch|Protected|Route)[\s\S]+?\/>)/m;
-const IMPORTS_REG = /(import {)(\s+)([^}]+?} from ['"]screens)/m;
+const IMPORTS_REG = /^import.*from.*screens.*$/gm;
 
 export async function patchAppEntrypoint(options) {
   await runAsOptionalTask('Patching App Entrypoint', async () => {
@@ -23,14 +22,36 @@ export async function patchAppEntrypoint(options) {
       source = source.replace(ROUTE_REG, (match, space, rest) => {
         return space + jsx + space + rest;
       });
-      source = source.replace(IMPORTS_REG, (match, prefix, space, rest) => {
-        return `${prefix}${space}${pluralUpper},${space}${rest}`;
-      });
+      source = replaceImports(source, options);
     }
     await writeLocalFile(source, entrypointPath);
   });
 }
 
+// Imports
+
+function replaceImports(source, options) {
+  const { pluralUpper } = options;
+  const index = getImportsLastIndex(source);
+  if (index > 0) {
+    let str = '';
+    str += source.slice(0, index)
+    str += '\n';
+    str += `import ${pluralUpper} from 'screens/${pluralUpper}';`;
+    str += source.slice(index);
+    source = str;
+  }
+  return source;
+}
+
+function getImportsLastIndex(str) {
+  IMPORTS_REG.lastIndex = 0;
+  let index;
+  while (IMPORTS_REG.test(str)) {
+    index = IMPORTS_REG.lastIndex;
+  }
+  return index;
+}
 
 // Index Entrypoints
 

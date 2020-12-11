@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import compareVersions from 'compare-versions';
+import { red } from 'kleur';
 import { prompt } from '../util/prompt';
 import { exit } from '../util/exit';
 import { exec } from '../util/shell';
@@ -80,6 +81,55 @@ export async function getTerraformPrompt() {
     choices: terraformCommands.map((value) => {
       return { title: value, value };
     }),
+  });
+}
+
+export async function getSecretSubCommandPrompt() {
+  const secretCommands = ['get', 'set'];
+  return await prompt({
+    type: 'select',
+    message: 'Select "get" or "set" secret:',
+    choices: secretCommands.map((value) => {
+      return { title: value, value };
+    }),
+  });
+}
+
+export async function getSecretNamePrompt() {
+  return await prompt({
+    type: 'text',
+    message: 'Enter secret name:',
+    initial: 'credentials',
+    validate: (value) =>
+      value.replace(/[^a-z0-9_-]/gim, '') != value
+        ? `Name may contain only letters, numbers, dashes, or the underscore character.`
+        : true,
+  });
+}
+
+async function getAllSecrets() {
+  const secretsJSON = await exec('kubectl get secret -o json --ignore-not-found');
+  if (!secretsJSON) return [];
+  try {
+    const secrets = JSON.parse(secretsJSON);
+    return secrets.items;
+  } catch (e) {
+    console.info(red('Could not parse secrets'));
+    return [];
+  }
+}
+
+export async function getAllSecretsPrompt() {
+  return await prompt({
+    type: 'select',
+    message: 'Select secret:',
+    choices: (await getAllSecrets())
+      .map(({ metadata }) => {
+        if (!metadata || !metadata.name) return false;
+        const { name } = metadata;
+        return { title: name, value: name };
+      })
+      .filter(Boolean),
   });
 }
 

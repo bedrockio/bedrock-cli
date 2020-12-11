@@ -10,13 +10,17 @@ import { dockerPush } from './push';
 import { warn } from './deploy';
 import { rolloutDeployment, getDeployment, deleteDeployment, checkDeployment } from './rollout';
 import { provisionTerraform } from './provision';
+import { getSecret, setSecret, getSecretInfo, deleteSecret } from './secret';
 import {
   checkKubectlVersion,
   getEnvironmentPrompt,
   getServicesPrompt,
   getTagPrompt,
   getTerraformPrompt,
+  getSecretSubCommandPrompt,
+  getSecretNamePrompt,
   getPlatformName,
+  getAllSecretsPrompt,
 } from './utils';
 
 export async function authorize(options) {
@@ -25,7 +29,6 @@ export async function authorize(options) {
   const environment = options.environment || (await getEnvironmentPrompt());
   const config = await getConfig(environment);
   await setGCloudConfig(config.gcloud);
-  console.info(green(`Successfully authorized ${environment}`));
 }
 
 export async function status(options) {
@@ -269,4 +272,45 @@ export async function logs(options) {
   });
   if (!confirmed) process.exit(0);
   await open(url);
+}
+
+export async function secret(options) {
+  await assertBedrockRoot();
+
+  const environment = options.environment || (await getEnvironmentPrompt());
+  const config = await getConfig(environment);
+  await checkGCloudProject(config.gcloud);
+  let subcommand = options.subcommand || (await getSecretSubCommandPrompt());
+  if (!['get', 'set', 'info', 'delete'].includes(subcommand)) {
+    console.info(
+      yellow(`Subcommand "${subcommand}" is not supported. Only "get", "set" and "info".`)
+    );
+    let confirmed = await prompt({
+      type: 'confirm',
+      name: 'subcommand',
+      message: 'Would you like to run "get" secret instead?',
+      initial: true,
+    });
+    if (!confirmed) process.exit(0);
+    subcommand = 'get';
+  }
+
+  if (subcommand == 'get') {
+    const secretName = options.name || (await getAllSecretsPrompt());
+    await getSecret(environment, secretName);
+  } else if (subcommand == 'set') {
+    const secretName = options.name || (await getSecretNamePrompt());
+    await setSecret(environment, secretName);
+  } else if (subcommand == 'info') {
+    const secretName = options.name || (await getAllSecretsPrompt());
+    const secretInfo = await getSecretInfo(secretName);
+    if (secretInfo) {
+      console.info(secretInfo);
+    } else {
+      console.info(yellow(`Could not find secret "${secretName}"`));
+    }
+  } else if (subcommand == 'delete') {
+    const secretName = options.name || (await getAllSecretsPrompt());
+    await deleteSecret(secretName);
+  }
 }

@@ -357,7 +357,7 @@
         },
         {
           "name": "provision",
-          "description": "Provision cluster on glcoud with Terraform",
+          "description": "Provision cluster on glcoud with Terraform (subcommands: <plan>, <apply>, <init> and <destroy>)",
           "arguments": [
             {
               "name": "environment",
@@ -424,6 +424,33 @@
               "name": "subservice",
               "type": "string",
               "description": "SubService (e.g. cli)",
+              "required": false,
+              "prompt": false
+            }
+          ]
+        },
+        {
+          "name": "secret",
+          "description": "Deploy and update Secrets (subcommands: <get>, <set>, <info> and <delete>)",
+          "arguments": [
+            {
+              "name": "environment",
+              "type": "string",
+              "description": "Environment (e.g. staging)",
+              "required": false,
+              "prompt": false
+            },
+            {
+              "name": "subcommand",
+              "type": "string",
+              "description": "Secret subcommand (get, set, delete or info)",
+              "required": false,
+              "prompt": false
+            },
+            {
+              "name": "name",
+              "type": "string",
+              "description": "Secret name (e.g. credentials)",
               "required": false,
               "prompt": false
             }

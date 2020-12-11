@@ -48,7 +48,7 @@ export async function getSecret(environment, secretName) {
   );
 }
 
-export async function setSecret(environment, secretName) {
+export async function setSecret(environment, secretName, confirmPrompt = true) {
   const secretJoinedPath = path.join(
     'deployment',
     'environments',
@@ -65,14 +65,16 @@ export async function setSecret(environment, secretName) {
       `kubectl create secret generic ${secretName} --from-env-file=${secretFilePath}`
     );
     console.info(green(`Uploaded secrets from ${secretJoinedPath}`));
-    let confirmed = await prompt({
-      type: 'confirm',
-      name: 'delete',
-      message:
-        'We suggest to delete your secret locally. You can always retrieve it again with "bedrock cloud secret get <secretName>". Do you like to delete it now?',
-      initial: true,
-    });
-    if (!confirmed) process.exit(0);
+    if (confirmPrompt) {
+      let confirmed = await prompt({
+        type: 'confirm',
+        name: 'delete',
+        message:
+          'We suggest to delete your secret locally. You can always retrieve it again with "bedrock cloud secret get <secretName>". Do you like to delete it now?',
+        initial: true,
+      });
+      if (!confirmed) process.exit(0);
+    }
     try {
       unlinkSync(secretFilePath);
     } catch (e) {

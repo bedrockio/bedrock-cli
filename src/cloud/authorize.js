@@ -71,7 +71,7 @@ async function checkGCloudConfig(environment, options = {}) {
   const { project, computeZone, kubernetes } = options;
   if (!kubernetes) exit('Missing kubernetes settings in config');
   try {
-    let valid = checkGCloudProject(options);
+    let valid = await checkGCloudProject(options);
 
     if (!computeZone) exit('Missing computeZone');
     const currentComputeZone = await exec('gcloud config get-value compute/zone');

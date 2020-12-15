@@ -38,7 +38,7 @@
         },
         {
           "name": "adminPassword",
-          "type": "password",
+          "type": "string",
           "description": "Admin password",
           "required": false,
           "prompt": true

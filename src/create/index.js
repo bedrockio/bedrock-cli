@@ -1,5 +1,6 @@
 import path from 'path';
 import kleur from 'kleur';
+import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { kebabCase, snakeCase, startCase } from 'lodash';
 import { cloneRepository, initializeRepository } from '../util/git';
 import { removeFiles } from '../util/file';
@@ -7,6 +8,7 @@ import { replaceAll } from '../util/replace';
 import { exec } from '../util/shell';
 import Listr from 'listr';
 import { randomBytes } from 'crypto';
+import { getEnvironments, getSecretsDirectory } from '../cloud/utils';
 
 const BEDROCK_REPO = 'bedrockio/bedrock-core';
 
@@ -42,12 +44,10 @@ export default async function create(options) {
       task: async () => {
         const appName = startCase(project);
         const secret = await exec('openssl rand -base64 30');
-        const ADMIN_PASSWORD = adminPassword || randomBytes(8).toString('hex');
 
         await replaceAll(`*.{js,md,yml,tf,conf,json}`, (str) => {
           str = str.replace(/APP_COMPANY_ADDRESS=(.+)/g, `APP_COMPANY_ADDRESS=${address}`);
           str = str.replace(/JWT_SECRET=(.+)/g, `JWT_SECRET=${secret}`);
-          str = str.replace(/ADMIN_PASSWORD=(.+)/g, `ADMIN_PASSWORD=${ADMIN_PASSWORD}`);
           str = str.replace(/bedrockio\/bedrock-core/g, repository);
           str = str.replace(/bedrock-foundation/g, kebab);
           str = str.replace(/bedrock\.foundation/g, domain);
@@ -75,6 +75,23 @@ export default async function create(options) {
         await exec('yarn install');
 
         process.chdir(path.resolve('..', '..'));
+      },
+    },
+    {
+      title: 'Create credentials.conf secrets',
+      task: async () => {
+        const environments = await getEnvironments();
+        for (const environment of environments) {
+          const JWT_SECRET = await exec('openssl rand -base64 30');
+          const ADMIN_PASSWORD = adminPassword || randomBytes(8).toString('hex');
+
+          const secretDir = getSecretsDirectory(environment);
+          if (!existsSync(secretDir)) mkdirSync(secretDir);
+
+          const filePath = path.join(secretDir, `credentials.conf`);
+          const data = `JWT_SECRET=${JWT_SECRET}\nADMIN_PASSWORD=${ADMIN_PASSWORD}`;
+          writeFileSync(filePath, data);
+        }
       },
     },
     {

@@ -4,6 +4,7 @@ import { red, green, yellow } from 'kleur';
 import { exit } from '../util/exit';
 import { exec, execSyncInherit } from '../util/shell';
 import { prompt } from '../util/prompt';
+import { getSecretsDirectory } from './utils';
 
 export async function getSecretInfo(secretName) {
   const secretJSON = await exec(`kubectl get secret ${secretName} -o json --ignore-not-found`);
@@ -24,7 +25,7 @@ export async function getSecret(environment, secretName) {
   if (!secret.data) return console.info(yellow(`Secret.data is empty"`));
 
   // mkdir (if not exists)
-  const secretDir = path.resolve('deployment', 'environments', environment, 'secrets');
+  const secretDir = getSecretsDirectory(environment);
 
   if (!existsSync(secretDir)) {
     console.info(yellow('=> Creating secrets folder'));

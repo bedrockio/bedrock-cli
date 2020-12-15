@@ -24,6 +24,10 @@ function getEnvironments() {
   return getDirectories(path.resolve('deployment', 'environments')).reverse();
 }
 
+export function getSecretsDirectory(environment) {
+  return path.resolve('deployment', 'environments', environment, 'secrets');
+}
+
 export async function getEnvironmentPrompt() {
   return await prompt({
     type: 'select',

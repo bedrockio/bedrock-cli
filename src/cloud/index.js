@@ -10,7 +10,7 @@ import { dockerPush } from './push';
 import { warn } from './deploy';
 import { rolloutDeployment, getDeployment, deleteDeployment, checkDeployment } from './rollout';
 import { provisionTerraform } from './provision';
-import { getSecret, setSecret, getSecretInfo, deleteSecret } from './secret';
+import { getSecret, setSecret, getSecretInfo, deleteSecret, decryptSecretData } from './secret';
 import {
   checkKubectlVersion,
   getEnvironmentPrompt,
@@ -314,6 +314,8 @@ export async function secret(options) {
     const secretInfo = await getSecretInfo(secretName);
     if (secretInfo) {
       console.info(secretInfo);
+      console.info(yellow('=> Decrypt data'));
+      console.info(decryptSecretData(secretInfo));
     } else {
       console.info(yellow(`Could not find secret "${secretName}"`));
     }

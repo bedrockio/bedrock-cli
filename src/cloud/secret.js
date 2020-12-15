@@ -6,7 +6,18 @@ import { exec, execSyncInherit } from '../util/shell';
 import { prompt } from '../util/prompt';
 import { getSecretsDirectory } from './utils';
 
+export function decryptSecretData(secret) {
+  let decryptedData = {};
+  for (const field of Object.keys(secret.data)) {
+    let buff = Buffer.from(secret.data[field], 'base64');
+    let value = buff.toString('ascii');
+    decryptedData[field] = value;
+  }
+  return decryptedData;
+}
+
 export async function getSecretInfo(secretName) {
+  console.info(yellow(`=> Retrieving secret`));
   const secretJSON = await exec(`kubectl get secret ${secretName} -o json --ignore-not-found`);
   if (!secretJSON) return;
   try {
@@ -18,7 +29,6 @@ export async function getSecretInfo(secretName) {
 }
 
 export async function getSecret(environment, secretName) {
-  console.info(yellow(`=> Retrieving secret`));
   const secret = await getSecretInfo(secretName);
   if (!secret) return console.info(yellow(`Could not find secret "${secretName}"`));
   console.info(secret);
@@ -34,13 +44,14 @@ export async function getSecret(environment, secretName) {
   // write to file
   const filePath = path.join(secretDir, `${secretName}.conf`);
   console.info(yellow(`=> Creating ${secretName}.conf`));
-  let data = '';
-  for (const field of Object.keys(secret.data)) {
-    let buff = Buffer.from(secret.data[field], 'base64');
-    let value = buff.toString('ascii');
 
-    data += `${field}=${value}\n`;
+  const decryptedData = decryptSecretData(secret);
+
+  let data = '';
+  for (const field of Object.keys(decryptedData)) {
+    data += `${field}=${decryptedData[field]}\n`;
   }
+
   writeFileSync(filePath, data);
   console.info(
     green(

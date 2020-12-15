@@ -20,7 +20,7 @@ function getDirectories(folder) {
   return [];
 }
 
-function getEnvironments() {
+export function getEnvironments() {
   return getDirectories(path.resolve('deployment', 'environments')).reverse();
 }
 

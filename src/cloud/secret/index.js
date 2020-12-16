@@ -1,10 +1,60 @@
 import path from 'path';
 import { existsSync, unlinkSync, mkdirSync, writeFileSync } from 'fs';
 import { red, green, yellow } from 'kleur';
-import { exit } from '../util/exit';
-import { exec, execSyncInherit } from '../util/shell';
-import { prompt } from '../util/prompt';
-import { getSecretsDirectory } from './utils';
+import { exit } from '../../util/exit';
+import { exec, execSyncInherit } from '../../util/shell';
+import { prompt } from '../../util/prompt';
+import { assertBedrockRoot } from '../../util/dir';
+import { getSecretsDirectory } from '../utils';
+import { getConfig, checkGCloudProject } from '../authorize';
+import { getEnvironmentPrompt, getSecretNamePrompt, getAllSecretsPrompt } from '../utils';
+
+export async function secretGet(options) {
+  await secret(options, 'get');
+}
+
+export async function secretSet(options) {
+  await secret(options, 'set');
+}
+
+export async function secretInfo(options) {
+  await secret(options, 'info');
+}
+
+export async function secretDelete(options) {
+  await secret(options, 'delele');
+}
+
+export async function secret(options, subcommand) {
+  await assertBedrockRoot();
+
+  const environment = options.environment || (await getEnvironmentPrompt());
+  const config = await getConfig(environment);
+  await checkGCloudProject(config.gcloud);
+
+  if (subcommand == 'get') {
+    const secretName = options.name || (await getAllSecretsPrompt());
+    console.info(yellow(`=> Retrieving secret`));
+    await getSecret(environment, secretName);
+  } else if (subcommand == 'set') {
+    const secretName = options.name || (await getSecretNamePrompt());
+    await setSecret(environment, secretName);
+  } else if (subcommand == 'info') {
+    const secretName = options.name || (await getAllSecretsPrompt());
+    console.info(yellow(`=> Retrieving secret`));
+    const secretInfo = await getSecretInfo(secretName);
+    if (secretInfo) {
+      console.info(secretInfo);
+      console.info(yellow('=> Decrypt data'));
+      console.info(decryptSecretData(secretInfo));
+    } else {
+      console.info(yellow(`Could not find secret "${secretName}"`));
+    }
+  } else if (subcommand == 'delete') {
+    const secretName = options.name || (await getAllSecretsPrompt());
+    await deleteSecret(secretName);
+  }
+}
 
 export function decryptSecretData(secret) {
   let decryptedData = {};

@@ -363,6 +363,150 @@
           ]
         },
         {
+          "name": "shell",
+          "description": "Start remote bash shell on service container",
+          "arguments": [
+            {
+              "name": "environment",
+              "type": "string",
+              "description": "Environment (e.g. staging)",
+              "required": false,
+              "prompt": false
+            },
+            {
+              "name": "service",
+              "type": "string",
+              "description": "Service (e.g. api)",
+              "required": false,
+              "prompt": false
+            },
+            {
+              "name": "subservice",
+              "type": "string",
+              "description": "SubService (e.g. cli)",
+              "required": false,
+              "prompt": false
+            }
+          ]
+        },
+        {
+          "name": "logs",
+          "description": "Open Google Cloud logs explorer UI in your browser",
+          "arguments": [
+            {
+              "name": "environment",
+              "type": "string",
+              "description": "Environment (e.g. staging)",
+              "required": true,
+              "prompt": false
+            },
+            {
+              "name": "service",
+              "type": "string",
+              "description": "Service (e.g. api)",
+              "required": true,
+              "prompt": false
+            },
+            {
+              "name": "subservice",
+              "type": "string",
+              "description": "SubService (e.g. cli)",
+              "required": false,
+              "prompt": false
+            }
+          ]
+        },
+        {
+          "name": "secret",
+          "description": "Deploy and update Secrets (subcommands: <get>, <set>, <info> and <delete>)",
+          "commands": [
+            {
+              "name": "get",
+              "functionName": "secretGet",
+              "description": "Get Secret from cluster and store in local <secret-name>.conf file",
+              "arguments": [
+                {
+                  "name": "environment",
+                  "type": "string",
+                  "description": "Environment (e.g. staging)",
+                  "required": false,
+                  "prompt": false
+                },
+                {
+                  "name": "name",
+                  "type": "string",
+                  "description": "Secret name (e.g. credentials)",
+                  "required": false,
+                  "prompt": false
+                }
+              ]
+            },
+            {
+              "name": "set",
+              "functionName": "secretSet",
+              "description": "Push secret to cluster from local <secret-name>.conf file",
+              "arguments": [
+                {
+                  "name": "environment",
+                  "type": "string",
+                  "description": "Environment (e.g. staging)",
+                  "required": false,
+                  "prompt": false
+                },
+                {
+                  "name": "name",
+                  "type": "string",
+                  "description": "Secret name (e.g. credentials)",
+                  "required": false,
+                  "prompt": false
+                }
+              ]
+            },
+            {
+              "name": "info",
+              "functionName": "secretInfo",
+              "description": "Retrieve secret info from cluster",
+              "arguments": [
+                {
+                  "name": "environment",
+                  "type": "string",
+                  "description": "Environment (e.g. staging)",
+                  "required": false,
+                  "prompt": false
+                },
+                {
+                  "name": "name",
+                  "type": "string",
+                  "description": "Secret name (e.g. credentials)",
+                  "required": false,
+                  "prompt": false
+                }
+              ]
+            },
+            {
+              "name": "delete",
+              "functionName": "secretDelete",
+              "description": "Delete secret from cluster",
+              "arguments": [
+                {
+                  "name": "environment",
+                  "type": "string",
+                  "description": "Environment (e.g. staging)",
+                  "required": false,
+                  "prompt": false
+                },
+                {
+                  "name": "name",
+                  "type": "string",
+                  "description": "Secret name (e.g. credentials)",
+                  "required": false,
+                  "prompt": false
+                }
+              ]
+            }
+          ]
+        },
+        {
           "name": "provision",
           "description": "Provision cluster on glcoud with Terraform (subcommands: <plan>, <apply>, <init> and <destroy>)",
           "commands": [
@@ -421,87 +565,6 @@
                   "prompt": false
                 }
               ]
-            }
-          ]
-        },
-        {
-          "name": "shell",
-          "description": "Start remote bash shell on service container",
-          "arguments": [
-            {
-              "name": "environment",
-              "type": "string",
-              "description": "Environment (e.g. staging)",
-              "required": false,
-              "prompt": false
-            },
-            {
-              "name": "service",
-              "type": "string",
-              "description": "Service (e.g. api)",
-              "required": false,
-              "prompt": false
-            },
-            {
-              "name": "subservice",
-              "type": "string",
-              "description": "SubService (e.g. cli)",
-              "required": false,
-              "prompt": false
-            }
-          ]
-        },
-        {
-          "name": "logs",
-          "description": "Open Google Cloud logs explorer UI in your browser",
-          "arguments": [
-            {
-              "name": "environment",
-              "type": "string",
-              "description": "Environment (e.g. staging)",
-              "required": true,
-              "prompt": false
-            },
-            {
-              "name": "service",
-              "type": "string",
-              "description": "Service (e.g. api)",
-              "required": true,
-              "prompt": false
-            },
-            {
-              "name": "subservice",
-              "type": "string",
-              "description": "SubService (e.g. cli)",
-              "required": false,
-              "prompt": false
-            }
-          ]
-        },
-        {
-          "name": "secret",
-          "description": "Deploy and update Secrets (subcommands: <get>, <set>, <info> and <delete>)",
-          "arguments": [
-            {
-              "name": "environment",
-              "type": "string",
-              "description": "Environment (e.g. staging)",
-              "required": false,
-              "prompt": false
-            },
-            {
-              "name": "subcommand",
-              "type": "string",
-              "description": "Secret subcommand (get, set, delete or info)",
-              "required": false,
-              "prompt": false
-            },
-            {
-              "name": "name",
-              "type": "string",
-              "description": "Secret name (e.g. credentials)",
-              "required": false,
-              "prompt": false
             }
           ]
         }

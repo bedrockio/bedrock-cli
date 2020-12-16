@@ -17,7 +17,6 @@ export function decryptSecretData(secret) {
 }
 
 export async function getSecretInfo(secretName) {
-  console.info(yellow(`=> Retrieving secret`));
   const secretJSON = await exec(`kubectl get secret ${secretName} -o json --ignore-not-found`);
   if (!secretJSON) return;
   try {

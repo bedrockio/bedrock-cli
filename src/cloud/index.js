@@ -305,12 +305,14 @@ export async function secret(options) {
 
   if (subcommand == 'get') {
     const secretName = options.name || (await getAllSecretsPrompt());
+    console.info(yellow(`=> Retrieving secret`));
     await getSecret(environment, secretName);
   } else if (subcommand == 'set') {
     const secretName = options.name || (await getSecretNamePrompt());
     await setSecret(environment, secretName);
   } else if (subcommand == 'info') {
     const secretName = options.name || (await getAllSecretsPrompt());
+    console.info(yellow(`=> Retrieving secret`));
     const secretInfo = await getSecretInfo(secretName);
     if (secretInfo) {
       console.info(secretInfo);

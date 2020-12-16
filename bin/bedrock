@@ -83,11 +83,16 @@ function addCommand(command, descriptor) {
 }
 
 function getHandler(descriptor) {
-  const { name, parent } = descriptor;
+  const { functionName, name, parent } = descriptor;
   if (parent.name === 'bedrock') {
     return require(path.resolve(__dirname, '../src', name)).default;
   } else {
-    return require(path.resolve(__dirname, '../src', parent.name))[camelCase(name)];
+    const func = functionName || camelCase(name);
+    if (parent.parent && parent.parent.name !== 'bedrock') {
+      return require(path.resolve(__dirname, '../src', parent.parent.name, parent.name))[func];
+    } else {
+      return require(path.resolve(__dirname, '../src', parent.name))[func];
+    }
   }
 }
 

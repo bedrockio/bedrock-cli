@@ -3,20 +3,17 @@ import { green, yellow } from 'kleur';
 import { assertBedrockRoot } from '../util/dir';
 import { exec, execSyncInherit } from '../util/shell';
 import { prompt } from '../util/prompt';
-import { exit } from '../util/exit';
 import { getConfig, setGCloudConfig, checkConfig, checkGCloudProject } from './authorize';
 import { buildImage } from './build';
 import { dockerPush } from './push';
 import { warn } from './deploy';
 import { rolloutDeployment, getDeployment, deleteDeployment, checkDeployment } from './rollout';
-import { provisionTerraform } from './provision';
 import { getSecret, setSecret, getSecretInfo, deleteSecret, decryptSecretData } from './secret';
 import {
   checkKubectlVersion,
   getEnvironmentPrompt,
   getServicesPrompt,
   getTagPrompt,
-  getTerraformPrompt,
   getSecretSubCommandPrompt,
   getSecretNamePrompt,
   getPlatformName,
@@ -192,23 +189,6 @@ export async function info(options) {
   } else {
     await showDeploymentInfo(service, subservice);
   }
-}
-
-export async function provision(options) {
-  await assertBedrockRoot();
-
-  const environment = options.environment || (await getEnvironmentPrompt());
-  const terraform = options.terraform || (await getTerraformPrompt());
-  const config = await getConfig(environment);
-  await checkGCloudProject(config.gcloud);
-
-  try {
-    await exec('command -v terraform');
-  } catch (e) {
-    exit('Error: Terraform is not installed (https://www.terraform.io/');
-  }
-
-  await provisionTerraform(environment, terraform, config.gcloud);
 }
 
 export async function shell(options) {

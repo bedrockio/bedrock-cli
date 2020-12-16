@@ -1,7 +1,43 @@
 import path from 'path';
 import kleur from 'kleur';
-import { prompt } from '../util/prompt';
-import { exec, execSyncInherit } from '../util/shell';
+import { prompt } from '../../util/prompt';
+import { exec, execSyncInherit } from '../../util/shell';
+import { exit } from '../../util/exit';
+import { assertBedrockRoot } from '../../util/dir';
+import { getConfig, checkGCloudProject } from '../authorize';
+import { getEnvironmentPrompt } from '../utils';
+
+export async function terraformPlan(options) {
+  await terraform(options, 'plan');
+}
+
+export async function terraformApply(options) {
+  await terraform(options, 'apply');
+}
+
+export async function terraformInit(options) {
+  await terraform(options, 'init');
+}
+
+export async function terraformDestroy(options) {
+  await terraform(options, 'destroy');
+}
+
+async function terraform(options, command) {
+  await assertBedrockRoot();
+
+  const environment = options.environment || (await getEnvironmentPrompt());
+  const config = await getConfig(environment);
+  await checkGCloudProject(config.gcloud);
+
+  try {
+    await exec('command -v terraform');
+  } catch (e) {
+    exit('Error: Terraform is not installed (https://www.terraform.io/');
+  }
+
+  await provisionTerraform(environment, command, config.gcloud);
+}
 
 async function plan(options, planFile) {
   const { project, computeZone, kubernetes, bucketPrefix, envName } = options;

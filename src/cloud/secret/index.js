@@ -6,7 +6,7 @@ import { exec, execSyncInherit } from '../../util/shell';
 import { prompt } from '../../util/prompt';
 import { assertBedrockRoot } from '../../util/dir';
 import { getSecretsDirectory } from '../utils';
-import { getConfig, checkGCloudProject } from '../authorize';
+import { getConfig, checkConfig } from '../authorize';
 import { getEnvironmentPrompt, getSecretNamePrompt, getAllSecretsPrompt } from '../utils';
 
 export async function secretGet(options) {
@@ -30,7 +30,7 @@ export async function secret(options, subcommand) {
 
   const environment = options.environment || (await getEnvironmentPrompt());
   const config = await getConfig(environment);
-  await checkGCloudProject(config.gcloud);
+  await checkConfig(environment, config);
 
   if (subcommand == 'get') {
     const secretName = options.name || (await getAllSecretsPrompt());

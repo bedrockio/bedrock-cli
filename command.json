@@ -161,6 +161,23 @@
       "description": "Cloud Controls for deployment and provisioning",
       "commands": [
         {
+          "name": "login",
+          "description": "Login to gcloud"
+        },
+        {
+          "name": "account",
+          "description": "Set gcloud account",
+          "arguments": [
+            {
+              "name": "name",
+              "type": "string",
+              "description": "Switch to gcloud account with <name> (e.g. john.doe@gmail.com)",
+              "required": false,
+              "prompt": false
+            }
+          ]
+        },
+        {
           "name": "authorize",
           "description": "Authorize cloud environment",
           "arguments": [

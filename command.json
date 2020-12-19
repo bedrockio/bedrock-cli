@@ -434,6 +434,86 @@
           ]
         },
         {
+          "name": "bootstrap",
+          "description": "Bootstrap GKE cluster",
+          "arguments": [
+            {
+              "name": "environment",
+              "type": "string",
+              "description": "Environment (e.g. staging)"
+            },
+            {
+              "name": "projectId",
+              "type": "string",
+              "description": "GCloud project id (e.g. bedrock-foundation)",
+              "required": false,
+              "prompt": false
+            }
+          ]
+        },
+        {
+          "name": "provision",
+          "description": "Provision cluster on glcoud with Terraform (subcommands: <plan>, <apply>, <init> and <destroy>)",
+          "commands": [
+            {
+              "name": "plan",
+              "functionName": "terraformPlan",
+              "description": "Terraform plan provisioning of cluster",
+              "arguments": [
+                {
+                  "name": "environment",
+                  "type": "string",
+                  "description": "Environment (e.g. staging)",
+                  "required": false,
+                  "prompt": false
+                }
+              ]
+            },
+            {
+              "name": "apply",
+              "functionName": "terraformApply",
+              "description": "Terraform apply provisioning plan of cluster",
+              "arguments": [
+                {
+                  "name": "environment",
+                  "type": "string",
+                  "description": "Environment (e.g. staging)",
+                  "required": false,
+                  "prompt": false
+                }
+              ]
+            },
+            {
+              "name": "init",
+              "functionName": "terraformInit",
+              "description": "Terraform initialize provisioning",
+              "arguments": [
+                {
+                  "name": "environment",
+                  "type": "string",
+                  "description": "Environment (e.g. staging)",
+                  "required": false,
+                  "prompt": false
+                }
+              ]
+            },
+            {
+              "name": "destroy",
+              "functionName": "terraformDestroy",
+              "description": "Terraform destory provisioned cluster",
+              "arguments": [
+                {
+                  "name": "environment",
+                  "type": "string",
+                  "description": "Environment (e.g. staging)",
+                  "required": false,
+                  "prompt": false
+                }
+              ]
+            }
+          ]
+        },
+        {
           "name": "secret",
           "description": "Deploy and update Secrets (subcommands: <get>, <set>, <info> and <delete>)",
           "commands": [
@@ -516,68 +596,6 @@
                   "name": "name",
                   "type": "string",
                   "description": "Secret name (e.g. credentials)",
-                  "required": false,
-                  "prompt": false
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "name": "provision",
-          "description": "Provision cluster on glcoud with Terraform (subcommands: <plan>, <apply>, <init> and <destroy>)",
-          "commands": [
-            {
-              "name": "plan",
-              "functionName": "terraformPlan",
-              "description": "Terraform plan provisioning of cluster",
-              "arguments": [
-                {
-                  "name": "environment",
-                  "type": "string",
-                  "description": "Environment (e.g. staging)",
-                  "required": false,
-                  "prompt": false
-                }
-              ]
-            },
-            {
-              "name": "apply",
-              "functionName": "terraformApply",
-              "description": "Terraform apply provisioning plan of cluster",
-              "arguments": [
-                {
-                  "name": "environment",
-                  "type": "string",
-                  "description": "Environment (e.g. staging)",
-                  "required": false,
-                  "prompt": false
-                }
-              ]
-            },
-            {
-              "name": "init",
-              "functionName": "terraformInit",
-              "description": "Terraform initialize provisioning",
-              "arguments": [
-                {
-                  "name": "environment",
-                  "type": "string",
-                  "description": "Environment (e.g. staging)",
-                  "required": false,
-                  "prompt": false
-                }
-              ]
-            },
-            {
-              "name": "destroy",
-              "functionName": "terraformDestroy",
-              "description": "Terraform destory provisioned cluster",
-              "arguments": [
-                {
-                  "name": "environment",
-                  "type": "string",
-                  "description": "Environment (e.g. staging)",
                   "required": false,
                   "prompt": false
                 }

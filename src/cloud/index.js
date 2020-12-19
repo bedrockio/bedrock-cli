@@ -15,6 +15,7 @@ import {
   getTagPrompt,
   getPlatformName,
 } from './utils';
+import { bootstrapProjectEnvironment } from './bootstrap';
 
 export async function authorize(options) {
   await assertBedrockRoot();
@@ -311,4 +312,27 @@ export async function logs(options) {
   });
   if (!confirmed) process.exit(0);
   await open(url);
+}
+
+export async function bootstrap(options) {
+  await assertBedrockRoot();
+
+  const environment = options.environment || (await getEnvironmentPrompt());
+  const config = await getConfig(environment);
+  const project = config.gcloud && config.gcloud.project;
+
+  const projectId =
+    options.projectId ||
+    (await prompt({
+      type: 'text',
+      message: 'Enter projectId:',
+      initial: project || '',
+    }));
+  console.info(green(`bedrock cloud ${environment} ${projectId}`));
+  console.info(
+    yellow(
+      `=> Bootstrap GKE cluster and services (environment: "${environment}", projectId: "${projectId})"`
+    )
+  );
+  await bootstrapProjectEnvironment(projectId, environment, config);
 }

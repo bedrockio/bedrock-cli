@@ -8,7 +8,7 @@ import { assertBedrockRoot } from '../../util/dir';
 import { getSecretsDirectory } from '../utils';
 import { checkConfig } from '../authorize';
 import {
-  getConfig,
+  readConfig,
   getEnvironmentPrompt,
   getSecretNamePrompt,
   getAllSecretsPrompt,
@@ -34,7 +34,7 @@ export async function secret(options, subcommand) {
   await assertBedrockRoot();
 
   const environment = options.environment || (await getEnvironmentPrompt());
-  const config = await getConfig(environment);
+  const config = readConfig(environment);
   await checkConfig(environment, config);
 
   if (subcommand == 'get') {

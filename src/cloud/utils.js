@@ -6,29 +6,26 @@ import { red } from 'kleur';
 import { prompt } from '../util/prompt';
 import { exit } from '../util/exit';
 import { exec } from '../util/shell';
-import { readFile, writeFile } from '../util/file';
 
 function getConfigFilePath(environment) {
   return path.resolve('deployment', 'environments', environment, 'config.json');
 }
 
-export async function getConfig(environment) {
+export function readConfig(environment) {
   const configFilePath = getConfigFilePath(environment);
-  let config = {};
   try {
-    config = await readFile(configFilePath);
+    return require(configFilePath);
   } catch (e) {
     exit(
       `Could not find config.json for environment: "${environment}", file path: "${configFilePath}"`
     );
   }
-  return config;
 }
 
-export async function setConfig(environment, config) {
+export function writeConfig(environment, config) {
   const configFilePath = getConfigFilePath(environment);
   try {
-    await writeFile(configFilePath, JSON.stringify(config, null, 2));
+    fs.writeFileSync(configFilePath, JSON.stringify(config, null, 2), 'utf8');
   } catch (e) {
     exit(
       `Could not write to config.json for environment: "${environment}", file path: "${configFilePath}"`

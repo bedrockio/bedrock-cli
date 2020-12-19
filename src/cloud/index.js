@@ -9,7 +9,7 @@ import { dockerPush } from './push';
 import { warn } from './deploy';
 import { rolloutDeployment, getDeployment, deleteDeployment, checkDeployment } from './rollout';
 import {
-  getConfig,
+  readConfig,
   checkKubectlVersion,
   getEnvironmentPrompt,
   getServicesPrompt,
@@ -22,7 +22,7 @@ export async function authorize(options) {
   await assertBedrockRoot();
 
   const environment = options.environment || (await getEnvironmentPrompt());
-  const config = await getConfig(environment);
+  const config = readConfig(environment);
   await setGCloudConfig(config.gcloud);
 }
 
@@ -86,7 +86,7 @@ export async function status(options) {
   await checkKubectlVersion();
 
   const environment = options.environment || (await getEnvironmentPrompt());
-  const config = await getConfig(environment);
+  const config = readConfig(environment);
   await checkConfig(environment, config);
 
   await execSyncInherit('kubectl get ingress');
@@ -130,7 +130,7 @@ export async function push(options) {
 
   const { service, subservice, tag } = options;
   const environment = options.environment || (await getEnvironmentPrompt());
-  const config = await getConfig(environment);
+  const config = readConfig(environment);
   await checkConfig(environment, config);
   const { project } = config.gcloud;
   const platformName = getPlatformName();
@@ -153,7 +153,7 @@ export async function rollout(options) {
 
   const { service, subservice } = options;
   const environment = options.environment || (await getEnvironmentPrompt());
-  const config = await getConfig(environment);
+  const config = readConfig(environment);
   await checkConfig(environment, config);
 
   if (!service) {
@@ -172,7 +172,7 @@ export async function deploy(options) {
 
   const { service, subservice, tag } = options;
   const environment = options.environment || (await getEnvironmentPrompt());
-  const config = await getConfig(environment);
+  const config = readConfig(environment);
   await checkConfig(environment, config);
   const { project } = config.gcloud;
   const platformName = getPlatformName();
@@ -200,7 +200,7 @@ export async function undeploy(options) {
 
   const { service, subservice } = options;
   const environment = options.environment || (await getEnvironmentPrompt());
-  const config = await getConfig(environment);
+  const config = readConfig(environment);
   await checkConfig(environment, config);
 
   if (!service) {
@@ -231,7 +231,7 @@ export async function info(options) {
 
   const { service, subservice } = options;
   const environment = options.environment || (await getEnvironmentPrompt());
-  const config = await getConfig(environment);
+  const config = readConfig(environment);
   await checkConfig(environment, config);
 
   if (!service) {
@@ -250,7 +250,7 @@ export async function shell(options) {
   const { service, subservice } = options;
   const environment = options.environment || (await getEnvironmentPrompt());
   await checkKubectlVersion();
-  const config = await getConfig(environment);
+  const config = readConfig(environment);
   await checkConfig(environment, config);
 
   const podsJSON = await exec(`kubectl get pods -o json --ignore-not-found`);
@@ -290,7 +290,7 @@ export async function logs(options) {
   await assertBedrockRoot();
 
   const { environment, service, subservice } = options;
-  const config = await getConfig(environment);
+  const config = readConfig(environment);
   await checkConfig(environment, config);
   const { project, computeZone, kubernetes, label } = config.gcloud;
 
@@ -319,7 +319,7 @@ export async function bootstrap(options) {
   await assertBedrockRoot();
 
   const environment = options.environment || (await getEnvironmentPrompt());
-  const config = await getConfig(environment);
+  const config = readConfig(environment);
 
   const project =
     options.project ||

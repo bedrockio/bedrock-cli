@@ -1,7 +1,7 @@
 //import { yellow } from 'kleur';
 import { exit } from '../util/exit';
 import { prompt } from '../util/prompt';
-import { setConfig, readServiceYaml, writeServiceYaml } from './utils';
+import { writeConfig, readServiceYaml, writeServiceYaml } from './utils';
 
 export async function bootstrapProjectEnvironment(project, environment, config) {
   const { gcloud } = config;
@@ -21,7 +21,7 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
       updatedConfig.gcloud.bucketPrefix = project;
     }
     updatedConfig.gcloud.project = project;
-    await setConfig(environment, updatedConfig);
+    writeConfig(environment, updatedConfig);
   }
 
   //   const apiServiceYaml = readServiceYaml(environment, 'api-service.yml');

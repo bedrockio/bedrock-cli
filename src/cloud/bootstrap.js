@@ -1,7 +1,7 @@
 //import { yellow } from 'kleur';
 import { exit } from '../util/exit';
 import { prompt } from '../util/prompt';
-import { setConfig } from './utils';
+import { setConfig, readServiceYaml, writeServiceYaml } from './utils';
 
 export async function bootstrapProjectEnvironment(project, environment, config) {
   const { gcloud } = config;
@@ -23,4 +23,9 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
     updatedConfig.gcloud.project = project;
     await setConfig(environment, updatedConfig);
   }
+
+  //   const apiServiceYaml = readServiceYaml(environment, 'api-service.yml');
+  //   console.info(JSON.stringify(apiServiceYaml, null, 2));
+  //   apiServiceYaml.spec.loadBalancerIP = '127.0.0.1';
+  //   writeServiceYaml(environment, 'api-service.yml', apiServiceYaml);
 }

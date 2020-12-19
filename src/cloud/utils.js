@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import compareVersions from 'compare-versions';
+const yaml = require('js-yaml');
 import { red } from 'kleur';
 import { prompt } from '../util/prompt';
 import { exit } from '../util/exit';
@@ -31,6 +32,29 @@ export async function setConfig(environment, config) {
   } catch (e) {
     exit(
       `Could not write to config.json for environment: "${environment}", file path: "${configFilePath}"`
+    );
+  }
+}
+
+export function readServiceYaml(environment, filename) {
+  const filePath = path.resolve('deployment', 'environments', environment, 'services', filename);
+  try {
+    return yaml.safeLoad(fs.readFileSync(filePath, 'utf8'));
+  } catch (e) {
+    exit(
+      `Could not read service yml file ${filename} for environment: "${environment}", file path: "${filePath}"`
+    );
+  }
+}
+
+export function writeServiceYaml(environment, filename, data) {
+  const filePath = path.resolve('deployment', 'environments', environment, 'services', filename);
+  try {
+    const yamlString = yaml.safeDump(data);
+    return fs.writeFileSync(filePath, yamlString, 'utf8');
+  } catch (e) {
+    exit(
+      `Could not read service yml file ${filename} for environment: "${environment}", file path: "${filePath}"`
     );
   }
 }

@@ -6,8 +6,13 @@ import { exec, execSyncInherit } from '../../util/shell';
 import { prompt } from '../../util/prompt';
 import { assertBedrockRoot } from '../../util/dir';
 import { getSecretsDirectory } from '../utils';
-import { getConfig, checkConfig } from '../authorize';
-import { getEnvironmentPrompt, getSecretNamePrompt, getAllSecretsPrompt } from '../utils';
+import { checkConfig } from '../authorize';
+import {
+  getConfig,
+  getEnvironmentPrompt,
+  getSecretNamePrompt,
+  getAllSecretsPrompt,
+} from '../utils';
 
 export async function secretGet(options) {
   await secret(options, 'get');

@@ -3,12 +3,13 @@ import { green, yellow, red } from 'kleur';
 import { assertBedrockRoot } from '../util/dir';
 import { exec, execSyncInherit } from '../util/shell';
 import { prompt } from '../util/prompt';
-import { getConfig, setGCloudConfig, checkConfig } from './authorize';
+import { setGCloudConfig, checkConfig } from './authorize';
 import { buildImage } from './build';
 import { dockerPush } from './push';
 import { warn } from './deploy';
 import { rolloutDeployment, getDeployment, deleteDeployment, checkDeployment } from './rollout';
 import {
+  getConfig,
   checkKubectlVersion,
   getEnvironmentPrompt,
   getServicesPrompt,
@@ -319,20 +320,19 @@ export async function bootstrap(options) {
 
   const environment = options.environment || (await getEnvironmentPrompt());
   const config = await getConfig(environment);
-  const project = config.gcloud && config.gcloud.project;
 
-  const projectId =
-    options.projectId ||
+  const project =
+    options.project ||
     (await prompt({
       type: 'text',
       message: 'Enter projectId:',
-      initial: project || '',
+      initial: config.gcloud && config.gcloud.project,
     }));
-  console.info(green(`bedrock cloud ${environment} ${projectId}`));
+  console.info(green(`bedrock cloud ${environment} ${project}`));
   console.info(
     yellow(
-      `=> Bootstrap GKE cluster and services (environment: "${environment}", projectId: "${projectId})"`
+      `=> Bootstrap GKE cluster and services (environment: "${environment}", project: "${project})"`
     )
   );
-  await bootstrapProjectEnvironment(projectId, environment, config);
+  await bootstrapProjectEnvironment(project, environment, config);
 }

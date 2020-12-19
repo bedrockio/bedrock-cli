@@ -5,6 +5,35 @@ import { red } from 'kleur';
 import { prompt } from '../util/prompt';
 import { exit } from '../util/exit';
 import { exec } from '../util/shell';
+import { readFile, writeFile } from '../util/file';
+
+function getConfigFilePath(environment) {
+  return path.resolve('deployment', 'environments', environment, 'config.json');
+}
+
+export async function getConfig(environment) {
+  const configFilePath = getConfigFilePath(environment);
+  let config = {};
+  try {
+    config = await readFile(configFilePath);
+  } catch (e) {
+    exit(
+      `Could not find config.json for environment: "${environment}", file path: "${configFilePath}"`
+    );
+  }
+  return config;
+}
+
+export async function setConfig(environment, config) {
+  const configFilePath = getConfigFilePath(environment);
+  try {
+    await writeFile(configFilePath, JSON.stringify(config, null, 2));
+  } catch (e) {
+    exit(
+      `Could not write to config.json for environment: "${environment}", file path: "${configFilePath}"`
+    );
+  }
+}
 
 export function getPlatformName() {
   return path.basename(process.cwd());

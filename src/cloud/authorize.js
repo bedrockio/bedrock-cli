@@ -3,22 +3,8 @@ import path from 'path';
 import { red, green } from 'kleur';
 import { exit } from '../util/exit';
 import { exec, execSyncInherit } from '../util/shell';
-import { readFile } from '../util/file';
 import { prompt } from '../util/prompt';
 import { getSecretInfo, setSecret } from './secret';
-
-export async function getConfig(environment) {
-  const configFilePath = path.resolve('deployment', 'environments', environment, 'config.json');
-  let config = {};
-  try {
-    config = await readFile(configFilePath);
-  } catch (e) {
-    exit(
-      `Could not find config.json for environment: "${environment}", file path: "${configFilePath}"`
-    );
-  }
-  return config;
-}
 
 export async function setGCloudConfig(options = {}) {
   const { project, computeZone, kubernetes } = options;

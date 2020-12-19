@@ -443,7 +443,7 @@
               "description": "Environment (e.g. staging)"
             },
             {
-              "name": "projectId",
+              "name": "project",
               "type": "string",
               "description": "GCloud project id (e.g. bedrock-foundation)",
               "required": false,

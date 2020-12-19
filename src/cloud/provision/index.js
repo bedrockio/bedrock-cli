@@ -4,8 +4,8 @@ import { prompt } from '../../util/prompt';
 import { exec, execSyncInherit } from '../../util/shell';
 import { exit } from '../../util/exit';
 import { assertBedrockRoot } from '../../util/dir';
-import { getConfig, checkGCloudProject } from '../authorize';
-import { getEnvironmentPrompt } from '../utils';
+import { checkGCloudProject } from '../authorize';
+import { getConfig, getEnvironmentPrompt } from '../utils';
 
 export async function terraformPlan(options) {
   await terraform(options, 'plan');

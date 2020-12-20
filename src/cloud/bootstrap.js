@@ -4,7 +4,7 @@ import { prompt } from '../util/prompt';
 import { exec, execSyncInherit } from '../util/shell';
 import { writeConfig, readServiceYaml, writeServiceYaml } from './utils';
 import { checkTerraformCommand, terraformInit, terraformApply } from './provision/index';
-import { authorize } from './index';
+import { authorize, deploy, status } from './index';
 
 export async function bootstrapProjectEnvironment(project, environment, config) {
   await checkTerraformCommand();
@@ -96,8 +96,17 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
   }
 
   console.info(yellow('=> Creating data pods'));
+  await execSyncInherit(`kubectl create -f deployment/environments/${environment}/data`);
 
   console.info(yellow('=> Creating service pods'));
+  await execSyncInherit(`kubectl create -f deployment/environments/${environment}/services/api-service.yml`);
+  await execSyncInherit(`kubectl create -f deployment/environments/${environment}/services/web-service.yml`);
+
+  await deploy({ environment, service: 'api' });
+  await deploy({ environment, service: 'api', subservice: 'cli' });
+  await deploy({ environment, service: 'web' });
+
+  await status({ environment });
 }
 
 async function configureServiceLoadBalancer(environment, service, region) {

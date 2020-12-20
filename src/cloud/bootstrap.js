@@ -52,35 +52,55 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
   console.info(yellow('=> Enabling Kubernetes services'));
   await execSyncInherit('gcloud services enable container.googleapis.com');
 
-  const { computeZone, kubernetes, bucketPrefix, envName } = gcloud;
+  const { computeZone } = gcloud;
   // computeZone example: us-east1-c
   const region = computeZone.slice(0, -2); // e.g. us-east1
-  // const zone = computeZone.slice(-1); // e.g. c
 
   console.info(yellow('=> Configure loadbalancers'));
   await configureServiceLoadBalancer(environment, 'api', region);
   await configureServiceLoadBalancer(environment, 'web', region);
-  await configureServiceLoadBalancer(environment, 'ingest', region);
-  //console.info(yellow('=> Enabling Kubernetes services'));
+
+  console.info(yellow('=> Configure deployment GCR paths'));
+  configureDeploymentGCRPath(environment, 'api', project);
+  configureDeploymentGCRPath(environment, 'api-cli', project);
+  configureDeploymentGCRPath(environment, 'api-jobs', project);
+  configureDeploymentGCRPath(environment, 'web', project);
 }
 
-async function configureServiceLoadBalancer(environment, name, region) {
+async function configureServiceLoadBalancer(environment, service, region) {
   let addressIP;
   try {
-    const addressJSON = await exec(`gcloud compute addresses describe --region ${region} ${name} --format json`);
+    const addressJSON = await exec(`gcloud compute addresses describe --region ${region} ${service} --format json`);
     addressIP = JSON.parse(addressJSON).address;
   } catch (e) {
-    console.info(yellow(`Creating ${name.toUpperCase()} address`));
-    await execSyncInherit(`gcloud compute addresses create ${name} --region ${region}`);
-    const addressJSON = await exec(`gcloud compute addresses describe --region ${region} ${name} --format json`);
+    console.info(yellow(`Creating ${service.toUpperCase()} address`));
+    await execSyncInherit(`gcloud compute addresses create ${service} --region ${region}`);
+    const addressJSON = await exec(`gcloud compute addresses describe --region ${region} ${service} --format json`);
     addressIP = JSON.parse(addressJSON).address;
 
     // Update service yml file
-    const serviceYaml = readServiceYaml(environment, `${name}-service.yml`);
-    console.info(yellow(`=> Updating ${name}-service.yml`));
+    const fileName = `${service}-service.yml`;
+    const serviceYaml = readServiceYaml(environment, fileName);
+    console.info(yellow(`=> Updating ${fileName}`));
     serviceYaml.spec.loadBalancerIP = addressIP;
-    writeServiceYaml(environment, `${name}-service.yml`, serviceYaml);
+    writeServiceYaml(environment, fileName, serviceYaml);
     console.info(serviceYaml);
   }
-  console.info(green(`${name.toUpperCase()} service loadBalancerIP: ${addressIP}`));
+  console.info(green(`${service.toUpperCase()} service loadBalancerIP: ${addressIP}`));
+}
+
+async function configureDeploymentGCRPath(environment, service, project) {
+  // Update deployment yml file
+  const fileName = `${service}-deployment.yml`;
+  const serviceYaml = readServiceYaml(environment, fileName);
+
+  const image = serviceYaml.spec.template.spec.containers[0].image;
+  const newImage = image.replace(/gcr\.io\/.*\//, `gcr.io/${project}/`);
+  console.info(green(newImage));
+
+  if (image != newImage) {
+    console.info(yellow(`=> Updating ${fileName}`));
+    serviceYaml.spec.template.spec.containers[0].image = newImage;
+    writeServiceYaml(environment, fileName, serviceYaml);
+  }
 }

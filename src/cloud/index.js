@@ -331,7 +331,7 @@ export async function bootstrap(options) {
   console.info(green(`bedrock cloud ${environment} ${project}`));
   console.info(
     yellow(
-      `=> Bootstrap GKE cluster and services (environment: "${environment}", project: "${project})"`
+      `=> Bootstrap GKE cluster and services (environment: [${environment}], project: [${project}])`
     )
   );
   await bootstrapProjectEnvironment(project, environment, config);

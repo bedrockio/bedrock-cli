@@ -23,18 +23,21 @@ export async function terraformDestroy(options) {
   await terraform(options, 'destroy');
 }
 
+export async function checkTerraformCommand() {
+  try {
+    await exec('command -v terraform');
+  } catch (e) {
+    exit('Error: Terraform is not installed (https://www.terraform.io/');
+  }
+}
+
 async function terraform(options, command) {
   await assertBedrockRoot();
 
   const environment = options.environment || (await getEnvironmentPrompt());
   const config = readConfig(environment);
   await checkGCloudProject(config.gcloud);
-
-  try {
-    await exec('command -v terraform');
-  } catch (e) {
-    exit('Error: Terraform is not installed (https://www.terraform.io/');
-  }
+  await checkTerraformCommand();
 
   await provisionTerraform(environment, command, config.gcloud);
 }

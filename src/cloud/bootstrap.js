@@ -58,8 +58,8 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
   const region = computeZone.slice(0, -2); // e.g. us-east1
 
   console.info(yellow('=> Configure loadbalancers'));
-  await configureServiceLoadBalancer(environment, 'api', region);
-  await configureServiceLoadBalancer(environment, 'web', region);
+  const apiIP = await configureServiceLoadBalancer(environment, 'api', region);
+  const webIP = await configureServiceLoadBalancer(environment, 'web', region);
 
   console.info(yellow('=> Configure deployment GCR paths'));
   configureDeploymentGCRPath(environment, 'api', project);
@@ -107,6 +107,20 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
   await deploy({ environment, service: 'web' });
 
   await status({ environment });
+
+  const apiUrl = await getApiUrl(environment);
+  const appUrl = await getAppUrl(environment);
+
+  console.info(yellow('=> Finishing up'));
+  console.info(green('Make sure to configure your DNS records (Cloudflare recommended)\n'));
+  console.info(green(' API:'));
+  console.info(green(` - address: ${apiIP}`));
+  console.info(green(` - configuration of API_URL in web deployment: ${apiUrl}\n`));
+  console.info(green(' WEB:'));
+  console.info(green(` - address: ${webIP}`));
+  console.info(green(` - configuration of APP_URL in api deployment: ${appUrl}\n`));
+
+  console.info(green('Done'));
 }
 
 async function configureServiceLoadBalancer(environment, service, region) {
@@ -129,6 +143,7 @@ async function configureServiceLoadBalancer(environment, service, region) {
     console.info(serviceYaml);
   }
   console.info(green(`${service.toUpperCase()} service loadBalancerIP: ${addressIP}`));
+  return addressIP;
 }
 
 function configureDeploymentGCRPath(environment, service, project) {
@@ -173,4 +188,24 @@ async function getDisks(options = {}) {
   if (!computeZone) return console.info(red('Missing computeZone to get disks'));
   const disks = await exec(`gcloud compute disks list --zones=${computeZone} --format json`);
   return JSON.parse(disks);
+}
+
+function getAppUrl(environment) {
+  const fileName = 'api-deployment.yml';
+  const serviceYaml = readServiceYaml(environment, fileName);
+  return serviceYaml.spec.template.spec.containers[0].env
+    .filter((env) => {
+      return env.name == 'APP_URL';
+    })
+    .filter(Boolean)[0].value;
+}
+
+function getApiUrl(environment) {
+  const fileName = 'web-deployment.yml';
+  const serviceYaml = readServiceYaml(environment, fileName);
+  return serviceYaml.spec.template.spec.containers[0].env
+    .filter((env) => {
+      return env.name == 'API_URL';
+    })
+    .filter(Boolean)[0].value;
 }

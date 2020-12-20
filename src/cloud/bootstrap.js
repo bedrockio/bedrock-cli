@@ -1,4 +1,4 @@
-import { green, yellow } from 'kleur';
+import { green, yellow, red } from 'kleur';
 import { exit } from '../util/exit';
 import { prompt } from '../util/prompt';
 import { exec, execSyncInherit } from '../util/shell';
@@ -74,9 +74,26 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
 
   console.info(yellow('=> Authorizing into Kubernetes cluster'));
   await authorize({ environment });
+  console.info(yellow('=> Get Kubernetes cluster nodes'));
   await execSyncInherit('kubectl get nodes');
 
-  console.info(yellow('=> Creating disks'));
+  console.info(yellow('=> Get disks'));
+  const disks = await getDisks({ computeZone });
+  const diskNames = disks.map((disk) => {
+    return disk.name;
+  });
+  for (const diskName of diskNames) {
+    console.info(green(diskName));
+  }
+  if (!diskNames.includes('mongo-disk')) {
+    console.info(yellow('=> Creating mongo-disk'));
+    await createDisk({ computeZone, name: 'mongo-disk' });
+  }
+
+  if (!diskNames.includes('elasticsearch-disk')) {
+    console.info(yellow('=> Creating elasticsearch-disk'));
+    await createDisk({ computeZone, name: 'elasticsearch-disk' });
+  }
 
   console.info(yellow('=> Creating data pods'));
 
@@ -119,4 +136,32 @@ function configureDeploymentGCRPath(environment, service, project) {
     serviceYaml.spec.template.spec.containers[0].image = newImage;
     writeServiceYaml(environment, fileName, serviceYaml);
   }
+}
+
+async function createDisk(options = {}) {
+  const { computeZone } = options;
+  if (!computeZone) return console.info(red('Missing computeZone to create disk'));
+  const name =
+    options.name ||
+    (await prompt({
+      type: 'text',
+      message: 'Enter disk name:',
+    }));
+
+  const size =
+    options.size ||
+    (await prompt({
+      type: 'text',
+      message: 'Enter disk size:',
+      initial: '200GB',
+    }));
+
+  await execSyncInherit(`gcloud compute disks create ${name} --size=${size} --zone=${computeZone}`);
+}
+
+async function getDisks(options = {}) {
+  const { computeZone } = options;
+  if (!computeZone) return console.info(red('Missing computeZone to get disks'));
+  const disks = await exec(`gcloud compute disks list --zones=${computeZone} --format json`);
+  return JSON.parse(disks);
 }

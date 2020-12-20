@@ -48,7 +48,7 @@ async function plan(options, planFile) {
   const region = computeZone.slice(0, -2); // e.g. us-east1
   const zone = computeZone.slice(-1); // e.g. c
   const { clusterName, nodePoolCount, minNodeCount, maxNodeCount, machineType } = kubernetes;
-  console.info(kleur.green(`=> Planning with planFile: "${planFile}"`));
+  console.info(kleur.yellow(`=> Planning with planFile: "${planFile}"`));
   await execSyncInherit(
     `terraform plan -var "project=${project}" -var "environment=${envName}" -var "cluster_name=${clusterName}" -var "bucket_prefix=${bucketPrefix}" -var "region=${region}" -var "zone=${zone}" -var "node_pool_count=${nodePoolCount}" -var "min_node_count=${minNodeCount}" -var "max_node_count=${maxNodeCount}" -var "machine_type=${machineType}" -out="${planFile}"`
   );

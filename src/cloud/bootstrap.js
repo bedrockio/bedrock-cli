@@ -21,7 +21,8 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
     await exec(`gcloud projects describe ${project} --format json`);
   } catch (e) {
     exit(
-      `Error: No access for user [${activeAccount}] or unknown project [${project}] (Perhaps you need to login first: "bedrock cloud login")`
+      `Error: No access for user [${activeAccount}] or unknown project [${project}]
+       (Perhaps you need to login first: "bedrock cloud login")`
     );
   }
 
@@ -62,10 +63,9 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
   const webIP = await configureServiceLoadBalancer(environment, 'web', region);
 
   console.info(yellow('=> Configure deployment GCR paths'));
-  configureDeploymentGCRPath(environment, 'api', project);
-  configureDeploymentGCRPath(environment, 'api-cli', project);
-  configureDeploymentGCRPath(environment, 'api-jobs', project);
-  configureDeploymentGCRPath(environment, 'web', project);
+  for (const service of ['api', 'api-cli', 'api-jobs', 'web']) {
+    configureDeploymentGCRPath(environment, service, project);
+  }
 
   console.info(yellow('=> Terraform init'));
   await terraformInit({ environment });
@@ -120,7 +120,7 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
   console.info(green(` - address: ${webIP}`));
   console.info(green(` - configuration of APP_URL in api deployment: ${appUrl}\n`));
 
-  console.info(green('Done'));
+  console.info(green('Done!'));
 }
 
 async function configureServiceLoadBalancer(environment, service, region) {

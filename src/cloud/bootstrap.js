@@ -13,9 +13,7 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
     activeAccount = await exec('gcloud config get-value account');
     if (!activeAccount) throw new Error('No activeAccount');
   } catch (e) {
-    exit(
-      'There is no active glcoud account. Please login to glcloud first. Run: "bedrock cloud login"'
-    );
+    exit('There is no active glcoud account. Please login to glcloud first. Run: "bedrock cloud login"');
   }
 
   try {
@@ -26,14 +24,11 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
     );
   }
 
-  console.info(
-    green(`Verified Google Cloud project [${project}] for environment [${environment}]`)
-  );
+  console.info(green(`Verified Google Cloud project [${project}] for environment [${environment}]`));
 
   const { gcloud } = config;
   if (!gcloud) exit(`Missing gcloud in config.json for environment [${environment}]`);
-  if (!gcloud.project)
-    exit(`Missing gcloud.project in config.json for environment [${environment}]`);
+  if (!gcloud.project) exit(`Missing gcloud.project in config.json for environment [${environment}]`);
   if (project != gcloud.project) {
     let confirmed = await prompt({
       type: 'confirm',
@@ -57,8 +52,34 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
   console.info(yellow('=> Enabling Kubernetes services'));
   await execSyncInherit('gcloud services enable container.googleapis.com');
 
-  //   const apiServiceYaml = readServiceYaml(environment, 'api-service.yml');
-  //   console.info(JSON.stringify(apiServiceYaml, null, 2));
-  //   apiServiceYaml.spec.loadBalancerIP = '127.0.0.1';
-  //   writeServiceYaml(environment, 'api-service.yml', apiServiceYaml);
+  const { computeZone, kubernetes, bucketPrefix, envName } = gcloud;
+  // computeZone example: us-east1-c
+  const region = computeZone.slice(0, -2); // e.g. us-east1
+  // const zone = computeZone.slice(-1); // e.g. c
+
+  console.info(yellow('=> Configure loadbalancers'));
+  await configureServiceLoadBalancer(environment, 'api', region);
+  await configureServiceLoadBalancer(environment, 'web', region);
+  await configureServiceLoadBalancer(environment, 'ingest', region);
+  //console.info(yellow('=> Enabling Kubernetes services'));
+}
+
+async function configureServiceLoadBalancer(environment, name, region) {
+  let addressIP;
+  try {
+    const addressJSON = await exec(`gcloud compute addresses describe --region ${region} ${name} --format json`);
+    addressIP = JSON.parse(addressJSON).address;
+  } catch (e) {
+    console.info(yellow(`Creating ${name.toUpperCase()} address`));
+    await execSyncInherit(`gcloud compute addresses create ${name} --region ${region}`);
+    const addressJSON = await exec(`gcloud compute addresses describe --region ${region} ${name} --format json`);
+    addressIP = JSON.parse(addressJSON).address;
+
+    const serviceYaml = readServiceYaml(environment, `${name}-service.yml`);
+    console.info(yellow(`=> Updating ${name}-service.yml`));
+    serviceYaml.spec.loadBalancerIP = addressIP;
+    writeServiceYaml(environment, `${name}-service.yml`, serviceYaml);
+    console.info(serviceYaml);
+  }
+  console.info(green(`${name.toUpperCase()} service loadBalancerIP: ${addressIP}`));
 }

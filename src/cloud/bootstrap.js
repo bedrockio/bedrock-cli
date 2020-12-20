@@ -75,6 +75,7 @@ async function configureServiceLoadBalancer(environment, name, region) {
     const addressJSON = await exec(`gcloud compute addresses describe --region ${region} ${name} --format json`);
     addressIP = JSON.parse(addressJSON).address;
 
+    // Update service yml file
     const serviceYaml = readServiceYaml(environment, `${name}-service.yml`);
     console.info(yellow(`=> Updating ${name}-service.yml`));
     serviceYaml.spec.loadBalancerIP = addressIP;

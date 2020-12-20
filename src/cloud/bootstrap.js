@@ -4,6 +4,7 @@ import { prompt } from '../util/prompt';
 import { exec, execSyncInherit } from '../util/shell';
 import { writeConfig, readServiceYaml, writeServiceYaml } from './utils';
 import { checkTerraformCommand, terraformInit, terraformApply } from './provision/index';
+import { authorize } from './index';
 
 export async function bootstrapProjectEnvironment(project, environment, config) {
   await checkTerraformCommand();
@@ -70,6 +71,16 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
   await terraformInit({ environment });
   console.info(yellow('=> Terraform apply'));
   await terraformApply({ environment });
+
+  console.info(yellow('=> Authorizing into Kubernetes cluster'));
+  await authorize({ environment });
+  await execSyncInherit('kubectl get nodes');
+
+  console.info(yellow('=> Creating disks'));
+
+  console.info(yellow('=> Creating data pods'));
+
+  console.info(yellow('=> Creating service pods'));
 }
 
 async function configureServiceLoadBalancer(environment, service, region) {
@@ -94,7 +105,7 @@ async function configureServiceLoadBalancer(environment, service, region) {
   console.info(green(`${service.toUpperCase()} service loadBalancerIP: ${addressIP}`));
 }
 
-async function configureDeploymentGCRPath(environment, service, project) {
+function configureDeploymentGCRPath(environment, service, project) {
   // Update deployment yml file
   const fileName = `${service}-deployment.yml`;
   const serviceYaml = readServiceYaml(environment, fileName);

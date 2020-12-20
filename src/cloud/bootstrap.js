@@ -3,7 +3,7 @@ import { exit } from '../util/exit';
 import { prompt } from '../util/prompt';
 import { exec, execSyncInherit } from '../util/shell';
 import { writeConfig, readServiceYaml, writeServiceYaml } from './utils';
-import { checkTerraformCommand } from './provision/index';
+import { checkTerraformCommand, terraformInit, terraformApply } from './provision/index';
 
 export async function bootstrapProjectEnvironment(project, environment, config) {
   await checkTerraformCommand();
@@ -65,6 +65,11 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
   configureDeploymentGCRPath(environment, 'api-cli', project);
   configureDeploymentGCRPath(environment, 'api-jobs', project);
   configureDeploymentGCRPath(environment, 'web', project);
+
+  console.info(yellow('=> Terraform init'));
+  await terraformInit({ environment });
+  console.info(yellow('=> Terraform apply'));
+  await terraformApply({ environment });
 }
 
 async function configureServiceLoadBalancer(environment, service, region) {

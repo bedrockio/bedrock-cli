@@ -440,7 +440,7 @@
             {
               "name": "destroy",
               "functionName": "terraformDestroy",
-              "description": "Terraform destory provisioned cluster",
+              "description": "Terraform destroy provisioned cluster",
               "arguments": [
                 {
                   "name": "environment",

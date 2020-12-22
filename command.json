@@ -171,9 +171,7 @@
             {
               "name": "name",
               "type": "string",
-              "description": "Switch to Google Cloud account with <name> (e.g. john.doe@gmail.com)",
-              "required": false,
-              "prompt": false
+              "description": "Switch to Google Cloud account with <name> (e.g. john.doe@gmail.com)"
             }
           ]
         },
@@ -184,9 +182,7 @@
             {
               "name": "environment",
               "type": "string",
-              "description": "Environment (e.g. staging)",
-              "required": false,
-              "prompt": false
+              "description": "Environment (e.g. staging)"
             }
           ]
         },
@@ -197,9 +193,7 @@
             {
               "name": "environment",
               "type": "string",
-              "description": "Environment (e.g. staging)",
-              "required": false,
-              "prompt": false
+              "description": "Environment (e.g. staging)"
             }
           ]
         },
@@ -210,23 +204,17 @@
             {
               "name": "service",
               "type": "string",
-              "description": "Service (e.g. api)",
-              "required": false,
-              "prompt": false
+              "description": "Service (e.g. api)"
             },
             {
               "name": "subservice",
               "type": "string",
-              "description": "SubService (e.g. cli)",
-              "required": false,
-              "prompt": false
+              "description": "SubService (e.g. cli)"
             },
             {
               "name": "tag",
               "type": "string",
-              "description": "Image Tag, defaults to latest (e.g. v1.2)",
-              "required": false,
-              "prompt": false
+              "description": "Image Tag, defaults to latest (e.g. v1.2)"
             }
           ]
         },
@@ -237,30 +225,22 @@
             {
               "name": "environment",
               "type": "string",
-              "description": "Environment (e.g. staging)",
-              "required": false,
-              "prompt": false
+              "description": "Environment (e.g. staging)"
             },
             {
               "name": "service",
               "type": "string",
-              "description": "Service (e.g. api)",
-              "required": false,
-              "prompt": false
+              "description": "Service (e.g. api)"
             },
             {
               "name": "subservice",
               "type": "string",
-              "description": "SubService (e.g. cli)",
-              "required": false,
-              "prompt": false
+              "description": "SubService (e.g. cli)"
             },
             {
               "name": "tag",
               "type": "string",
-              "description": "Image Tag, defaults to latest (e.g. v1.2)",
-              "required": false,
-              "prompt": false
+              "description": "Image Tag, defaults to latest (e.g. v1.2)"
             }
           ]
         },
@@ -271,23 +251,17 @@
             {
               "name": "environment",
               "type": "string",
-              "description": "Environment (e.g. staging)",
-              "required": false,
-              "prompt": false
+              "description": "Environment (e.g. staging)"
             },
             {
               "name": "service",
               "type": "string",
-              "description": "Service (e.g. api)",
-              "required": false,
-              "prompt": false
+              "description": "Service (e.g. api)"
             },
             {
               "name": "subservice",
               "type": "string",
-              "description": "SubService (e.g. cli)",
-              "required": false,
-              "prompt": false
+              "description": "SubService (e.g. cli)"
             }
           ]
         },
@@ -298,30 +272,22 @@
             {
               "name": "environment",
               "type": "string",
-              "description": "Environment (e.g. staging)",
-              "required": false,
-              "prompt": false
+              "description": "Environment (e.g. staging)"
             },
             {
               "name": "service",
               "type": "string",
-              "description": "Service (e.g. api)",
-              "required": false,
-              "prompt": false
+              "description": "Service (e.g. api)"
             },
             {
               "name": "subservice",
               "type": "string",
-              "description": "SubService (e.g. cli)",
-              "required": false,
-              "prompt": false
+              "description": "SubService (e.g. cli)"
             },
             {
               "name": "tag",
               "type": "string",
-              "description": "Image Tag, defaults to latest (e.g. v1.2)",
-              "required": false,
-              "prompt": false
+              "description": "Image Tag, defaults to latest (e.g. v1.2)"
             }
           ]
         },
@@ -332,23 +298,17 @@
             {
               "name": "environment",
               "type": "string",
-              "description": "Environment (e.g. staging)",
-              "required": false,
-              "prompt": false
+              "description": "Environment (e.g. staging)"
             },
             {
               "name": "service",
               "type": "string",
-              "description": "Service (e.g. api)",
-              "required": false,
-              "prompt": false
+              "description": "Service (e.g. api)"
             },
             {
               "name": "subservice",
               "type": "string",
-              "description": "SubService (e.g. cli)",
-              "required": false,
-              "prompt": false
+              "description": "SubService (e.g. cli)"
             }
           ]
         },
@@ -359,23 +319,17 @@
             {
               "name": "environment",
               "type": "string",
-              "description": "Environment (e.g. staging)",
-              "required": false,
-              "prompt": false
+              "description": "Environment (e.g. staging)"
             },
             {
               "name": "service",
               "type": "string",
-              "description": "Service (e.g. api)",
-              "required": false,
-              "prompt": false
+              "description": "Service (e.g. api)"
             },
             {
               "name": "subservice",
               "type": "string",
-              "description": "SubService (e.g. cli)",
-              "required": false,
-              "prompt": false
+              "description": "SubService (e.g. cli)"
             }
           ]
         },
@@ -386,23 +340,17 @@
             {
               "name": "environment",
               "type": "string",
-              "description": "Environment (e.g. staging)",
-              "required": false,
-              "prompt": false
+              "description": "Environment (e.g. staging)"
             },
             {
               "name": "service",
               "type": "string",
-              "description": "Service (e.g. api)",
-              "required": false,
-              "prompt": false
+              "description": "Service (e.g. api)"
             },
             {
               "name": "subservice",
               "type": "string",
-              "description": "SubService (e.g. cli)",
-              "required": false,
-              "prompt": false
+              "description": "SubService (e.g. cli)"
             }
           ]
         },
@@ -445,9 +393,7 @@
             {
               "name": "project",
               "type": "string",
-              "description": "Google Cloud project id (e.g. bedrock-foundation)",
-              "required": false,
-              "prompt": false
+              "description": "Google Cloud project id (e.g. bedrock-foundation)"
             }
           ]
         },
@@ -463,9 +409,7 @@
                 {
                   "name": "environment",
                   "type": "string",
-                  "description": "Environment (e.g. staging)",
-                  "required": false,
-                  "prompt": false
+                  "description": "Environment (e.g. staging)"
                 }
               ]
             },
@@ -477,9 +421,7 @@
                 {
                   "name": "environment",
                   "type": "string",
-                  "description": "Environment (e.g. staging)",
-                  "required": false,
-                  "prompt": false
+                  "description": "Environment (e.g. staging)"
                 }
               ]
             },
@@ -491,9 +433,7 @@
                 {
                   "name": "environment",
                   "type": "string",
-                  "description": "Environment (e.g. staging)",
-                  "required": false,
-                  "prompt": false
+                  "description": "Environment (e.g. staging)"
                 }
               ]
             },
@@ -505,9 +445,7 @@
                 {
                   "name": "environment",
                   "type": "string",
-                  "description": "Environment (e.g. staging)",
-                  "required": false,
-                  "prompt": false
+                  "description": "Environment (e.g. staging)"
                 }
               ]
             }
@@ -525,16 +463,12 @@
                 {
                   "name": "environment",
                   "type": "string",
-                  "description": "Environment (e.g. staging)",
-                  "required": false,
-                  "prompt": false
+                  "description": "Environment (e.g. staging)"
                 },
                 {
                   "name": "name",
                   "type": "string",
-                  "description": "Secret name (e.g. credentials)",
-                  "required": false,
-                  "prompt": false
+                  "description": "Secret name (e.g. credentials)"
                 }
               ]
             },
@@ -546,16 +480,12 @@
                 {
                   "name": "environment",
                   "type": "string",
-                  "description": "Environment (e.g. staging)",
-                  "required": false,
-                  "prompt": false
+                  "description": "Environment (e.g. staging)"
                 },
                 {
                   "name": "name",
                   "type": "string",
-                  "description": "Secret name (e.g. credentials)",
-                  "required": false,
-                  "prompt": false
+                  "description": "Secret name (e.g. credentials)"
                 }
               ]
             },
@@ -567,16 +497,12 @@
                 {
                   "name": "environment",
                   "type": "string",
-                  "description": "Environment (e.g. staging)",
-                  "required": false,
-                  "prompt": false
+                  "description": "Environment (e.g. staging)"
                 },
                 {
                   "name": "name",
                   "type": "string",
-                  "description": "Secret name (e.g. credentials)",
-                  "required": false,
-                  "prompt": false
+                  "description": "Secret name (e.g. credentials)"
                 }
               ]
             },
@@ -588,16 +514,12 @@
                 {
                   "name": "environment",
                   "type": "string",
-                  "description": "Environment (e.g. staging)",
-                  "required": false,
-                  "prompt": false
+                  "description": "Environment (e.g. staging)"
                 },
                 {
                   "name": "name",
                   "type": "string",
-                  "description": "Secret name (e.g. credentials)",
-                  "required": false,
-                  "prompt": false
+                  "description": "Secret name (e.g. credentials)"
                 }
               ]
             }

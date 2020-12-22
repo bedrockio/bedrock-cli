@@ -162,16 +162,16 @@
       "commands": [
         {
           "name": "login",
-          "description": "Login to gcloud"
+          "description": "Login to Google Cloud"
         },
         {
           "name": "account",
-          "description": "Set gcloud account",
+          "description": "Set Google Cloud account",
           "arguments": [
             {
               "name": "name",
               "type": "string",
-              "description": "Switch to gcloud account with <name> (e.g. john.doe@gmail.com)",
+              "description": "Switch to Google Cloud account with <name> (e.g. john.doe@gmail.com)",
               "required": false,
               "prompt": false
             }
@@ -445,7 +445,7 @@
             {
               "name": "project",
               "type": "string",
-              "description": "GCloud project id (e.g. bedrock-foundation)",
+              "description": "Google Cloud project id (e.g. bedrock-foundation)",
               "required": false,
               "prompt": false
             }
@@ -453,7 +453,7 @@
         },
         {
           "name": "provision",
-          "description": "Provision cluster on glcoud with Terraform (subcommands: <plan>, <apply>, <init> and <destroy>)",
+          "description": "Provision cluster on Google Cloud with Terraform (subcommands: <plan>, <apply>, <init> and <destroy>)",
           "commands": [
             {
               "name": "plan",

@@ -16,9 +16,7 @@ export function readConfig(environment) {
   try {
     return require(configFilePath);
   } catch (e) {
-    exit(
-      `Could not find config.json for environment: "${environment}", file path: "${configFilePath}"`
-    );
+    exit(`Could not find config.json for environment: "${environment}", file path: "${configFilePath}"`);
   }
 }
 
@@ -27,9 +25,7 @@ export function writeConfig(environment, config) {
   try {
     fs.writeFileSync(configFilePath, JSON.stringify(config, null, 2), 'utf8');
   } catch (e) {
-    exit(
-      `Could not write to config.json for environment: "${environment}", file path: "${configFilePath}"`
-    );
+    exit(`Could not write to config.json for environment: "${environment}", file path: "${configFilePath}"`);
   }
 }
 
@@ -38,9 +34,7 @@ export function readServiceYaml(environment, filename) {
   try {
     return yaml.safeLoad(fs.readFileSync(filePath, 'utf8'));
   } catch (e) {
-    exit(
-      `Could not read service yml file ${filename} for environment: "${environment}", file path: "${filePath}"`
-    );
+    exit(`Could not read service yml file ${filename} for environment: "${environment}", file path: "${filePath}"`);
   }
 }
 
@@ -50,9 +44,7 @@ export function writeServiceYaml(environment, filename, data) {
     const yamlString = yaml.safeDump(data);
     return fs.writeFileSync(filePath, yamlString, 'utf8');
   } catch (e) {
-    exit(
-      `Could not read service yml file ${filename} for environment: "${environment}", file path: "${filePath}"`
-    );
+    exit(`Could not read service yml file ${filename} for environment: "${environment}", file path: "${filePath}"`);
   }
 }
 
@@ -155,7 +147,7 @@ export async function getSecretNamePrompt() {
     message: 'Enter secret name:',
     initial: 'credentials',
     validate: (value) =>
-      value.replace(/[^a-z0-9_-]/gim, '') != value
+      !value.match(/[^a-z0-9_-]/gim)
         ? `Name may contain only letters, numbers, dashes, or the underscore character.`
         : true,
   });

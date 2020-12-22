@@ -21,7 +21,7 @@ const COMPLETE_MESSAGE = `
 `;
 
 export default async function create(options) {
-  const { project, domain = '', repository = '', address = '', adminPassword = '' } = options;
+  const { project, domain = '', repository = '', address = '', 'admin-password': adminPassword = '' } = options;
 
   if (!project) {
     throw new Error('Project name required');

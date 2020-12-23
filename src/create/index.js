@@ -1,11 +1,14 @@
 import path from 'path';
 import kleur from 'kleur';
+import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { kebabCase, snakeCase, startCase } from 'lodash';
 import { cloneRepository, initializeRepository } from '../util/git';
 import { removeFiles } from '../util/file';
 import { replaceAll } from '../util/replace';
 import { exec } from '../util/shell';
 import Listr from 'listr';
+import { randomBytes } from 'crypto';
+import { getEnvironments, getSecretsDirectory } from '../cloud/utils';
 
 const BEDROCK_REPO = 'bedrockio/bedrock-core';
 
@@ -18,7 +21,7 @@ const COMPLETE_MESSAGE = `
 `;
 
 export default async function create(options) {
-  const { project, domain = '', repository = '', address = '' } = options;
+  const { project, domain = '', repository = '', address = '', adminPassword = '' } = options;
 
   if (!project) {
     throw new Error('Project name required');
@@ -39,7 +42,6 @@ export default async function create(options) {
     {
       title: 'Configure',
       task: async () => {
-
         const appName = startCase(project);
         const secret = await exec('openssl rand -base64 30');
 
@@ -61,7 +63,6 @@ export default async function create(options) {
         await removeFiles('CONTRIBUTING.md');
         await removeFiles('LICENSE');
         await removeFiles('.git');
-
       },
     },
     {
@@ -74,19 +75,36 @@ export default async function create(options) {
         await exec('yarn install');
 
         process.chdir(path.resolve('..', '..'));
-      }
+      },
+    },
+    {
+      title: 'Create credentials.conf secrets',
+      task: async () => {
+        const environments = await getEnvironments();
+        for (const environment of environments) {
+          const JWT_SECRET = await exec('openssl rand -base64 30');
+          const ADMIN_PASSWORD = adminPassword || randomBytes(8).toString('hex');
+
+          const secretDir = getSecretsDirectory(environment);
+          if (!existsSync(secretDir)) mkdirSync(secretDir);
+
+          const filePath = path.join(secretDir, `credentials.conf`);
+          const data = `JWT_SECRET=${JWT_SECRET}\nADMIN_PASSWORD=${ADMIN_PASSWORD}`;
+          writeFileSync(filePath, data);
+        }
+      },
     },
     {
       title: 'Finalizing',
       task: async () => {
         await initializeRepository(kebab, repository);
-      }
+      },
     },
   ]);
   try {
     await tasks.run();
     console.log(kleur.yellow(COMPLETE_MESSAGE));
-  } catch(err) {
+  } catch (err) {
     process.exit(1);
   }
 }

@@ -3,19 +3,16 @@ import { green, yellow } from 'kleur';
 import { assertBedrockRoot } from '../util/dir';
 import { exec, execSyncInherit } from '../util/shell';
 import { prompt } from '../util/prompt';
-import { exit } from '../util/exit';
-import { getConfig, setGCloudConfig, checkConfig, checkGCloudProject } from './authorize';
+import { getConfig, setGCloudConfig, checkConfig } from './authorize';
 import { buildImage } from './build';
 import { dockerPush } from './push';
 import { warn } from './deploy';
 import { rolloutDeployment, getDeployment, deleteDeployment, checkDeployment } from './rollout';
-import { provisionTerraform } from './provision';
 import {
   checkKubectlVersion,
   getEnvironmentPrompt,
   getServicesPrompt,
   getTagPrompt,
-  getTerraformPrompt,
   getPlatformName,
 } from './utils';
 
@@ -25,7 +22,6 @@ export async function authorize(options) {
   const environment = options.environment || (await getEnvironmentPrompt());
   const config = await getConfig(environment);
   await setGCloudConfig(config.gcloud);
-  console.info(green(`Successfully authorized ${environment}`));
 }
 
 export async function status(options) {
@@ -42,7 +38,15 @@ export async function status(options) {
   console.info('');
   await execSyncInherit('kubectl get nodes');
   console.info('');
-  await execSyncInherit('kubectl get pods');
+  const podInfo = await exec('kubectl get pods');
+  console.info(podInfo, '\n');
+  if (podInfo.includes('CreateContainerConfigError')) {
+    console.info(
+      yellow(
+        `CreateContainerConfigError: Check if you created the required secrets, e.g., "bedrock cloud secret ${environment} set credentials"`
+      )
+    );
+  }
 }
 
 export async function build(options) {
@@ -181,23 +185,6 @@ export async function info(options) {
   } else {
     await showDeploymentInfo(service, subservice);
   }
-}
-
-export async function provision(options) {
-  await assertBedrockRoot();
-
-  const environment = options.environment || (await getEnvironmentPrompt());
-  const terraform = options.terraform || (await getTerraformPrompt());
-  const config = await getConfig(environment);
-  await checkGCloudProject(config.gcloud);
-
-  try {
-    await exec('command -v terraform');
-  } catch (e) {
-    exit('Error: Terraform is not installed (https://www.terraform.io/');
-  }
-
-  await provisionTerraform(environment, terraform, config.gcloud);
 }
 
 export async function shell(options) {

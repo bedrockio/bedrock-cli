@@ -5,6 +5,7 @@ import { exit } from '../util/exit';
 import { exec, execSyncInherit } from '../util/shell';
 import { readFile } from '../util/file';
 import { prompt } from '../util/prompt';
+import { getSecretInfo, setSecret } from './secret';
 
 export async function getConfig(environment) {
   const configFilePath = path.resolve('deployment', 'environments', environment, 'config.json');
@@ -70,7 +71,7 @@ async function checkGCloudConfig(environment, options = {}) {
   const { project, computeZone, kubernetes } = options;
   if (!kubernetes) exit('Missing kubernetes settings in config');
   try {
-    let valid = checkGCloudProject(options);
+    let valid = await checkGCloudProject(options);
 
     if (!computeZone) exit('Missing computeZone');
     const currentComputeZone = await exec('gcloud config get-value compute/zone');
@@ -110,17 +111,31 @@ async function checkGCloudConfig(environment, options = {}) {
 async function checkSecrets(environment) {
   const secretsDir = path.resolve('deployment', 'environments', environment, 'secrets');
   if (fs.existsSync(secretsDir)) {
-    const secretFiles = await exec(`ls ${secretsDir}`);
-    if (secretFiles) {
-      console.info(red('---'));
-      console.info(red('---'));
-      console.info(
-        red(
-          `--- Warning: Found files in deployment/environments/${environment}/secrets/ - make sure to remove these!`
-        )
-      );
-      console.info(red('---'));
-      console.info(red('---'));
+    const secretFilesLS = await exec(`ls ${secretsDir}`);
+    const secretFiles = secretFilesLS.split('\n').filter((file) => file.endsWith('.conf'));
+    for (const secretFile of secretFiles) {
+      const secretName = secretFile.slice(0, -5);
+      const secretInfo = await getSecretInfo(secretName);
+      if (!secretInfo) {
+        console.info(
+          red(
+            `Warning: Found secret file deployment/environments/${environment}/secrets/${secretFile} that has not been created on the cluster.`
+          )
+        );
+        let confirmed = await prompt({
+          type: 'confirm',
+          name: 'subcommand',
+          message: `Would you like to create secret "${secretName}" now?`,
+          initial: true,
+        });
+        if (confirmed) await setSecret(environment, secretName);
+      } else {
+        console.info(
+          red(
+            `Warning: Found secret file deployment/environments/${environment}/secrets/${secretFile} - make sure to remove this file!`
+          )
+        );
+      }
     }
   }
 }

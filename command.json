@@ -35,6 +35,13 @@
           "description": "Company address",
           "required": false,
           "prompt": true
+        },
+        {
+          "name": "adminPassword",
+          "type": "string",
+          "description": "Admin password",
+          "required": false,
+          "prompt": true
         }
       ]
     },
@@ -356,26 +363,6 @@
           ]
         },
         {
-          "name": "provision",
-          "description": "Provision cluster on glcoud with Terraform",
-          "arguments": [
-            {
-              "name": "environment",
-              "type": "string",
-              "description": "Environment (e.g. staging)",
-              "required": false,
-              "prompt": false
-            },
-            {
-              "name": "terraform",
-              "type": "string",
-              "description": "Terraform command (e.g. apply or plan)",
-              "required": false,
-              "prompt": false
-            }
-          ]
-        },
-        {
           "name": "shell",
           "description": "Start remote bash shell on service container",
           "arguments": [
@@ -426,6 +413,158 @@
               "description": "SubService (e.g. cli)",
               "required": false,
               "prompt": false
+            }
+          ]
+        },
+        {
+          "name": "secret",
+          "description": "Deploy and update Secrets (subcommands: <get>, <set>, <info> and <delete>)",
+          "commands": [
+            {
+              "name": "get",
+              "functionName": "secretGet",
+              "description": "Get Secret from cluster and store in local <secret-name>.conf file",
+              "arguments": [
+                {
+                  "name": "environment",
+                  "type": "string",
+                  "description": "Environment (e.g. staging)",
+                  "required": false,
+                  "prompt": false
+                },
+                {
+                  "name": "name",
+                  "type": "string",
+                  "description": "Secret name (e.g. credentials)",
+                  "required": false,
+                  "prompt": false
+                }
+              ]
+            },
+            {
+              "name": "set",
+              "functionName": "secretSet",
+              "description": "Push secret to cluster from local <secret-name>.conf file",
+              "arguments": [
+                {
+                  "name": "environment",
+                  "type": "string",
+                  "description": "Environment (e.g. staging)",
+                  "required": false,
+                  "prompt": false
+                },
+                {
+                  "name": "name",
+                  "type": "string",
+                  "description": "Secret name (e.g. credentials)",
+                  "required": false,
+                  "prompt": false
+                }
+              ]
+            },
+            {
+              "name": "info",
+              "functionName": "secretInfo",
+              "description": "Retrieve secret info from cluster",
+              "arguments": [
+                {
+                  "name": "environment",
+                  "type": "string",
+                  "description": "Environment (e.g. staging)",
+                  "required": false,
+                  "prompt": false
+                },
+                {
+                  "name": "name",
+                  "type": "string",
+                  "description": "Secret name (e.g. credentials)",
+                  "required": false,
+                  "prompt": false
+                }
+              ]
+            },
+            {
+              "name": "delete",
+              "functionName": "secretDelete",
+              "description": "Delete secret from cluster",
+              "arguments": [
+                {
+                  "name": "environment",
+                  "type": "string",
+                  "description": "Environment (e.g. staging)",
+                  "required": false,
+                  "prompt": false
+                },
+                {
+                  "name": "name",
+                  "type": "string",
+                  "description": "Secret name (e.g. credentials)",
+                  "required": false,
+                  "prompt": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "provision",
+          "description": "Provision cluster on glcoud with Terraform (subcommands: <plan>, <apply>, <init> and <destroy>)",
+          "commands": [
+            {
+              "name": "plan",
+              "functionName": "terraformPlan",
+              "description": "Terraform plan provisioning of cluster",
+              "arguments": [
+                {
+                  "name": "environment",
+                  "type": "string",
+                  "description": "Environment (e.g. staging)",
+                  "required": false,
+                  "prompt": false
+                }
+              ]
+            },
+            {
+              "name": "apply",
+              "functionName": "terraformApply",
+              "description": "Terraform apply provisioning plan of cluster",
+              "arguments": [
+                {
+                  "name": "environment",
+                  "type": "string",
+                  "description": "Environment (e.g. staging)",
+                  "required": false,
+                  "prompt": false
+                }
+              ]
+            },
+            {
+              "name": "init",
+              "functionName": "terraformInit",
+              "description": "Terraform initialize provisioning",
+              "arguments": [
+                {
+                  "name": "environment",
+                  "type": "string",
+                  "description": "Environment (e.g. staging)",
+                  "required": false,
+                  "prompt": false
+                }
+              ]
+            },
+            {
+              "name": "destroy",
+              "functionName": "terraformDestroy",
+              "description": "Terraform destory provisioned cluster",
+              "arguments": [
+                {
+                  "name": "environment",
+                  "type": "string",
+                  "description": "Environment (e.g. staging)",
+                  "required": false,
+                  "prompt": false
+                }
+              ]
             }
           ]
         }

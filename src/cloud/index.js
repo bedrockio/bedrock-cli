@@ -289,10 +289,16 @@ export async function shell(options) {
 export async function logs(options) {
   await assertBedrockRoot();
 
-  const { environment, service, subservice } = options;
+  const environment = options.environment || (await getEnvironmentPrompt());
   const config = readConfig(environment);
   await checkConfig(environment, config);
   const { project, computeZone, kubernetes, label } = config.gcloud;
+
+  let service = options.service;
+  let subservice = options.subservice;
+  if (!service) {
+    [service, subservice] = await getServicesPrompt('select');
+  }
 
   let labelName = service;
   if (subservice) labelName += `-${subservice}`;
@@ -329,10 +335,6 @@ export async function bootstrap(options) {
       initial: config.gcloud && config.gcloud.project,
     }));
   console.info(green(`bedrock cloud ${environment} ${project}`));
-  console.info(
-    yellow(
-      `=> Bootstrap GKE cluster and services (environment: [${environment}], project: [${project}])`
-    )
-  );
+  console.info(yellow(`=> Bootstrap GKE cluster and services (environment: [${environment}], project: [${project}])`));
   await bootstrapProjectEnvironment(project, environment, config);
 }

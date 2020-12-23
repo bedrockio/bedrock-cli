@@ -109,11 +109,13 @@ function getServices() {
   return services;
 }
 
-export async function getServicesPrompt() {
+export async function getServicesPrompt(type = 'multiselect') {
   const services = getServices();
   return await prompt({
-    type: 'multiselect',
-    hint: '- Space or arrow-keys to select. Press "a" to select all. Return to submit.',
+    type,
+    ...(type == 'multiselect' && {
+      hint: '- Space or arrow-keys to select. Press "a" to select all. Return to submit.',
+    }),
     message: 'Select service / subservice:',
     instructions: false,
     choices: services.map(([service, subservice]) => {

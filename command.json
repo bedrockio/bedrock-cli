@@ -37,7 +37,7 @@
           "prompt": true
         },
         {
-          "name": "adminPassword",
+          "name": "admin-password",
           "type": "string",
           "description": "Admin password",
           "required": false,
@@ -161,15 +161,28 @@
       "description": "Cloud Controls for deployment and provisioning",
       "commands": [
         {
+          "name": "login",
+          "description": "Login to Google Cloud"
+        },
+        {
+          "name": "account",
+          "description": "Set Google Cloud account",
+          "arguments": [
+            {
+              "name": "name",
+              "type": "string",
+              "description": "Switch to Google Cloud account with <name> (e.g. john.doe@gmail.com)"
+            }
+          ]
+        },
+        {
           "name": "authorize",
           "description": "Authorize cloud environment",
           "arguments": [
             {
               "name": "environment",
               "type": "string",
-              "description": "Environment (e.g. staging)",
-              "required": false,
-              "prompt": false
+              "description": "Environment (e.g. staging)"
             }
           ]
         },
@@ -180,9 +193,7 @@
             {
               "name": "environment",
               "type": "string",
-              "description": "Environment (e.g. staging)",
-              "required": false,
-              "prompt": false
+              "description": "Environment (e.g. staging)"
             }
           ]
         },
@@ -193,23 +204,17 @@
             {
               "name": "service",
               "type": "string",
-              "description": "Service (e.g. api)",
-              "required": false,
-              "prompt": false
+              "description": "Service (e.g. api)"
             },
             {
               "name": "subservice",
               "type": "string",
-              "description": "SubService (e.g. cli)",
-              "required": false,
-              "prompt": false
+              "description": "SubService (e.g. cli)"
             },
             {
               "name": "tag",
               "type": "string",
-              "description": "Image Tag, defaults to latest (e.g. v1.2)",
-              "required": false,
-              "prompt": false
+              "description": "Image Tag, defaults to latest (e.g. v1.2)"
             }
           ]
         },
@@ -220,30 +225,22 @@
             {
               "name": "environment",
               "type": "string",
-              "description": "Environment (e.g. staging)",
-              "required": false,
-              "prompt": false
+              "description": "Environment (e.g. staging)"
             },
             {
               "name": "service",
               "type": "string",
-              "description": "Service (e.g. api)",
-              "required": false,
-              "prompt": false
+              "description": "Service (e.g. api)"
             },
             {
               "name": "subservice",
               "type": "string",
-              "description": "SubService (e.g. cli)",
-              "required": false,
-              "prompt": false
+              "description": "SubService (e.g. cli)"
             },
             {
               "name": "tag",
               "type": "string",
-              "description": "Image Tag, defaults to latest (e.g. v1.2)",
-              "required": false,
-              "prompt": false
+              "description": "Image Tag, defaults to latest (e.g. v1.2)"
             }
           ]
         },
@@ -254,23 +251,17 @@
             {
               "name": "environment",
               "type": "string",
-              "description": "Environment (e.g. staging)",
-              "required": false,
-              "prompt": false
+              "description": "Environment (e.g. staging)"
             },
             {
               "name": "service",
               "type": "string",
-              "description": "Service (e.g. api)",
-              "required": false,
-              "prompt": false
+              "description": "Service (e.g. api)"
             },
             {
               "name": "subservice",
               "type": "string",
-              "description": "SubService (e.g. cli)",
-              "required": false,
-              "prompt": false
+              "description": "SubService (e.g. cli)"
             }
           ]
         },
@@ -281,30 +272,22 @@
             {
               "name": "environment",
               "type": "string",
-              "description": "Environment (e.g. staging)",
-              "required": false,
-              "prompt": false
+              "description": "Environment (e.g. staging)"
             },
             {
               "name": "service",
               "type": "string",
-              "description": "Service (e.g. api)",
-              "required": false,
-              "prompt": false
+              "description": "Service (e.g. api)"
             },
             {
               "name": "subservice",
               "type": "string",
-              "description": "SubService (e.g. cli)",
-              "required": false,
-              "prompt": false
+              "description": "SubService (e.g. cli)"
             },
             {
               "name": "tag",
               "type": "string",
-              "description": "Image Tag, defaults to latest (e.g. v1.2)",
-              "required": false,
-              "prompt": false
+              "description": "Image Tag, defaults to latest (e.g. v1.2)"
             }
           ]
         },
@@ -315,23 +298,17 @@
             {
               "name": "environment",
               "type": "string",
-              "description": "Environment (e.g. staging)",
-              "required": false,
-              "prompt": false
+              "description": "Environment (e.g. staging)"
             },
             {
               "name": "service",
               "type": "string",
-              "description": "Service (e.g. api)",
-              "required": false,
-              "prompt": false
+              "description": "Service (e.g. api)"
             },
             {
               "name": "subservice",
               "type": "string",
-              "description": "SubService (e.g. cli)",
-              "required": false,
-              "prompt": false
+              "description": "SubService (e.g. cli)"
             }
           ]
         },
@@ -342,23 +319,17 @@
             {
               "name": "environment",
               "type": "string",
-              "description": "Environment (e.g. staging)",
-              "required": false,
-              "prompt": false
+              "description": "Environment (e.g. staging)"
             },
             {
               "name": "service",
               "type": "string",
-              "description": "Service (e.g. api)",
-              "required": false,
-              "prompt": false
+              "description": "Service (e.g. api)"
             },
             {
               "name": "subservice",
               "type": "string",
-              "description": "SubService (e.g. cli)",
-              "required": false,
-              "prompt": false
+              "description": "SubService (e.g. cli)"
             }
           ]
         },
@@ -369,23 +340,17 @@
             {
               "name": "environment",
               "type": "string",
-              "description": "Environment (e.g. staging)",
-              "required": false,
-              "prompt": false
+              "description": "Environment (e.g. staging)"
             },
             {
               "name": "service",
               "type": "string",
-              "description": "Service (e.g. api)",
-              "required": false,
-              "prompt": false
+              "description": "Service (e.g. api)"
             },
             {
               "name": "subservice",
               "type": "string",
-              "description": "SubService (e.g. cli)",
-              "required": false,
-              "prompt": false
+              "description": "SubService (e.g. cli)"
             }
           ]
         },
@@ -396,23 +361,87 @@
             {
               "name": "environment",
               "type": "string",
-              "description": "Environment (e.g. staging)",
-              "required": true,
-              "prompt": false
+              "description": "Environment (e.g. staging)"
             },
             {
               "name": "service",
               "type": "string",
-              "description": "Service (e.g. api)",
-              "required": true,
-              "prompt": false
+              "description": "Service (e.g. api)"
             },
             {
               "name": "subservice",
               "type": "string",
-              "description": "SubService (e.g. cli)",
-              "required": false,
-              "prompt": false
+              "description": "SubService (e.g. cli)"
+            }
+          ]
+        },
+        {
+          "name": "bootstrap",
+          "description": "Bootstrap GKE cluster",
+          "arguments": [
+            {
+              "name": "environment",
+              "type": "string",
+              "description": "Environment (e.g. staging)"
+            },
+            {
+              "name": "project",
+              "type": "string",
+              "description": "Google Cloud project id (e.g. bedrock-foundation)"
+            }
+          ]
+        },
+        {
+          "name": "provision",
+          "description": "Provision cluster on Google Cloud with Terraform (subcommands: <plan>, <apply>, <init> and <destroy>)",
+          "commands": [
+            {
+              "name": "plan",
+              "functionName": "terraformPlan",
+              "description": "Terraform plan provisioning of cluster",
+              "arguments": [
+                {
+                  "name": "environment",
+                  "type": "string",
+                  "description": "Environment (e.g. staging)"
+                }
+              ]
+            },
+            {
+              "name": "apply",
+              "functionName": "terraformApply",
+              "description": "Terraform apply provisioning plan of cluster",
+              "arguments": [
+                {
+                  "name": "environment",
+                  "type": "string",
+                  "description": "Environment (e.g. staging)"
+                }
+              ]
+            },
+            {
+              "name": "init",
+              "functionName": "terraformInit",
+              "description": "Terraform initialize provisioning",
+              "arguments": [
+                {
+                  "name": "environment",
+                  "type": "string",
+                  "description": "Environment (e.g. staging)"
+                }
+              ]
+            },
+            {
+              "name": "destroy",
+              "functionName": "terraformDestroy",
+              "description": "Terraform destroy provisioned cluster",
+              "arguments": [
+                {
+                  "name": "environment",
+                  "type": "string",
+                  "description": "Environment (e.g. staging)"
+                }
+              ]
             }
           ]
         },
@@ -428,16 +457,12 @@
                 {
                   "name": "environment",
                   "type": "string",
-                  "description": "Environment (e.g. staging)",
-                  "required": false,
-                  "prompt": false
+                  "description": "Environment (e.g. staging)"
                 },
                 {
                   "name": "name",
                   "type": "string",
-                  "description": "Secret name (e.g. credentials)",
-                  "required": false,
-                  "prompt": false
+                  "description": "Secret name (e.g. credentials)"
                 }
               ]
             },
@@ -449,16 +474,12 @@
                 {
                   "name": "environment",
                   "type": "string",
-                  "description": "Environment (e.g. staging)",
-                  "required": false,
-                  "prompt": false
+                  "description": "Environment (e.g. staging)"
                 },
                 {
                   "name": "name",
                   "type": "string",
-                  "description": "Secret name (e.g. credentials)",
-                  "required": false,
-                  "prompt": false
+                  "description": "Secret name (e.g. credentials)"
                 }
               ]
             },
@@ -470,16 +491,12 @@
                 {
                   "name": "environment",
                   "type": "string",
-                  "description": "Environment (e.g. staging)",
-                  "required": false,
-                  "prompt": false
+                  "description": "Environment (e.g. staging)"
                 },
                 {
                   "name": "name",
                   "type": "string",
-                  "description": "Secret name (e.g. credentials)",
-                  "required": false,
-                  "prompt": false
+                  "description": "Secret name (e.g. credentials)"
                 }
               ]
             },
@@ -491,78 +508,12 @@
                 {
                   "name": "environment",
                   "type": "string",
-                  "description": "Environment (e.g. staging)",
-                  "required": false,
-                  "prompt": false
+                  "description": "Environment (e.g. staging)"
                 },
                 {
                   "name": "name",
                   "type": "string",
-                  "description": "Secret name (e.g. credentials)",
-                  "required": false,
-                  "prompt": false
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "name": "provision",
-          "description": "Provision cluster on glcoud with Terraform (subcommands: <plan>, <apply>, <init> and <destroy>)",
-          "commands": [
-            {
-              "name": "plan",
-              "functionName": "terraformPlan",
-              "description": "Terraform plan provisioning of cluster",
-              "arguments": [
-                {
-                  "name": "environment",
-                  "type": "string",
-                  "description": "Environment (e.g. staging)",
-                  "required": false,
-                  "prompt": false
-                }
-              ]
-            },
-            {
-              "name": "apply",
-              "functionName": "terraformApply",
-              "description": "Terraform apply provisioning plan of cluster",
-              "arguments": [
-                {
-                  "name": "environment",
-                  "type": "string",
-                  "description": "Environment (e.g. staging)",
-                  "required": false,
-                  "prompt": false
-                }
-              ]
-            },
-            {
-              "name": "init",
-              "functionName": "terraformInit",
-              "description": "Terraform initialize provisioning",
-              "arguments": [
-                {
-                  "name": "environment",
-                  "type": "string",
-                  "description": "Environment (e.g. staging)",
-                  "required": false,
-                  "prompt": false
-                }
-              ]
-            },
-            {
-              "name": "destroy",
-              "functionName": "terraformDestroy",
-              "description": "Terraform destory provisioned cluster",
-              "arguments": [
-                {
-                  "name": "environment",
-                  "type": "string",
-                  "description": "Environment (e.g. staging)",
-                  "required": false,
-                  "prompt": false
+                  "description": "Secret name (e.g. credentials)"
                 }
               ]
             }

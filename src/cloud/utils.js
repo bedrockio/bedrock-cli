@@ -1,10 +1,66 @@
 import fs from 'fs';
 import path from 'path';
 import compareVersions from 'compare-versions';
+const yaml = require('js-yaml');
 import { red } from 'kleur';
 import { prompt } from '../util/prompt';
 import { exit } from '../util/exit';
 import { exec } from '../util/shell';
+
+function getConfigFilePath(environment) {
+  return path.resolve('deployment', 'environments', environment, 'config.json');
+}
+
+export function readConfig(environment) {
+  const configFilePath = getConfigFilePath(environment);
+  try {
+    return require(configFilePath);
+  } catch (e) {
+    exit(`Could not find config.json for environment: "${environment}", file path: "${configFilePath}"`);
+  }
+}
+
+export function writeConfig(environment, config) {
+  const configFilePath = getConfigFilePath(environment);
+  try {
+    fs.writeFileSync(configFilePath, JSON.stringify(config, null, 2), 'utf8');
+  } catch (e) {
+    exit(`Could not write to config.json for environment: "${environment}", file path: "${configFilePath}"`);
+  }
+}
+
+export function getServiceFilePath(environment, filename) {
+  return path.resolve('deployment', 'environments', environment, 'services', filename);
+}
+
+export function readServiceYaml(environment, filename) {
+  const filePath = exports.getServiceFilePath(environment, filename);
+  try {
+    return yaml.safeLoad(fs.readFileSync(filePath, 'utf8'));
+  } catch (e) {
+    exit(`Could not read service yml file ${filename} for environment: "${environment}", file path: "${filePath}"`);
+  }
+}
+
+export function writeServiceYaml(environment, filename, data) {
+  const filePath = exports.getServiceFilePath(environment, filename);
+  try {
+    const yamlString = yaml.safeDump(data);
+    return fs.writeFileSync(filePath, yamlString, 'utf8');
+  } catch (e) {
+    exit(`Could not read service yml file ${filename} for environment: "${environment}", file path: "${filePath}"`);
+  }
+}
+
+export function updateServiceYamlEnv(environment, service, envName, envValue) {
+  const filename = `${service}-deployment.yml`;
+  const deployment = readServiceYaml(environment, filename);
+  const { env } = deployment.spec.template.spec.containers[0];
+  deployment.spec.template.spec.containers[0].env = env.map(({ name, value }) =>
+    name == envName ? { name, value: envValue } : { name, value }
+  );
+  writeServiceYaml(environment, filename, deployment);
+}
 
 export function getPlatformName() {
   return path.basename(process.cwd());
@@ -53,11 +109,13 @@ function getServices() {
   return services;
 }
 
-export async function getServicesPrompt() {
+export async function getServicesPrompt(type = 'multiselect') {
   const services = getServices();
   return await prompt({
-    type: 'multiselect',
-    hint: '- Space or arrow-keys to select. Press "a" to select all. Return to submit.',
+    type,
+    ...(type == 'multiselect' && {
+      hint: '- Space or arrow-keys to select. Press "a" to select all. Return to submit.',
+    }),
     message: 'Select service / subservice:',
     instructions: false,
     choices: services.map(([service, subservice]) => {
@@ -105,7 +163,7 @@ export async function getSecretNamePrompt() {
     message: 'Enter secret name:',
     initial: 'credentials',
     validate: (value) =>
-      value.replace(/[^a-z0-9_-]/gim, '') != value
+      !value.match(/[^a-z0-9_-]/gim)
         ? `Name may contain only letters, numbers, dashes, or the underscore character.`
         : true,
   });

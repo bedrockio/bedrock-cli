@@ -4,8 +4,8 @@ import { prompt } from '../../util/prompt';
 import { exec, execSyncInherit } from '../../util/shell';
 import { exit } from '../../util/exit';
 import { assertBedrockRoot } from '../../util/dir';
-import { getConfig, checkGCloudProject } from '../authorize';
-import { getEnvironmentPrompt } from '../utils';
+import { checkGCloudProject } from '../authorize';
+import { readConfig, getEnvironmentPrompt } from '../utils';
 
 export async function terraformPlan(options) {
   await terraform(options, 'plan');
@@ -23,18 +23,21 @@ export async function terraformDestroy(options) {
   await terraform(options, 'destroy');
 }
 
-async function terraform(options, command) {
-  await assertBedrockRoot();
-
-  const environment = options.environment || (await getEnvironmentPrompt());
-  const config = await getConfig(environment);
-  await checkGCloudProject(config.gcloud);
-
+export async function checkTerraformCommand() {
   try {
     await exec('command -v terraform');
   } catch (e) {
     exit('Error: Terraform is not installed (https://www.terraform.io/');
   }
+}
+
+async function terraform(options, command) {
+  await assertBedrockRoot();
+
+  const environment = options.environment || (await getEnvironmentPrompt());
+  const config = readConfig(environment);
+  await checkGCloudProject(config.gcloud);
+  await checkTerraformCommand();
 
   await provisionTerraform(environment, command, config.gcloud);
 }
@@ -45,7 +48,7 @@ async function plan(options, planFile) {
   const region = computeZone.slice(0, -2); // e.g. us-east1
   const zone = computeZone.slice(-1); // e.g. c
   const { clusterName, nodePoolCount, minNodeCount, maxNodeCount, machineType } = kubernetes;
-  console.info(kleur.green(`=> Planning with planFile: "${planFile}"`));
+  console.info(kleur.yellow(`=> Planning with planFile: "${planFile}"`));
   await execSyncInherit(
     `terraform plan -var "project=${project}" -var "environment=${envName}" -var "cluster_name=${clusterName}" -var "bucket_prefix=${bucketPrefix}" -var "region=${region}" -var "zone=${zone}" -var "node_pool_count=${nodePoolCount}" -var "min_node_count=${minNodeCount}" -var "max_node_count=${maxNodeCount}" -var "machine_type=${machineType}" -out="${planFile}"`
   );

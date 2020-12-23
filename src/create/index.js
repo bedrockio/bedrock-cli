@@ -7,6 +7,7 @@ import { replaceAll } from '../util/replace';
 import { exec } from '../util/shell';
 import Listr from 'listr';
 import { randomBytes } from 'crypto';
+import { getEnvironments, updateServiceYamlEnv } from '../cloud/utils';
 
 const BEDROCK_REPO = 'bedrockio/bedrock-core';
 
@@ -59,6 +60,14 @@ export default async function create(options) {
           str = str.replace(/\bbedrock\b/g, kebab);
           return str;
         });
+
+        const environments = await getEnvironments();
+        for (let environment of environments) {
+          const secret = await exec('openssl rand -base64 30');
+          const password = adminPassword || randomBytes(8).toString('hex');
+          updateServiceYamlEnv(environment, 'api', 'JWT_SECRET', secret);
+          updateServiceYamlEnv(environment, 'api', 'ADMIN_PASSWORD', password);
+        }
 
         await removeFiles('CONTRIBUTING.md');
         await removeFiles('LICENSE');

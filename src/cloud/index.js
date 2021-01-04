@@ -114,7 +114,10 @@ export async function build(options) {
 
   if (!service) {
     const services = await getServicesPrompt();
-    if (!services.length) process.exit(0);
+    if (!services.length) {
+      console.info(yellow('There were no services selected'));
+      process.exit(0);
+    }
     const enteredTag = await getTagPrompt();
 
     for (const [service, subservice] of services) {
@@ -137,7 +140,10 @@ export async function push(options) {
 
   if (!service) {
     const services = await getServicesPrompt();
-    if (!services.length) process.exit(0);
+    if (!services.length) {
+      console.info(yellow('There were no services selected'));
+      process.exit(0);
+    }
     const enteredTag = await getTagPrompt();
     for (const [service, subservice] of services) {
       await dockerPush(project, platformName, service, subservice, enteredTag);
@@ -158,6 +164,10 @@ export async function rollout(options) {
 
   if (!service) {
     const services = await getServicesPrompt();
+    if (!services.length) {
+      console.info(yellow('There were no services selected'));
+      process.exit(0);
+    }
     for (const [service, subservice] of services) {
       await rolloutDeployment(environment, service, subservice);
     }
@@ -181,7 +191,10 @@ export async function deploy(options) {
 
   if (!service) {
     const services = await getServicesPrompt();
-    if (!services.length) process.exit(0);
+    if (!services.length) {
+      console.info(yellow('There were no services selected'));
+      process.exit(0);
+    }
     const enteredTag = await getTagPrompt();
     for (const [service, subservice] of services) {
       await buildImage(platformName, service, subservice, enteredTag);
@@ -205,6 +218,10 @@ export async function undeploy(options) {
 
   if (!service) {
     const services = await getServicesPrompt();
+    if (!services.length) {
+      console.info(yellow('There were no services selected'));
+      process.exit(0);
+    }
     for (const [service, subservice] of services) {
       const exists = await checkDeployment(service, subservice);
       if (exists) await deleteDeployment(environment, service, subservice);
@@ -236,6 +253,10 @@ export async function info(options) {
 
   if (!service) {
     const services = await getServicesPrompt();
+    if (!services.length) {
+      console.info(yellow('There were no services selected'));
+      process.exit(0);
+    }
     for (const [service, subservice] of services) {
       await showDeploymentInfo(service, subservice);
     }

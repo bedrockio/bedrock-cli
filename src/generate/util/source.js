@@ -83,7 +83,11 @@ export async function writeLocalFile(source, ...args) {
 export async function readRemoteFile(...args) {
   const file = args.join('/');
   return await runAsTask('Reading Source', async () => {
-    const response = await fetch(`${GITHUB_RAW_BASE}/${file}`);
+    const url = `${GITHUB_RAW_BASE}/${file}`;
+    const response = await fetch(url);
+    if (response.status === 404) {
+      throw new Error(`${url} was not found`);
+    }
     return await response.text();
   });
 }

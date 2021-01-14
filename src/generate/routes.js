@@ -24,8 +24,6 @@ export async function generateRoutes(options) {
 
   let source = await readSourceFile(routesDir, 'shops.js');
   source = replacePrimary(source, options);
-  source = replaceSchema(source, schema, 'create');
-  source = replaceSchema(source, schema, 'update');
   source = replaceSchema(source, searchSchema, 'search');
   source = replaceSearchQuery(source, searchSchema);
 

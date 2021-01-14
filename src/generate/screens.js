@@ -20,7 +20,7 @@ const FILES = [
   'Detail/Menu.js'
 ];
 
-const SCREENS_DIR = 'services/web/src/Screens';
+const SCREENS_DIR = 'services/web/src/screens';
 
 export async function generateScreens(options) {
   const { pluralUpper } = options;
@@ -121,7 +121,7 @@ function replaceSubScreenMenus(source, options) {
       return block`
       <Menu.Item
         name="${pluralUpper}"
-        to={\`/${options.pluralLower}/\${id}/${pluralLower}\`}
+        to={\`/${options.pluralKebab}/\${${options.kebab}.id}/${pluralLower}\`}
         as={NavLink}
         exact
       />

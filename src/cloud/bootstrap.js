@@ -95,12 +95,17 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
     await createDisk({ computeZone, name: 'elasticsearch-disk' });
   }
 
+  const envPath = `deployment/environments/${environment}`;
   console.info(yellow('=> Creating data pods'));
-  await execSyncInherit(`kubectl create -f deployment/environments/${environment}/data`);
+  await execSyncInherit(`kubectl delete -f ${envPath}/data --ignore-not-found`);
+  await execSyncInherit(`kubectl create -f ${envPath}/data`);
 
   console.info(yellow('=> Creating service pods'));
-  await execSyncInherit(`kubectl create -f deployment/environments/${environment}/services/api-service.yml`);
-  await execSyncInherit(`kubectl create -f deployment/environments/${environment}/services/web-service.yml`);
+  await execSyncInherit(`kubectl delete -f ${envPath}/services/api-service.yml --ignore-not-found`);
+  await execSyncInherit(`kubectl create -f ${envPath}/services/api-service.yml`);
+
+  await execSyncInherit(`kubectl delete -f ${envPath}/services/web-service.yml --ignore-not-found`);
+  await execSyncInherit(`kubectl create -f ${envPath}/services/web-service.yml`);
 
   await deploy({ environment, service: 'api' });
   await deploy({ environment, service: 'api', subservice: 'cli' });

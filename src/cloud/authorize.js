@@ -81,10 +81,10 @@ async function checkGCloudConfig(environment, options = {}) {
 
     if (valid) {
       console.info(green(`Using Google Cloud environment "${environment}"`));
-      console.info('  project=' + green(project));
-      console.info('  compute/zone=' + green(computeZone));
-      console.info('  cluster=' + green(clusterName));
-      console.info('  kubectl/context=' + green(currentkubectlContext));
+      console.info('project=' + green(project));
+      console.info('compute/zone=' + green(computeZone));
+      console.info('cluster=' + green(clusterName));
+      console.info('kubectl/context=' + green(currentkubectlContext));
     }
     return valid;
   } catch (e) {

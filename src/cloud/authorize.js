@@ -23,9 +23,7 @@ export async function setGCloudConfig(options = {}) {
     await execSyncInherit(`gcloud container clusters get-credentials ${clusterName}`);
     await execSyncInherit(`gcloud config set container/cluster ${clusterName}`);
     console.info(
-      green(
-        `Successfully authorized (project=${project}, compute/zone=${computeZone}, cluster=${clusterName})`
-      )
+      green(`Successfully authorized (project=${project}, compute/zone=${computeZone}, cluster=${clusterName})`)
     );
   } catch (e) {
     exit(e.message);
@@ -83,9 +81,11 @@ async function checkGCloudConfig(environment, options = {}) {
 
     if (valid) {
       console.info(
-        green(
-          `Using Google Cloud environment ${environment} (project=${project}, compute/zone=${computeZone}, cluster=${clusterName}, kubectl/context=${currentkubectlContext})`
-        )
+        green(`Using Google Cloud environment "${environment}"`),
+        '  project=' + green(project),
+        '  compute/zone=' + green(computeZone),
+        '  cluster=' + green(clusterName),
+        '  kubectl/context=' + green(currentkubectlContext)
       );
     }
     return valid;

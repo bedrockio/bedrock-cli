@@ -45,7 +45,11 @@ export function readServiceYaml(environment, filename) {
 export function writeServiceYaml(environment, filename, data) {
   const filePath = exports.getServiceFilePath(environment, filename);
   try {
-    const yamlString = yaml.safeDump(data);
+    const options = {
+      quotingType: '"',
+      forceQuotes: true,
+    };
+    const yamlString = yaml.safeDump(data, options);
     return fs.writeFileSync(filePath, yamlString, 'utf8');
   } catch (e) {
     exit(`Could not read service yml file ${filename} for environment: "${environment}", file path: "${filePath}"`);

@@ -83,8 +83,11 @@ export async function getSecretInfo(secretName) {
 export async function getSecret(environment, secretName) {
   const secret = await getSecretInfo(secretName);
   if (!secret) return console.info(yellow(`Could not find secret "${secretName}"`));
-  console.info(secret);
   if (!secret.data) return console.info(yellow(`Secret.data is empty"`));
+
+  secret.dataKeys = Object.keys(secret.data);
+  secret.data = `*** hidden to avoid sensitive information in your shell history ***`;
+  console.info(secret);
 
   // mkdir (if not exists)
   const secretDir = getSecretsDirectory(environment);

@@ -7,12 +7,7 @@ import { prompt } from '../../util/prompt';
 import { assertBedrockRoot } from '../../util/dir';
 import { getSecretsDirectory } from '../utils';
 import { checkConfig } from '../authorize';
-import {
-  readConfig,
-  getEnvironmentPrompt,
-  getSecretNamePrompt,
-  getAllSecretsPrompt,
-} from '../utils';
+import { readConfig, getEnvironmentPrompt, getSecretNamePrompt, getAllSecretsPrompt } from '../utils';
 
 export async function secretGet(options) {
   await secret(options, 'get');
@@ -49,9 +44,12 @@ export async function secret(options, subcommand) {
     console.info(yellow(`=> Retrieving secret`));
     const secretInfo = await getSecretInfo(secretName);
     if (secretInfo) {
+      secretInfo.dataKeys = Object.keys(secretInfo.data);
+      secretInfo.data = `*** hidden to avoid sensitive information in your shell history ***`;
       console.info(secretInfo);
-      console.info(yellow('=> Decrypt data'));
-      console.info(decryptSecretData(secretInfo));
+      console.info(yellow(`Note: Run 'bedrock cloud secret get' to retrieve decrypted data into local file`));
+      // console.info(yellow('=> Decrypt data'));
+      // console.info(decryptSecretData(secretInfo));
     } else {
       console.info(yellow(`Could not find secret "${secretName}"`));
     }
@@ -107,29 +105,17 @@ export async function getSecret(environment, secretName) {
   }
 
   writeFileSync(filePath, data);
-  console.info(
-    green(
-      `Saved secret to "${filePath}" - make sure to REMOVE THE FILE once you've made your changes`
-    )
-  );
+  console.info(green(`Saved secret to "${filePath}" - make sure to REMOVE THE FILE once you've made your changes`));
 }
 
 export async function setSecret(environment, secretName, confirmPrompt = true) {
-  const secretJoinedPath = path.join(
-    'deployment',
-    'environments',
-    environment,
-    'secrets',
-    `${secretName}.conf`
-  );
+  const secretJoinedPath = path.join('deployment', 'environments', environment, 'secrets', `${secretName}.conf`);
   const secretFilePath = path.resolve(secretJoinedPath);
 
   if (existsSync(secretFilePath)) {
     console.info(yellow(`=> Creating secret`));
     await execSyncInherit(`kubectl delete secret ${secretName} --ignore-not-found`);
-    await execSyncInherit(
-      `kubectl create secret generic ${secretName} --from-env-file=${secretFilePath}`
-    );
+    await execSyncInherit(`kubectl create secret generic ${secretName} --from-env-file=${secretFilePath}`);
     console.info(green(`Uploaded secrets from ${secretJoinedPath}`));
     if (confirmPrompt) {
       let confirmed = await prompt({

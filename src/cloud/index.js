@@ -17,6 +17,7 @@ import {
   getPlatformName,
 } from './utils';
 import { bootstrapProjectEnvironment } from './bootstrap';
+import { slackStartedDeploy, slackFinishedDeploy } from './slack';
 
 export async function authorize(options) {
   await assertBedrockRoot();
@@ -199,6 +200,16 @@ export async function deploy(options) {
     }
     const enteredTag = await getTagPrompt();
     await warn(environment);
+    const serviceNames = services.map(([service, subservice]) => {
+      let serviceName = service;
+      if (subservice) serviceName += ` / ${subservice}`;
+      return serviceName;
+    });
+    try {
+      slackStartedDeploy(environment, config, serviceNames);
+    } catch (e) {
+      console.info(red('Failed to post to Slack'));
+    }
     for (const [service, subservice] of services) {
       await buildImage(platformName, service, subservice, enteredTag);
       await dockerPush(project, platformName, service, subservice, enteredTag);
@@ -206,9 +217,22 @@ export async function deploy(options) {
     }
   } else {
     await warn(environment);
+    let serviceName = service;
+    if (subservice) serviceName += ` / ${subservice}`;
+    try {
+      slackStartedDeploy(environment, config, [serviceName]);
+    } catch (e) {
+      console.info(red('Failed to post to Slack'));
+    }
+
     await buildImage(platformName, service, subservice, tag);
     await dockerPush(project, platformName, service, subservice, tag);
     await rolloutDeployment(environment, service, subservice);
+  }
+  try {
+    slackFinishedDeploy(config);
+  } catch (e) {
+    console.info(red('Failed to post to Slack'));
   }
 }
 

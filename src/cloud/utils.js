@@ -214,3 +214,7 @@ export async function checkKubectlVersion(minVersion = 'v1.19.0') {
     exit('Error: failed to parse kubectl version');
   }
 }
+
+export async function getSlackWebhook(config) {
+  if (config && config.slack && config.slack.webhook) return config.slack.webhook;
+}

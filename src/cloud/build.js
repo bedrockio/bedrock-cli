@@ -14,14 +14,22 @@ export async function buildImage(platformName, service, subservice, tag = 'lates
   if (!subservice) {
     const imageName = `${platformName}-services-${service}:${tag}`;
     console.info(kleur.yellow(`\n=> Building "${imageName}"`));
-    execSyncInherit(`docker build -t ${imageName} .`);
+    try {
+      await execSyncInherit(`docker build -t ${imageName} .`);
+    } catch (e) {
+      exit(e.message);
+    }
   } else {
     const imageName = `${platformName}-services-${service}-${subservice}:${tag}`;
     console.info(kleur.yellow(`\n=> Building "${imageName}"`));
     if (!fs.existsSync(`Dockerfile.${subservice}`)) {
       exit(`Subservice does not exist. Dockerfile.${subservice} is missing`);
     }
-    execSyncInherit(`docker build -t ${imageName} -f Dockerfile.${subservice} .`);
+    try {
+      await execSyncInherit(`docker build -t ${imageName} -f Dockerfile.${subservice} .`);
+    } catch (e) {
+      exit(e.message);
+    }
   }
   await process.chdir('../..');
 }

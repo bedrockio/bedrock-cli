@@ -20,7 +20,12 @@ export async function setGCloudConfig(options = {}) {
     const { clusterName } = kubernetes;
     if (!clusterName) exit('Missing kubernetes.clusterName');
 
-    await execSyncInherit(`gcloud container clusters get-credentials ${clusterName}`);
+    try {
+      await execSyncInherit(`gcloud container clusters get-credentials ${clusterName}`);
+    } catch (e) {
+      exit(e.message);
+    }
+
     await execSyncInherit(`gcloud config set container/cluster ${clusterName}`);
     console.info(
       green(`Successfully authorized (project=${project}, compute/zone=${computeZone}, cluster=${clusterName})`)

@@ -145,10 +145,12 @@ export async function push(options) {
       process.exit(0);
     }
     const enteredTag = await getTagPrompt();
+    await warn(environment);
     for (const [service, subservice] of services) {
       await dockerPush(project, platformName, service, subservice, enteredTag);
     }
   } else {
+    await warn(environment);
     await dockerPush(project, platformName, service, subservice, tag);
   }
 }
@@ -168,10 +170,12 @@ export async function rollout(options) {
       console.info(yellow('There were no services selected'));
       process.exit(0);
     }
+    await warn(environment);
     for (const [service, subservice] of services) {
       await rolloutDeployment(environment, service, subservice);
     }
   } else {
+    await warn(environment);
     await rolloutDeployment(environment, service, subservice);
   }
 }
@@ -187,8 +191,6 @@ export async function deploy(options) {
   const { project } = config.gcloud;
   const platformName = getPlatformName();
 
-  await warn(environment);
-
   if (!service) {
     const services = await getServicesPrompt();
     if (!services.length) {
@@ -196,12 +198,14 @@ export async function deploy(options) {
       process.exit(0);
     }
     const enteredTag = await getTagPrompt();
+    await warn(environment);
     for (const [service, subservice] of services) {
       await buildImage(platformName, service, subservice, enteredTag);
       await dockerPush(project, platformName, service, subservice, enteredTag);
       await rolloutDeployment(environment, service, subservice);
     }
   } else {
+    await warn(environment);
     await buildImage(platformName, service, subservice, tag);
     await dockerPush(project, platformName, service, subservice, tag);
     await rolloutDeployment(environment, service, subservice);
@@ -222,11 +226,13 @@ export async function undeploy(options) {
       console.info(yellow('There were no services selected'));
       process.exit(0);
     }
+    await warn(environment);
     for (const [service, subservice] of services) {
       const exists = await checkDeployment(service, subservice);
       if (exists) await deleteDeployment(environment, service, subservice);
     }
   } else {
+    await warn(environment);
     const exists = await checkDeployment(service, subservice);
     if (exists) await deleteDeployment(environment, service, subservice);
   }

@@ -6,7 +6,11 @@ async function pushImage(project, image, tag) {
   const gcrTag = `gcr.io/${project}/${image}:${tag}`;
   console.info(kleur.green(`Pushing ${gcrTag}`));
   await exec(`docker tag ${image}:${tag} ${gcrTag}`);
-  execSyncInherit(`docker push ${gcrTag}`);
+  try {
+    await execSyncInherit(`docker push ${gcrTag}`);
+  } catch (e) {
+    exit(e.message);
+  }
 }
 
 export async function dockerPush(project, platformName, service, subservice, tag = 'latest') {
@@ -15,24 +19,18 @@ export async function dockerPush(project, platformName, service, subservice, tag
     const dockerImagesJSON = dockerImages.split('\n').map((image) => {
       return JSON.parse(image.slice(1, -1));
     });
-    const repositories = dockerImagesJSON
-      .filter((image) => image.Tag == tag)
-      .map((image) => image.Repository);
+    const repositories = dockerImagesJSON.filter((image) => image.Tag == tag).map((image) => image.Repository);
 
     let images = [];
     if (subservice) {
-      images = repositories.filter(
-        (repo) => repo == `${platformName}-services-${service}-${subservice}`
-      );
+      images = repositories.filter((repo) => repo == `${platformName}-services-${service}-${subservice}`);
     } else if (service) {
       images = repositories.filter((repo) => repo == `${platformName}-services-${service}`);
     } else {
       images = repositories.filter((repo) => repo.startsWith(`${platformName}-services-`));
     }
 
-    images.length
-      ? console.info(kleur.yellow('\n=> Pushing images:'))
-      : console.info(kleur.yellow('No images found'));
+    images.length ? console.info(kleur.yellow('\n=> Pushing images:')) : console.info(kleur.yellow('No images found'));
     images.forEach((image) => console.info('-', image));
 
     for (const image of images) {

@@ -35,7 +35,7 @@ export async function createDeployMessage(environment, project, services) {
       {
         fallback: 'Started Deploying',
         pretext: `Started Deploying - ${project} (${author})`,
-        title: `${environment} / ${branch} / ${gitTag}`,
+        title: `${environment} | ${branch} | ${gitTag}`,
         text,
         ts,
       },

@@ -8,7 +8,6 @@ export function getSlackWebhook(config) {
 
 export async function postSlackMessage(hook, message) {
   if (!hook) return;
-  // console.log(hook);
   try {
     await fetch(hook, {
       method: 'POST',
@@ -16,7 +15,7 @@ export async function postSlackMessage(hook, message) {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (e) {
-    // ignore
+    // ignore for now
   }
 }
 
@@ -56,7 +55,6 @@ export async function slackStartedDeploy(environment, config, services) {
   if (hook) {
     const project = config.gcloud && config.gcloud.project;
     const deployMessage = await createDeployMessage(environment, project, services);
-    // console.log(deployMessage);
     postSlackMessage(hook, deployMessage);
   }
 }
@@ -66,7 +64,6 @@ export async function slackFinishedDeploy(config) {
   if (hook) {
     const project = config.gcloud && config.gcloud.project;
     const deployMessage = await createFinishDeployMessage(project);
-    // console.log(deployMessage);
     postSlackMessage(hook, deployMessage);
   }
 }

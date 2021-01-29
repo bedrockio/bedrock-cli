@@ -11,7 +11,7 @@ export function getDeployment(service, subservice) {
   return deployment;
 }
 
-async function getTag() {
+export async function getTag() {
   let tag = await exec('git tag --points-at HEAD');
   if (!tag) tag = await exec('git rev-parse --short --verify HEAD');
   const stat = await exec('git diff --stat');

@@ -40,3 +40,37 @@ To use the bedrock `cloud` commands, check the `bedrock-core` Deployment [README
 ```bash
 bedrock --help
 ```
+
+## Slack integration
+
+The `bedrock cloud deploy` command supports posting message on a Slack channel when starting and finishing the deploy. This requires the following steps:
+
+- Create a new Slack App at [api.slack.com](https://api.slack.com/) for your workspace
+- Optional: Update your Slack with a nice Icon and description
+- Create `incoming webhook`. Select this feature in the menu, and hit `Add New Webhook to Workspace`. It will ask you to select the Slack channel in your workspace to post messages to.
+- Copy the generated Webhook URL, which includes the api token
+- Paste the Webhook URL in your project's deployment environment `config.json` (See Deployment [README.md](https://github.com/bedrockio/bedrock-core/tree/master/deployment)). Example `deployment/environments/staging/config.json` (replace webhook value with your own Webhook URL):
+
+```json
+{
+  "gcloud": {
+    "envName": "staging",
+    "bucketPrefix": "bedrock-foundation",
+    "project": "bedrock-foundation",
+    "computeZone": "us-east1-c",
+    "kubernetes": {
+      "clusterName": "cluster-2",
+      "nodePoolCount": 1,
+      "minNodeCount": 1,
+      "maxNodeCount": 3,
+      "machineType": "n2-standard-2"
+     },
+    "label": "app"
+  },
+  "slack" : {
+    "webhook": "https://hooks.slack.com/services/xxxxxxxx/xxxxxxxx"
+  }
+}
+```
+
+Each environment can use the same webhook for the same channel, or you can set up a different channel and webhook for each environment.

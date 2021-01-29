@@ -208,7 +208,7 @@ export async function deploy(options) {
     try {
       slackStartedDeploy(environment, config, serviceNames);
     } catch (e) {
-      console.info(red('Failed to post to Slack'));
+      console.error(red('Failed to post to Slack'));
     }
     for (const [service, subservice] of services) {
       await buildImage(platformName, service, subservice, enteredTag);
@@ -222,7 +222,7 @@ export async function deploy(options) {
     try {
       slackStartedDeploy(environment, config, [serviceName]);
     } catch (e) {
-      console.info(red('Failed to post to Slack'));
+      console.error(red('Failed to post to Slack'));
     }
 
     await buildImage(platformName, service, subservice, tag);
@@ -232,7 +232,7 @@ export async function deploy(options) {
   try {
     slackFinishedDeploy(config);
   } catch (e) {
-    console.info(red('Failed to post to Slack'));
+    console.error(red('Failed to post to Slack'));
   }
 }
 

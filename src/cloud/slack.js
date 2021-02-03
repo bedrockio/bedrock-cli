@@ -30,14 +30,22 @@ export async function createDeployMessage(environment, project, services) {
     })
     .join('\n');
 
+  let color = '';
+  if (environment == 'production') {
+    color = '#ff0000';
+  } else if (environment != 'staging') {
+    color = '#ffa500';
+  }
+
   return {
     attachments: [
       {
         fallback: 'Started Deploying',
-        pretext: `Started Deploying - ${project} (${author})`,
+        pretext: `Started Deploying: ${project} (${author})`,
         title: `${environment} | ${branch} | ${gitTag}`,
         text,
         ts,
+        color,
       },
     ],
   };
@@ -46,7 +54,7 @@ export async function createDeployMessage(environment, project, services) {
 export async function createFinishDeployMessage(project) {
   const author = await exec('git config user.name');
   return {
-    text: `Finished Deploying - ${project} (${author})`,
+    text: `Finished Deploying: ${project} (${author})`,
   };
 }
 

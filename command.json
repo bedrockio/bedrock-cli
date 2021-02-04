@@ -81,28 +81,6 @@
       ]
     },
     {
-      "name": "auth",
-      "description": "Authenticates with your bedrock.io account.",
-      "commands": [
-        {
-          "name": "login",
-          "description": "Login to your account"
-        },
-        {
-          "name": "list",
-          "description": "List authorized accounts"
-        },
-        {
-          "name": "set",
-          "description": "Set current account"
-        },
-        {
-          "name": "remove",
-          "description": "Set authorized account"
-        }
-      ]
-    },
-    {
       "name": "plugins",
       "description": "Manage Bedrock plugins.",
       "commands": [

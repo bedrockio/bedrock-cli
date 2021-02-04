@@ -18,7 +18,7 @@ export function validateEmail(str = '', option) {
   return true;
 }
 
-const DOMAIN_REG = /^[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9]\.[a-zA-Z]{2,}$/;
+const DOMAIN_REG = /^[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9](?:\.[a-zA-Z]{2,})+$/;
 
 export function validateDomain(str = '', option) {
   if ((str || option.required) && !DOMAIN_REG.test(str)) {

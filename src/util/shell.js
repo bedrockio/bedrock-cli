@@ -26,3 +26,10 @@ export async function exec(commands, std = `stdout`) {
 export async function execSyncInherit(command) {
   await execSync(command, { stdio: 'inherit' });
 }
+
+export async function withDir(dir, fn) {
+  const lastDir = process.cwd();
+  process.chdir(dir);
+  await fn();
+  process.chdir(lastDir);
+}

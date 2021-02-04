@@ -4,7 +4,7 @@ import { kebabCase, snakeCase, startCase } from 'lodash';
 import { cloneRepository, initializeRepository } from '../util/git';
 import { removeFiles } from '../util/file';
 import { replaceAll } from '../util/replace';
-import { exec } from '../util/shell';
+import { exec, withDir } from '../util/shell';
 import Listr from 'listr';
 import { randomBytes } from 'crypto';
 import { getEnvironments, updateServiceYamlEnv } from '../cloud/utils';
@@ -77,13 +77,13 @@ export default async function create(options) {
     {
       title: 'Install Dependencies',
       task: async () => {
-        process.chdir(path.resolve('services', 'api'));
-        await exec('yarn install');
+        await withDir(path.resolve('services', 'api'), async () => {
+          await exec('yarn install');
+        });
 
-        process.chdir(path.resolve('..', 'web'));
-        await exec('yarn install');
-
-        process.chdir(path.resolve('..', '..'));
+        await withDir(path.resolve('services', 'web'), async () => {
+          await exec('yarn install');
+        });
       },
     },
     {

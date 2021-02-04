@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+/* eslint-disable-next-line no-global-assign */
 require = require('esm')(module);
 
 const path = require('path');
@@ -74,6 +75,26 @@ function addCommand(command, descriptor) {
             ...options,
           };
         }
+        if (sub.collect) {
+          await promptFill(options, [
+            {
+              name: sub.collect,
+              type: 'multiple',
+              prompt: true,
+              description: sub.collect,
+              choices: sub.commands.map((command) => {
+                return {
+                  title: command.name,
+                  value: command.name,
+                  description: command.description,
+                  selected: true,
+                }
+              }),
+            },
+          ]);
+        } else if (sub.parent.collect) {
+          options[sub.parent.collect] = [sub.name];
+        }
         await promptFill(options, sub.arguments);
         await promptFill(options, sub.options);
         await handler(options);
@@ -83,17 +104,24 @@ function addCommand(command, descriptor) {
 }
 
 function getHandler(descriptor) {
-  const { functionName, name, parent } = descriptor;
-  if (parent.name === 'bedrock') {
-    return require(path.resolve(__dirname, '../src', name)).default;
-  } else {
-    const func = functionName || camelCase(name);
-    if (parent.parent && parent.parent.name !== 'bedrock') {
-      return require(path.resolve(__dirname, '../src', parent.parent.name, parent.name))[func];
-    } else {
-      return require(path.resolve(__dirname, '../src', parent.name))[func];
-    }
+  const dirs = getHandlerPath(descriptor);
+  try {
+    // Prefer named functions in entrypoints to helper files that may share the same name.
+    const name = descriptor.functionName || camelCase(descriptor.name);
+    const mod = require(path.resolve(__dirname, '../src', ...dirs.slice(0, -1)));
+    return mod[name] || mod.default;
+  } catch(err) {
+    return require(path.resolve(__dirname, '../src', ...dirs)).default;
   }
+}
+
+function getHandlerPath(descriptor) {
+  const handlerPath = [];
+  while (descriptor.parent) {
+    handlerPath.unshift(descriptor.name);
+    descriptor = descriptor.parent;
+  }
+  return handlerPath;
 }
 
 program.parse(process.argv);

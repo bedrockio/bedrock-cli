@@ -15,7 +15,7 @@ import { generateModals } from './modals';
 import { patchMainMenu } from './util/patch';
 
 export default async function generate(options) {
-  const { components } = options;
+  const { resources } = options;
 
   const dir = process.cwd();
 
@@ -23,19 +23,19 @@ export default async function generate(options) {
 
   await setGenerateOptions(options);
 
-  if (components.includes('model')) {
+  if (resources.includes('model')) {
     await generateModel(options);
   }
-  if (components.includes('routes')) {
+  if (resources.includes('routes')) {
     await generateRoutes(options);
   }
-  if (components.includes('screens')) {
+  if (resources.includes('screens')) {
     await generateScreens(options);
   }
-  if (components.includes('subscreens')) {
+  if (resources.includes('subscreens')) {
     await generateSubScreens(options);
   }
-  if (components.includes('modals')) {
+  if (resources.includes('modals')) {
     await generateModals(options);
   }
   if (options.menu) {
@@ -43,5 +43,4 @@ export default async function generate(options) {
   }
 
   await saveSnapshot(path.resolve(dir, `${kebabCase(options.name)}.json`), options);
-
 }

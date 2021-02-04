@@ -47,46 +47,28 @@
     },
     {
       "name": "generate",
-      "description": "Generates new Bedrock resources.\nTakes a comma separated list of components to output.",
-      "arguments": [
+      "description": "Generate new Bedrock resources.",
+      "collect": "resources",
+      "commands": [
         {
-          "name": "components",
-          "type": "multiple",
-          "description": "Components to be generated",
-          "choices": [
-            {
-              "title": "Model",
-              "value": "model",
-              "selected": true,
-              "description": "Generates Mongoose models"
-            },
-            {
-              "title": "Routes",
-              "value": "routes",
-              "selected": true,
-              "description": "Generates API routes"
-            },
-            {
-              "title": "Screens",
-              "value": "screens",
-              "selected": true,
-              "description": "Generates top level screens"
-            },
-            {
-              "title": "Subscreens",
-              "value": "subscreens",
-              "selected": true,
-              "description": "Generates sub level screens for references"
-            },
-            {
-              "title": "Modals",
-              "value": "modals",
-              "selected": true,
-              "description": "Generates create/update modals"
-            }
-          ],
-          "required": true,
-          "prompt": true
+          "name": "model",
+          "description": "Generate Mongoose models"
+        },
+        {
+          "name": "routes",
+          "description": "Generate API routes"
+        },
+        {
+          "name": "screens",
+          "description": "Generate top level screens"
+        },
+        {
+          "name": "subscreens",
+          "description": "Generate sub level screens for references"
+        },
+        {
+          "name": "modals",
+          "description": "Generate create/update modals"
         }
       ],
       "options": [

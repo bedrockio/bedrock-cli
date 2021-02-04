@@ -21,7 +21,7 @@ export async function setGenerateOptions(options) {
 
   options.schema = await getSchema(options.schema);
 
-  if (options.components.includes('subscreens')) {
+  if (options.resources.includes('subscreens')) {
     if (!options.externalSubScreens) {
       options.externalSubScreens = await getExternalSubScreens(options);
     }

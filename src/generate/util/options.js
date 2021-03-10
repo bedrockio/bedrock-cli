@@ -18,7 +18,6 @@ export async function setResourceOptions(options) {
   } else {
     options.resources = await getExistingResources(options);
   }
-
 }
 
 async function getResourceOptions(options) {
@@ -49,24 +48,29 @@ async function getResourceOptions(options) {
 }
 
 async function getExternalSubScreens(resource) {
-  return (
-    await Promise.all(
-      resource.schema
-        .filter((field) => {
-          return field.schemaType === 'ObjectId';
-        })
-        .map(async (field) => {
-          const { ref } = field;
-          const yes = await prompt({
-            type: 'confirm',
-            message: `Generate ${field.ref}${resource.pluralUpper} screen?`,
-          });
-          if (yes) {
-            return getInflections(ref);
-          }
-        })
-    )
-  ).filter((ref) => ref);
+  const { pluralUpper } = resource;
+  const selectedNames = await prompt({
+    type: 'multiselect',
+    instructions: false,
+    message: 'Generate external screens:',
+    choices: resource.schema
+      .filter(({ type, schemaType }) => {
+        return schemaType === 'ObjectId' && type !== 'Upload';
+      })
+      .map(({ ref }) => {
+        const name = ref + pluralUpper;
+        return {
+          title: name,
+          value: ref,
+          description: `Generates ${name} screen.`,
+        };
+      }),
+    hint: 'Space to select or Enter for none.',
+  });
+
+  return selectedNames.map((val) => {
+    return getInflections(val);
+  });
 }
 
 async function getSubScreens(resource) {
@@ -83,7 +87,7 @@ async function getSubScreens(resource) {
   let selectedNames = await prompt({
     type: 'multiselect',
     instructions: false,
-    message: 'Generate sub-screens for:',
+    message: 'Generate other screens:',
     choices: modelNames
       .map((name) => {
         return {
@@ -132,14 +136,13 @@ async function getExistingResources() {
     type: 'multiselect',
     instructions: false,
     message: 'Select models:',
-    choices: models
-      .map(({ name }) => {
-        return {
-          title: name,
-          value: name,
-          description: `Generate resources for ${name} model.`,
-        };
-      }),
+    choices: models.map(({ name }) => {
+      return {
+        title: name,
+        value: name,
+        description: `Generate resources for ${name} model.`,
+      };
+    }),
     hint: 'Space to select or Enter for none.',
   });
   return models

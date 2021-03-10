@@ -33,3 +33,13 @@ export async function withDir(dir, fn) {
   await fn();
   process.chdir(lastDir);
 }
+
+// Synchronous form is needed to be used inside concurrent tasks. Using withDir
+// inside concurrent tasks isn't recommended as process.chdir introduces state,
+// however may be required when combined with require().
+export function withDirSync(dir, fn) {
+  const lastDir = process.cwd();
+  process.chdir(dir);
+  fn();
+  process.chdir(lastDir);
+}

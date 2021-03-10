@@ -1,8 +1,8 @@
-import { yellow } from 'kleur';
 import { startCase } from 'lodash';
-import { replaceFilters } from './util/filters';
 import { assertPath } from '../util/file';
+import { queueTask } from '../util/tasks';
 import { block } from './util/template';
+import { replaceFilters } from './util/filters';
 import { patchAppEntrypoint } from './util/patch';
 import {
   readSourceFile,
@@ -25,7 +25,7 @@ const SCREENS_DIR = 'services/web/src/screens';
 export async function generateScreens(options) {
   const { pluralUpper } = options;
 
-  const screensDir = await assertPath(SCREENS_DIR);
+  const screensDir = await assertScreensDir();
 
   // Do this sequentially to ensure order
   for (let file of FILES) {
@@ -46,16 +46,17 @@ export async function generateScreens(options) {
 
   // Attempt to patch app entrypoint
   await patchAppEntrypoint(options);
-
-  console.log(yellow('Screens generated!'));
 }
 
 export async function generateSubScreens(options) {
-  const screensDir = await assertPath(SCREENS_DIR);
+  const screensDir = await assertScreensDir();
   const source = await readSourceFile(screensDir, 'Shops/Detail/Products.js');
   await generateSubScreensFor(screensDir, source, [options], options.subScreens);
   await generateSubScreensFor(screensDir, source, options.externalSubScreens, [options]);
-  console.log(yellow('Subscreens generated!'));
+}
+
+export async function assertScreensDir() {
+  return await assertPath(SCREENS_DIR);
 }
 
 async function generateSubScreensFor(screensDir, source, primary, secondary) {
@@ -64,17 +65,19 @@ async function generateSubScreensFor(screensDir, source, primary, secondary) {
       primary.map(async (primary) => {
         return Promise.all(
           secondary.map(async (secondary) => {
-            source = replacePrimary(source, primary);
-            source = replaceSecondary(source, secondary);
-            source = replaceListHeaderCells(source, secondary);
-            source = replaceListBodyCells(source, secondary, primary);
-            await writeLocalFile(
-              source,
-              screensDir,
-              primary.pluralUpper,
-              'Detail',
-              `${secondary.pluralUpper}.js`
-            );
+            queueTask(`${primary.camelUpper}${secondary.pluralUpper}`, async () => {
+              source = replacePrimary(source, primary);
+              source = replaceSecondary(source, secondary);
+              source = replaceListHeaderCells(source, secondary);
+              source = replaceListBodyCells(source, secondary, primary);
+              await writeLocalFile(
+                source,
+                screensDir,
+                primary.pluralUpper,
+                'Detail',
+                `${secondary.pluralUpper}.js`
+              );
+            });
           })
         );
       })

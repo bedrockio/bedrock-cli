@@ -1,33 +1,32 @@
 import Listr from 'listr';
-import { red } from 'kleur';
 
-export async function runAsTask(title, fn) {
+let currentList;
+
+export function queueTask(title, task) {
+  if (!currentList) {
+    currentList = getNewList();
+  }
+  currentList.add({
+    title,
+    task: async () => {
+      currentList = null;
+      await task();
+      return currentList;
+    }
+  });
+}
+
+export async function runTasks() {
   try {
-    return await runTask(title, fn);
+    await currentList.run();
   } catch(err) {
-    console.log(red('Fatal error, exiting...'));
+    console.error(err);
     process.exit(1);
   }
 }
 
-export async function runAsOptionalTask(title, fn) {
-  try {
-    return await runTask(title, fn);
-  } catch(err) {
-    // Do nothing
-  }
-}
-
-async function runTask(title, fn) {
-  let captured;
-  const tasks = new Listr([
-    {
-      title,
-      task: async () => {
-        captured = await fn();
-      },
-    },
-  ]);
-  await tasks.run();
-  return captured;
+function getNewList() {
+  return new Listr([], {
+    collapse: false,
+  });
 }

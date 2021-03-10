@@ -8,6 +8,7 @@
     "test": "jest"
   },
   "dependencies": {
+    "@yeongjet/joi-to-json-schema": "^1.0.4",
     "commander": "^6.1.0",
     "compare-versions": "^3.6.0",
     "esm": "^3.2.25",

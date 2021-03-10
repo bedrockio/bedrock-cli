@@ -1,8 +1,12 @@
 import path from 'path';
+import glob from 'glob';
 import rimraf from 'rimraf';
 import mkdir from 'mkdirp';
 import { promises as fs } from 'fs';
 import { prompt } from './prompt';
+import { promisify } from 'util';
+
+export const readDirectory = promisify(glob);
 
 export function removeFiles(path) {
   return new Promise((resolve, reject) => {

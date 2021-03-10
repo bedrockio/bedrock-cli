@@ -48,7 +48,7 @@
     {
       "name": "generate",
       "description": "Generate new Bedrock resources.",
-      "collect": "resources",
+      "collect": "components",
       "commands": [
         {
           "name": "model",
@@ -59,6 +59,10 @@
           "description": "Generate API routes"
         },
         {
+          "name": "docs",
+          "description": "Generate documentation"
+        },
+        {
           "name": "screens",
           "description": "Generate top level screens"
         },
@@ -67,8 +71,8 @@
           "description": "Generate sub level screens for references"
         },
         {
-          "name": "modals",
-          "description": "Generate create/update modals"
+          "name": "modal",
+          "description": "Generate create/update modal"
         }
       ],
       "options": [

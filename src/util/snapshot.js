@@ -8,14 +8,10 @@ export async function saveSnapshot(file, data) {
 }
 
 export async function restoreSnapshot(file) {
-  if (file) {
-    try {
-      return require(path.resolve(file));
-    } catch (err) {
-      console.log(red(`Could not load "${file}"`));
-      process.exit(1);
-    }
-  } else {
-    return {};
+  try {
+    return require(path.resolve(file));
+  } catch (err) {
+    console.log(red(`Could not load snapshot file "${file}"`));
+    process.exit(1);
   }
 }

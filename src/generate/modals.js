@@ -1,4 +1,3 @@
-import { yellow } from 'kleur';
 import { camelCase } from 'lodash';
 import { assertPath } from '../util/file';
 import { block } from './util/template';
@@ -12,10 +11,10 @@ import {
 
 const MODALS_DIR = 'services/web/src/modals';
 
-export async function generateModals(options) {
+export async function generateModal(options) {
   const { camelUpper } = options;
 
-  const modalsDir = await assertPath(MODALS_DIR);
+  const modalsDir = await assertModalsDir();
 
   let source = await readSourceFile(modalsDir, 'EditProduct.js');
   source = replaceSecondary(source, options);
@@ -25,8 +24,10 @@ export async function generateModals(options) {
 
   source = replaceInputs(source, options);
   await writeLocalFile(source, modalsDir, `Edit${camelUpper}.js`);
+}
 
-  console.log(yellow('Modals generated!'));
+export async function assertModalsDir() {
+  return await assertPath(MODALS_DIR);
 }
 
 function replaceImports(source, options) {

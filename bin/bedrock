@@ -16,12 +16,12 @@ program.version(version);
 addCommand(program, descriptor);
 
 function addCommand(command, descriptor) {
-  const { description, arguments: args, options } = descriptor;
+  const { description, options = [], arguments: args = [] } = descriptor;
   command.description(description);
   command.on('--help', () => {
     console.log('');
   });
-  if (args && args.length) {
+  if (args.length) {
     command.arguments(
       args
         .map((arg) => {
@@ -31,7 +31,7 @@ function addCommand(command, descriptor) {
         .join(' ')
     );
   }
-  for (let option of options || []) {
+  for (let option of options) {
     const { name, type, short, description, default: def } = option;
     const opts = [];
     if (short) {
@@ -55,11 +55,14 @@ function addCommand(command, descriptor) {
     const handler = getHandler(sub);
     if (handler) {
       subcommand.action(async () => {
-        let { snapshot, ...options } = subcommand.opts();
-        const args = sub.arguments || [];
-        if (args.length === 1 && args[0].type === 'multiple') {
-          options[args[0].name] = subcommand.args;
-        } else if (sub.arguments) {
+        let { snapshot, ...options } = gatherOptions(subcommand);
+        if (snapshot) {
+          options = {
+            ...await restoreSnapshot(snapshot),
+            ...options,
+          };
+        }
+        if (sub.arguments) {
           subcommand.args.forEach((arg, i) => {
             if (sub.arguments[i]) {
               const { name } = sub.arguments[i];
@@ -68,12 +71,6 @@ function addCommand(command, descriptor) {
               console.info(kleur.yellow(`Warning: "${arg}" argument not used`));
             }
           });
-        }
-        if (snapshot) {
-          options = {
-            ...(await restoreSnapshot(snapshot)),
-            ...options,
-          };
         }
         if (sub.collect) {
           await promptFill(options, [
@@ -103,6 +100,15 @@ function addCommand(command, descriptor) {
   }
 }
 
+function gatherOptions(command) {
+  const options = {};
+  while (command && command !== program) {
+    Object.assign(options, command.opts());
+    command = command.parent;
+  }
+  return options;
+}
+
 function getHandler(descriptor) {
   const dirs = getHandlerPath(descriptor);
   try {
@@ -111,7 +117,11 @@ function getHandler(descriptor) {
     const mod = require(path.resolve(__dirname, '../src', ...dirs.slice(0, -1)));
     return mod[name] || mod.default;
   } catch(err) {
-    return require(path.resolve(__dirname, '../src', ...dirs)).default;
+    if (err.code === 'MODULE_NOT_FOUND') {
+      return require(path.resolve(__dirname, '../src', ...dirs)).default;
+    } else {
+      throw err;
+    }
   }
 }
 

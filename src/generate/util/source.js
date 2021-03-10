@@ -2,7 +2,6 @@ import path from 'path';
 import mkdir from 'mkdirp';
 import fetch from 'node-fetch';
 import { promises as fs } from 'fs';
-import { runAsTask } from '../../util/tasks';
 import { indent } from './template';
 
 // Set to true to test locally
@@ -82,14 +81,12 @@ export async function writeLocalFile(source, ...args) {
 
 export async function readRemoteFile(...args) {
   const file = args.join('/');
-  return await runAsTask('Reading Source', async () => {
-    const url = `${GITHUB_RAW_BASE}/${file}`;
-    const response = await fetch(url);
-    if (response.status === 404) {
-      throw new Error(`${url} was not found`);
-    }
-    return await response.text();
-  });
+  const url = `${GITHUB_RAW_BASE}/${file}`;
+  const response = await fetch(url);
+  if (response.status === 404) {
+    throw new Error(`${url} was not found`);
+  }
+  return await response.text();
 }
 
 export async function readLocalDirectory(...args) {

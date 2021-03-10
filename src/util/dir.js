@@ -4,8 +4,10 @@ import { promises as fs, constants } from 'fs';
 
 const ROOT_DIR = '/';
 
+export const cwd = process.cwd();
+
 export async function assertBedrockRoot() {
-  let dir = process.cwd();
+  let dir = cwd;
 
   while (dir !== ROOT_DIR) {
     try {

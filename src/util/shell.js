@@ -15,7 +15,7 @@ export async function exec(commands, std = `stdout`) {
     return output;
   } catch (err) {
     const { stderr, stdout } = err;
-    const message = (stderr || stdout).split('\n').join(' ');
+    const message = (stderr || stdout).split('\n').join(' ') || err.message;
     throw new Error(message);
   }
 }

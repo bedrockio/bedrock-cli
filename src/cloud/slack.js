@@ -1,5 +1,6 @@
 import { getTag } from './rollout';
 import { exec } from '../util/shell';
+import { getConfig } from '../util/git';
 import fetch from 'node-fetch';
 
 export function getSlackWebhook(config) {
@@ -20,7 +21,7 @@ export async function postSlackMessage(hook, message) {
 }
 
 export async function createDeployMessage(environment, project, services) {
-  const author = await exec('git config user.name');
+  const author = await getConfig('git config user.name', 'Anonymous');
   const gitTag = await getTag();
   const branch = await exec('git branch --show-current');
   const ts = Math.floor(Date.now() / 1000);
@@ -52,7 +53,7 @@ export async function createDeployMessage(environment, project, services) {
 }
 
 export async function createFinishDeployMessage(project) {
-  const author = await exec('git config user.name');
+  const author = await getConfig('git config user.name', 'Anonymous');
   return {
     text: `Finished Deploying: ${project} (${author})`,
   };

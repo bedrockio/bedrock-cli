@@ -74,7 +74,7 @@ export function readSourceFile(...args) {
 }
 
 export async function writeLocalFile(source, ...args) {
-  const file = path.resolve(...args)
+  const file = path.resolve(...args);
   await mkdir(path.dirname(file));
   return await fs.writeFile(file, source, 'utf8');
 }

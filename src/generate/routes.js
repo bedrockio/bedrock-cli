@@ -16,7 +16,7 @@ const ROUTES_DIR = 'services/api/src/routes';
 export async function generateRoutes(options) {
   const { schema, pluralKebab } = options;
 
-  const routesDir = await assertRoutesDir()
+  const routesDir = await assertRoutesDir();
 
   const searchSchema = getSearchSchema(schema);
 

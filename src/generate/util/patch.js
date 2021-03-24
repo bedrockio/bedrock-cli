@@ -35,7 +35,7 @@ function replaceImports(source, options) {
   const index = getImportsLastIndex(source);
   if (index > 0) {
     let str = '';
-    str += source.slice(0, index)
+    str += source.slice(0, index);
     str += '\n';
     str += `import ${pluralUpper} from 'screens/${pluralUpper}';`;
     str += source.slice(index);

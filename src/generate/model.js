@@ -35,5 +35,5 @@ function getDefinition(options) {
 
   return {
     attributes,
-  }
+  };
 }

@@ -11,3 +11,11 @@ export async function initializeRepository(dir, repo) {
   }
   await exec(commands);
 }
+
+export async function getConfig(config, fallback = '') {
+  try {
+    return await exec(`git config ${config}`);
+  } catch(err) {
+    return fallback;
+  }
+}

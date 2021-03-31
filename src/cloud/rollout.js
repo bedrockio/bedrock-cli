@@ -1,5 +1,6 @@
 import kleur from 'kleur';
 import { exit } from '../util/exit';
+import { getConfig } from '../util/git';
 import { exec, execSyncInherit } from '../util/shell';
 import fs from 'fs';
 import path from 'path';
@@ -20,7 +21,7 @@ export async function getTag() {
 }
 
 async function getMetaData() {
-  const author = await exec('git config user.name');
+  const author = await getConfig('git config user.name', 'Anonymous');
   const date = new Date().toUTCString();
   const branch = await exec('git branch --show-current');
   const git = await getTag();

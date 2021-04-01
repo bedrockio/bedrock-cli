@@ -26,3 +26,20 @@ export async function exec(commands, std = `stdout`) {
 export async function execSyncInherit(command) {
   await execSync(command, { stdio: 'inherit' });
 }
+
+export async function withDir(dir, fn) {
+  const lastDir = process.cwd();
+  process.chdir(dir);
+  await fn();
+  process.chdir(lastDir);
+}
+
+// Synchronous form is needed to be used inside concurrent tasks. Using withDir
+// inside concurrent tasks isn't recommended as process.chdir introduces state,
+// however may be required when combined with require().
+export function withDirSync(dir, fn) {
+  const lastDir = process.cwd();
+  process.chdir(dir);
+  fn();
+  process.chdir(lastDir);
+}

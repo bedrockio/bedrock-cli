@@ -241,6 +241,28 @@ export function outputSchema(fields, hints) {
     .join('\n');
 }
 
+export function definitionToSchema(definition) {
+  return Object.entries(definition.attributes).map(([name, obj]) => {
+    const isArray = Array.isArray(obj);
+    const def = isArray ? obj[0] : obj;
+    const schemaType = def.type;
+    let type;
+    if (def.ref === 'Upload') {
+      type = 'Upload';
+    } else {
+      type = schemaType;
+    }
+    if (isArray) {
+      type += 'Array';
+    }
+    return {
+      ...def,
+      name,
+      type,
+      schemaType,
+    };
+  });
+}
 
 function toCode(str, type) {
   switch (type) {

@@ -1,4 +1,3 @@
-import { yellow } from 'kleur';
 import { assertPath } from '../util/file';
 import { writeLocalFile } from './util/source';
 
@@ -6,11 +5,13 @@ const DEFINITIONS_DIR = 'services/api/src/models/definitions';
 
 export async function generateModel(options) {
   const { kebab } = options;
-  const dir = await assertPath(DEFINITIONS_DIR);
   const definition = getDefinition(options);
+  const dir = await assertModelsDir();
   await writeLocalFile(JSON.stringify(definition, null, 2), dir, `${kebab}.json`);
+}
 
-  console.log(yellow('Model generated!'));
+export async function assertModelsDir() {
+  return await assertPath(DEFINITIONS_DIR);
 }
 
 function getDefinition(options) {
@@ -34,5 +35,5 @@ function getDefinition(options) {
 
   return {
     attributes,
-  }
+  };
 }

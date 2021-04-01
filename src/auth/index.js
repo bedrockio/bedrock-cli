@@ -69,7 +69,7 @@ export async function set() {
       return {
         title,
         value: id,
-      }
+      };
     }),
   });
   const credentials = await loadCredentials();
@@ -90,7 +90,7 @@ export async function remove() {
       return {
         title,
         value: id,
-      }
+      };
     }),
   });
   const credentials = await loadCredentials();

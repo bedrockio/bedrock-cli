@@ -23,6 +23,6 @@ export function replaceAll(pattern, fn) {
         );
         resolve();
       }
-    })
+    });
   });
 }

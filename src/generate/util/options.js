@@ -1,77 +1,93 @@
+import path from 'path';
 import { plural } from 'pluralize';
-import { validateCamelUpper } from '../../util/validation';
-import { assertPath } from '../../util/file';
+import { cwd } from '../../util/dir';
 import { prompt } from '../../util/prompt';
-import { getSchema } from './schema';
+import { saveSnapshot } from '../../util/snapshot';
+import { validateCamelUpper } from '../../util/validation';
+import { getSchema, definitionToSchema } from './schema';
 import { getInflections } from './inflections';
-import { readLocalDirectory } from './source';
+import { getModels } from './models';
 
-export async function setGenerateOptions(options) {
+export async function setResourceOptions(options) {
+  const { components = [] } = options;
 
-  if (!options.name) {
-    options.name = await prompt({
-      type: 'text',
-      initial: options.name,
-      message: 'Resource name (ex. User):',
-      validate: validateCamelUpper,
-    });
+  if (components.includes('model')) {
+    const resource = await getResourceOptions(options);
+    options.resources = [resource];
+    await saveSnapshot(path.resolve(cwd, `${resource.kebab}.json`), options);
+  } else {
+    options.resources = await getExistingResources(options);
   }
+}
 
-  Object.assign(options, getInflections(options.name));
+async function getResourceOptions(options) {
+  const resource = {};
+  resource.name = await prompt({
+    type: 'text',
+    initial: options.name,
+    message: 'Resource name (ex. User):',
+    validate: validateCamelUpper,
+  });
 
-  options.schema = await getSchema(options.schema);
+  Object.assign(resource, getInflections(resource.name));
+
+  resource.schema = await getSchema();
 
   if (options.components.includes('subscreens')) {
-    if (!options.externalSubScreens) {
-      options.externalSubScreens = await getExternalSubScreens(options);
-    }
-    if (!options.subScreens) {
-      options.subScreens = await getSubScreens(options);
-    }
+    resource.externalSubScreens = await getExternalSubScreens(resource);
+    resource.subScreens = await getSubScreens(resource);
   }
 
-  if (options.menu == null) {
-    options.menu = await prompt({
-      type: 'confirm',
-      initial: true,
-      message: 'Generate menu link?',
-    });
-  }
+  resource.menu = await prompt({
+    type: 'confirm',
+    initial: true,
+    message: 'Generate menu link?',
+  });
 
+  return resource;
 }
 
-async function getExternalSubScreens(options) {
-  return (
-    await Promise.all(
-      options.schema
-        .filter((field) => {
-          return field.type === 'ObjectId';
-        })
-        .map(async (field) => {
-          const { ref } = field;
-          const yes = await prompt({
-            type: 'confirm',
-            message: `Generate ${field.ref}${options.pluralUpper} screen?`,
-          });
-          if (yes) {
-            return getInflections(ref);
-          }
-        })
-    )
-  ).filter((ref) => ref);
+async function getExternalSubScreens(resource) {
+  const { pluralUpper } = resource;
+  const selectedNames = await prompt({
+    type: 'multiselect',
+    instructions: false,
+    message: 'Generate external screens:',
+    choices: resource.schema
+      .filter(({ type, schemaType }) => {
+        return schemaType === 'ObjectId' && type !== 'Upload';
+      })
+      .map(({ ref }) => {
+        const name = ref + pluralUpper;
+        return {
+          title: name,
+          value: ref,
+          description: `Generates ${name} screen.`,
+        };
+      }),
+    hint: 'Space to select or Enter for none.',
+  });
+
+  return selectedNames.map((val) => {
+    return getInflections(val);
+  });
 }
 
-async function getSubScreens(options) {
-  const { camelUpper } = options;
+async function getSubScreens(resource) {
+  const { camelUpper } = resource;
 
   const references = [];
-
-  const modelNames = await getModelNames(options);
+  const models = await getModels();
+  const modelNames = models
+    .map((model) => model.name)
+    .filter((name) => {
+      return name !== camelUpper;
+    });
 
   let selectedNames = await prompt({
     type: 'multiselect',
     instructions: false,
-    message: 'Generate sub-screens for:',
+    message: 'Generate other screens:',
     choices: modelNames
       .map((name) => {
         return {
@@ -114,20 +130,32 @@ async function getSubScreens(options) {
   return references;
 }
 
-const MODELS_DIR = 'services/api/src/models';
-const MODEL_NAME_REG = /mongoose.(?:models.|model\(')(\w+)/;
-
-async function getModelNames(options) {
-  const { camelUpper } = options;
-
-  const modelsDir = await assertPath(MODELS_DIR, options);
-
-  return (await readLocalDirectory(modelsDir))
-    .map((source) => {
-      const match = source.match(MODEL_NAME_REG);
-      return match && match[1];
+async function getExistingResources() {
+  const models = await getModels();
+  const selectedNames = await prompt({
+    type: 'multiselect',
+    instructions: false,
+    message: 'Select models:',
+    choices: models.map(({ name }) => {
+      return {
+        title: name,
+        value: name,
+        description: `Generate resources for ${name} model.`,
+      };
+    }),
+    hint: 'Space to select or Enter for none.',
+  });
+  return models
+    .filter((model) => {
+      return selectedNames.includes(model.name);
     })
-    .filter((name) => {
-      return name && name !== camelUpper;
+    .map((model) => {
+      return {
+        name: model.name,
+        schema: definitionToSchema(model.definition),
+        externalSubScreens: [],
+        subScreens: [],
+        ...getInflections(model.name),
+      };
     });
 }

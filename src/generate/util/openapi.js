@@ -1,231 +1,163 @@
-import { kebabCase } from 'lodash';
-import { plural } from 'pluralize';
-import { assertPath } from '../../util/file';
-import { writeLocalFile } from './source';
+import { groupBy, mergeWith } from 'lodash';
+import { convert } from '@yeongjet/joi-to-json-schema';
 
-const OPENAPI_DIR = 'services/api/src/routes/__openapi__';
+export function routerToOpenApi(router, data = {}) {
+  if (!data.paths) {
+    data.paths = [];
+  }
+  const layers = router.stack.filter((layer) => layer.methods.length > 0);
+  for (let layer of layers) {
+    const { methods, path } = layer;
+    let [method] = methods;
+    if (methods.includes('HEAD')) {
+      method = 'GET';
+    }
 
-export async function generateOpenApi(options) {
-  const { camelLower, camelUpper, pluralLower } = options;
-  const kebab = kebabCase(pluralLower);
-  const paramPath = `/:${camelLower}Id`;
+    let definition = data.paths.find((p) => {
+      return p.path === path && p.method === method;
+    });
+    if (!definition) {
+      definition = {
+        method,
+        path,
+      };
+      data.paths.push(definition);
+    }
 
-  const openApiDir = await assertPath(OPENAPI_DIR);
-
-  const obj = {
-    objects: [
-      {
-        name: camelUpper,
-        attributes: [
-          getIdField(options),
-          ...getSchemaFields(options, 'attributes'),
-          ...getTimestamps(),
-        ],
-      },
-    ],
-    paths: [
-      {
-        method: 'POST',
-        path: '/',
-        requestBody: [...getSchemaFields(options, 'create')],
-        responseBody: [getObjectReference(options)],
-        examples: [],
-      },
-      {
-        method: 'GET',
-        path: paramPath,
-        responseBody: [getObjectReference(options)],
-        examples: [],
-      },
-      {
-        method: 'POST',
-        path: '/search',
-        requestBody: [
-          ...getSchemaFields(options, 'search'),
-          ...getSearchFields(options),
-        ],
-        responseBody: [getObjectReferenceArray(options)],
-        examples: [],
-      },
-      {
-        method: 'PATCH',
-        path: paramPath,
-        requestBody: [...getSchemaFields(options, 'update')],
-        responseBody: [getObjectReference(options)],
-        examples: [],
-      },
-      {
-        method: 'DELETE',
-        path: paramPath,
-        responseBody: [],
-        examples: [],
-      },
-    ],
-  };
-
-  const source = JSON.stringify(obj, null, 2);
-  await writeLocalFile(source, openApiDir, `${kebab}.json`);
+    const validationMiddleware = layer.stack.find((layer) => !!layer.schemas);
+    if (validationMiddleware) {
+      const query = getParamsFromValidationMiddleware(validationMiddleware, 'query');
+      if (query && query.length) {
+        definition.requestQuery = mergeArraysBy(definition.requestQuery, query, 'name');
+      }
+      const body = getParamsFromValidationMiddleware(validationMiddleware, 'body');
+      if (body && body.length) {
+        definition.requestBody = mergeArraysBy(definition.requestBody, body, 'name');
+      }
+    }
+    if (!definition.responseBody) {
+      definition.responseBody = [];
+    }
+    definition.examples = mergeArraysBy(definition.examples || [], getExamplesFromDefinition(definition), 'name');
+  }
+  return data;
 }
 
-function getIdField(options) {
-  return {
-    name: 'id',
-    description: `Unique ID of the ${options.camelUpper}`,
-    schema: {
-      type: 'string',
-    },
-  };
+function mergeArraysBy(arr1, arr2, key) {
+  const obj = groupBy([...arr1 || [], ...arr2 || []], key);
+  const arr = [];
+  for (let group of Object.values(obj)) {
+    const obj = group[0];
+    if (group.length > 1) {
+      mergeWith(obj, ...group.slice(1), (objValue, srcValue) => {
+        if (!srcValue && objValue) {
+          return objValue;
+        }
+      });
+    }
+    arr.push(obj);
+  }
+  return arr;
 }
 
-function getObjectReference(options) {
-  return {
-    name: 'data',
-    description: `${options.camelUpper} object`,
-    schema: {
-      type: options.camelUpper,
-    },
-  };
+function getParamsFromValidationMiddleware(validationMiddleware, type) {
+  try {
+    const params = [];
+    const { schemas } = validationMiddleware;
+    const schema = schemas[type];
+    if (!schema) return [];
+    const jsonSchema = convert(schema, (jsonSchema, joiSchema) => {
+      if (joiSchema.$_getFlag('result') === 'strip') {
+        return 'strip';
+      }
+      return jsonSchema;
+    });
+    const { properties, required } = jsonSchema;
+    Object.keys(properties).forEach((name) => {
+      const schema = properties[name];
+      if (schema !== 'strip') {
+        params.push({
+          name,
+          schema,
+          description: '',
+          required: (required || []).includes(name),
+        });
+      }
+    });
+    return params;
+  } catch (error) {
+    console.warn(`Warning could not convert Joi validation to JSON: ${error.message}`);
+    return [];
+  }
 }
 
-function getObjectReferenceArray(options) {
-  return {
-    name: 'data',
-    description: `List of ${options.camelUpper} objects`,
-    schema: {
-      type: 'array',
-      items: {
-        type: options.camelUpper,
-      },
-    },
-  };
-}
-
-function getTimestamps() {
-  return [
-    {
-      name: 'createdAt',
-      description: 'Date and time of creation',
-      schema: {
-        type: 'string',
-        format: 'date-time',
-      },
-    },
-    {
-      name: 'updatedAt',
-      description: 'Date and time of last change',
-      schema: {
-        type: 'string',
-        format: 'date-time',
-      },
-    },
-  ];
-}
-
-function getSchemaFields(options, type) {
-  const typeRequired = type === 'create' || type === 'attributes';
-  return options.schema.map((field) => {
-    const { name, required } = field;
-    const schema = getOpenApiSchema(field);
-    const description = getFieldDescription(field, options);
-    return {
-      name,
-      description,
-      schema,
-      required: required && typeRequired,
-    };
-  });
-}
-
-function getFieldDescription(field, options) {
-  const { camelUpper } = options;
-  const { name, type, schemaType, autopopulate } = field;
-  const isArray = type.match(/Array$/);
-  const isRef = schemaType === 'ObjectId';
-  const tokens = kebabCase(name).split('-');
-  if (isRef) {
-    if (autopopulate) {
-      // ex. User token object
-      tokens.push('object');
-    } else {
-      // ex. User token id
-      tokens.push('id');
+function getExamplesFromDefinition(definition) {
+  const { requestBody, responseBody, examples = [] } = definition;
+  if (!examples.length) {
+    const hasRequest = requestBody && requestBody.length;
+    const hasResponse = responseBody && responseBody.length;
+    const example = {};
+    if (hasRequest) {
+      example.requestBody = fieldsToExample(requestBody);
+    }
+    if (hasResponse) {
+      example.responseBody = fieldsToExample(responseBody);
+    }
+    if (Object.keys(example).length) {
+      examples.push(example);
     }
   }
-  if (isArray) {
-    let last = tokens[tokens.length - 1];
-    tokens[tokens.length - 1] = plural(last);
-  }
-  return `${camelUpper} ${tokens.join(' ')}`;
+  return examples;
 }
 
-function getOpenApiSchema(field) {
-  const { type, schemaType } = field;
-  if (type.match(/Array$/)) {
-    return {
-      type: 'array',
-      items: getOpenApiSchema({
-        schemaType,
-        type: schemaType,
-      }),
-    };
-  } else if (schemaType === 'Date') {
-    return {
-      type: 'string',
-      format: 'date-time',
-    };
-  } else if (schemaType === 'Number') {
-    return {
-      type: 'number',
-    };
+function fieldsToExample(fields) {
+  const data = {};
+  for (let field of fields) {
+    data[field.name] = schemaToExampleValue(field.schema, field.name);
+  }
+  return data;
+}
+
+function schemaToExampleValue(schema, fallback) {
+  const { type } = schema;
+  if (type === 'object') {
+    const obj = {};
+    for (let [key, value] of Object.entries(schema.properties)) {
+      obj[key] = schemaToExampleValue(value);
+    }
+    return obj;
+  } else if (type === 'number') {
+    if (schema.default) {
+      return schema.default;
+    } else if (schema.minimum) {
+      return schema.minimum;
+    } else if (schema.maximum) {
+      return schema.maximum;
+    } else {
+      return 1;
+    }
+  } else if (type === 'string') {
+    if (schema.format === 'date-time') {
+      return '2020-01-01T00:00:00Z';
+    } else if (schema.enum) {
+      return schema.enum[0];
+    } else if (fallback === 'email') {
+      return 'foo@bar.com';
+    } else if (fallback === 'password') {
+      return '12345';
+    } else if (schema.minLength === 24 && schema.maxLength === 24) {
+      // Currently only way to sniff mongo ObjectId
+      return fallback + 'Id';
+    } else {
+      return fallback || 'sample';
+    }
+  } else if (type === 'array') {
+    return [schemaToExampleValue(schema.items)];
+  } else if (type === 'boolean') {
+    return true;
+  } else if (schema.anyOf) {
+    return schemaToExampleValue(schema.anyOf[0]);
   } else {
-    return {
-      type: 'string',
-    };
+    throw new Error('Unsupported schema type');
   }
-}
-
-function getSearchFields() {
-  return [
-    {
-      name: 'skip',
-      description: 'Offset for paginating results',
-      required: false,
-      schema: {
-        default: 0,
-        type: 'number',
-      },
-    },
-    {
-      name: 'sort',
-      description: 'Sort object',
-      required: false,
-      schema: {
-        default: {
-          field: 'createdAt',
-          order: 'desc',
-        },
-        type: 'object',
-        properties: {
-          field: {
-            type: 'string',
-          },
-          order: {
-            type: 'string',
-          },
-        },
-        additionalProperties: false,
-        patterns: [],
-        required: ['field', 'order'],
-      },
-    },
-    {
-      name: 'limit',
-      description: 'Maximum number of results to retrieve',
-      required: false,
-      schema: {
-        default: 50,
-        type: 'number',
-      },
-    },
-  ];
 }

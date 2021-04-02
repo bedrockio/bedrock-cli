@@ -77,23 +77,23 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
   console.info(yellow('=> Get Kubernetes cluster nodes'));
   await execSyncInherit('kubectl get nodes');
 
-  console.info(yellow('=> Get disks'));
-  const disks = await getDisks({ computeZone });
-  const diskNames = disks.map((disk) => {
-    return disk.name;
-  });
-  for (const diskName of diskNames) {
-    console.info(green(diskName));
-  }
-  if (!diskNames.includes('mongo-disk')) {
-    console.info(yellow('=> Creating mongo-disk'));
-    await createDisk({ computeZone, name: 'mongo-disk' });
-  }
+  // console.info(yellow('=> Get disks'));
+  // const disks = await getDisks({ computeZone });
+  // const diskNames = disks.map((disk) => {
+  //   return disk.name;
+  // });
+  // for (const diskName of diskNames) {
+  //   console.info(green(diskName));
+  // }
+  // if (!diskNames.includes('mongo-disk')) {
+  //   console.info(yellow('=> Creating mongo-disk'));
+  //   await createDisk({ computeZone, name: 'mongo-disk' });
+  // }
 
-  if (!diskNames.includes('elasticsearch-disk')) {
-    console.info(yellow('=> Creating elasticsearch-disk'));
-    await createDisk({ computeZone, name: 'elasticsearch-disk' });
-  }
+  // if (!diskNames.includes('elasticsearch-disk')) {
+  //   console.info(yellow('=> Creating elasticsearch-disk'));
+  //   await createDisk({ computeZone, name: 'elasticsearch-disk' });
+  // }
 
   const envPath = `deployment/environments/${environment}`;
   console.info(yellow('=> Creating data pods'));
@@ -107,8 +107,8 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
   await execSyncInherit(`kubectl delete -f ${envPath}/services/web-service.yml --ignore-not-found`);
   await execSyncInherit(`kubectl create -f ${envPath}/services/web-service.yml`);
 
-  await deploy({ environment, service: 'api' });
   await deploy({ environment, service: 'api', subservice: 'cli' });
+  await deploy({ environment, service: 'api' });
   await deploy({ environment, service: 'web' });
 
   await status({ environment });
@@ -167,33 +167,33 @@ function configureDeploymentGCRPath(environment, service, project) {
   }
 }
 
-async function createDisk(options = {}) {
-  const { computeZone } = options;
-  if (!computeZone) return console.info(red('Missing computeZone to create disk'));
-  const name =
-    options.name ||
-    (await prompt({
-      type: 'text',
-      message: 'Enter disk name:',
-    }));
+// async function createDisk(options = {}) {
+//   const { computeZone } = options;
+//   if (!computeZone) return console.info(red('Missing computeZone to create disk'));
+//   const name =
+//     options.name ||
+//     (await prompt({
+//       type: 'text',
+//       message: 'Enter disk name:',
+//     }));
 
-  const size =
-    options.size ||
-    (await prompt({
-      type: 'text',
-      message: 'Enter disk size:',
-      initial: '200GB',
-    }));
+//   const size =
+//     options.size ||
+//     (await prompt({
+//       type: 'text',
+//       message: 'Enter disk size:',
+//       initial: '200GB',
+//     }));
 
-  await execSyncInherit(`gcloud compute disks create ${name} --size=${size} --zone=${computeZone}`);
-}
+//   await execSyncInherit(`gcloud compute disks create ${name} --size=${size} --zone=${computeZone}`);
+// }
 
-async function getDisks(options = {}) {
-  const { computeZone } = options;
-  if (!computeZone) return console.info(red('Missing computeZone to get disks'));
-  const disks = await exec(`gcloud compute disks list --zones=${computeZone} --format json`);
-  return JSON.parse(disks);
-}
+// async function getDisks(options = {}) {
+//   const { computeZone } = options;
+//   if (!computeZone) return console.info(red('Missing computeZone to get disks'));
+//   const disks = await exec(`gcloud compute disks list --zones=${computeZone} --format json`);
+//   return JSON.parse(disks);
+// }
 
 function getAppUrl(environment) {
   const fileName = 'api-deployment.yml';

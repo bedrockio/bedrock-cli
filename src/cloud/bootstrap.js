@@ -54,14 +54,6 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
   console.info(yellow('=> Enabling Kubernetes services'));
   await execSyncInherit('gcloud services enable container.googleapis.com');
 
-  const { computeZone } = gcloud;
-  // computeZone example: us-east1-c
-  const region = computeZone.slice(0, -2); // e.g. us-east1
-
-  console.info(yellow('=> Configure loadbalancers'));
-  const apiIP = await configureServiceLoadBalancer(environment, 'api', region);
-  const webIP = await configureServiceLoadBalancer(environment, 'web', region);
-
   console.info(yellow('=> Configure deployment GCR paths'));
   for (const service of ['api', 'api-cli', 'api-jobs', 'web']) {
     configureDeploymentGCRPath(environment, service, project);
@@ -95,17 +87,25 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
   //   await createDisk({ computeZone, name: 'elasticsearch-disk' });
   // }
 
+  const { computeZone } = gcloud;
+  // computeZone example: us-east1-c
+  const region = computeZone.slice(0, -2); // e.g. us-east1
   const envPath = `deployment/environments/${environment}`;
+  const services = gcloud.services || ['api', 'web'];
+
   console.info(yellow('=> Creating data pods'));
   await execSyncInherit(`kubectl delete -f ${envPath}/data --ignore-not-found`);
   await execSyncInherit(`kubectl create -f ${envPath}/data`);
 
-  console.info(yellow('=> Creating service pods'));
-  await execSyncInherit(`kubectl delete -f ${envPath}/services/api-service.yml --ignore-not-found`);
-  await execSyncInherit(`kubectl create -f ${envPath}/services/api-service.yml`);
-
-  await execSyncInherit(`kubectl delete -f ${envPath}/services/web-service.yml --ignore-not-found`);
-  await execSyncInherit(`kubectl create -f ${envPath}/services/web-service.yml`);
+  const ips = [];
+  for (let service of services) {
+    console.info(yellow(`=> Configure ${service} loadbalancer`));
+    let ip = await configureServiceLoadBalancer(environment, service, region);
+    ips.push([service, ip]);
+    console.info(yellow('=> Creating ${service} service'));
+    await execSyncInherit(`kubectl delete -f ${envPath}/services/${service}-service.yml --ignore-not-found`);
+    await execSyncInherit(`kubectl create -f ${envPath}/services/${service}-service.yml`);
+  }
 
   await deploy({ environment, service: 'api', subservice: 'cli' });
   await deploy({ environment, service: 'api' });
@@ -113,17 +113,20 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
 
   await status({ environment });
 
-  const apiUrl = await getApiUrl(environment);
-  const appUrl = await getAppUrl(environment);
-
   console.info(yellow('=> Finishing up'));
   console.info(green('Make sure to configure your DNS records (Cloudflare recommended)\n'));
-  console.info(green(' API:'));
-  console.info(green(` - address: ${apiIP}`));
-  console.info(green(` - configuration of API_URL in web deployment: ${apiUrl}\n`));
-  console.info(green(' WEB:'));
-  console.info(green(` - address: ${webIP}`));
-  console.info(green(` - configuration of APP_URL in api deployment: ${appUrl}\n`));
+  for (const [serviceName, serviceIP] of ips) {
+    console.info(green(` ${serviceName}:`));
+    console.info(green(` - address: ${serviceIP}`));
+    if (serviceName == 'api') {
+      const apiUrl = await getApiUrl(environment);
+      console.info(green(` - configuration of API_URL in web deployment: ${apiUrl}\n`));
+    }
+    if (serviceName == 'web') {
+      const appUrl = await getAppUrl(environment);
+      console.info(green(` - configuration of APP_URL in api deployment: ${appUrl}\n`));
+    }
+  }
 
   console.info(green('Done!'));
 }

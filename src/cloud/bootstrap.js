@@ -102,7 +102,7 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
     console.info(yellow(`=> Configure ${service} loadbalancer`));
     let ip = await configureServiceLoadBalancer(environment, service, region);
     ips.push([service, ip]);
-    console.info(yellow('=> Creating ${service} service'));
+    console.info(yellow(`=> Creating ${service} service`));
     await execSyncInherit(`kubectl delete -f ${envPath}/services/${service}-service.yml --ignore-not-found`);
     await execSyncInherit(`kubectl create -f ${envPath}/services/${service}-service.yml`);
   }

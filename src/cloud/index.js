@@ -1,5 +1,5 @@
 import open from 'open';
-import { green, yellow, red } from 'kleur';
+import { reset, gray, green, yellow, red } from 'kleur';
 import { assertBedrockRoot } from '../util/dir';
 import { exec, execSyncInherit } from '../util/shell';
 import { prompt } from '../util/prompt';
@@ -28,39 +28,37 @@ export async function authorize(options) {
 }
 
 export async function account(options) {
-  const configurations = await exec('gcloud config configurations list --format json');
 
-  let activeAccount = '';
   try {
-    const parsed = JSON.parse(configurations);
-    const active = parsed.filter((conf) => {
-      return conf.is_active;
+    const auth = JSON.parse(await exec('gcloud auth list --format json'));
+
+    const name = options.name || (await prompt({
+      message: 'Select Account',
+      type: 'select',
+      choices: auth.map(({ account, status }) => {
+        const active = status === 'ACTIVE' ? ' (active)' : '';
+        return {
+          title: `${account}${reset(gray(active))}`,
+          value: account,
+        };
+      }),
+    }));
+
+    const active = auth.find(({ status } ) => {
+      return status === 'ACTIVE';
     });
-    if (active.length) {
-      const { properties } = active[0];
-      activeAccount = properties && properties.core && properties.core.account;
+    if (!active || active.account !== name) {
+      await execSyncInherit(`gcloud config set account ${name}`);
+      console.info(yellow(`=> Activate account "${name}"`));
+    } else {
+      console.info(yellow('No changes'));
     }
+
   } catch (e) {
     console.info(red('Could not get accounts from "gcloud config configuration list"'));
     return;
   }
 
-  if (activeAccount) {
-    console.log(green(`Current active account: "${activeAccount}"`));
-  }
-  const account =
-    options.name ||
-    (await prompt({
-      type: 'text',
-      message: 'Enter account name',
-      initial: activeAccount,
-    }));
-  if (account && account != activeAccount) {
-    console.info(yellow(`=> Activate account "${account}"`));
-    await execSyncInherit(`gcloud config set account ${account}`);
-  } else {
-    console.info(yellow('No changes'));
-  }
 }
 
 export async function login() {

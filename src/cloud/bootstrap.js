@@ -1,4 +1,4 @@
-import { green, yellow, red } from 'kleur';
+import { green, yellow } from 'kleur';
 import { exit } from '../util/exit';
 import { prompt } from '../util/prompt';
 import { exec, execSyncInherit } from '../util/shell';

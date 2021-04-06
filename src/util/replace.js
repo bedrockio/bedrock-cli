@@ -2,6 +2,7 @@ import glob from 'glob';
 import { promises as fs } from 'fs';
 
 const OPTIONS = {
+  dot: true,
   matchBase: true,
   ignore: '**/node_modules/**/*',
 };

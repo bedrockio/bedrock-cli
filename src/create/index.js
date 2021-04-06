@@ -39,7 +39,7 @@ export default async function create(options) {
     const JWT_SECRET = await exec('openssl rand -base64 30');
     const ADMIN_PASSWORD = adminPassword || randomBytes(8).toString('hex');
 
-    await replaceAll(`*.{js,md,yml,tf,conf,json}`, (str) => {
+    await replaceAll('*.{js,md,yml,tf,conf,json,env}', (str) => {
       str = str.replace(/APP_COMPANY_ADDRESS=(.+)/g, `APP_COMPANY_ADDRESS=${address}`);
       str = str.replace(/JWT_SECRET=(.+)/g, `JWT_SECRET=${JWT_SECRET}`);
       str = str.replace(/ADMIN_PASSWORD=(.+)/g, `ADMIN_PASSWORD=${ADMIN_PASSWORD}`);
@@ -51,7 +51,6 @@ export default async function create(options) {
       str = str.replace(/bedrock_(dev|staging|production)/g, `${under}_$1`);
       str = str.replace(/bedrock-(web|api|dev|staging|production)/g, `${kebab}-$1`);
       str = str.replace(/\bBedrock\b/g, appName);
-      str = str.replace(/\bbedrock\b/g, kebab);
       return str;
     });
 

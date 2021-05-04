@@ -35,33 +35,25 @@ export function getServiceFilePath(environment, filename) {
 
 export function readServiceYaml(environment, filename) {
   const filePath = exports.getServiceFilePath(environment, filename);
-  try {
-    return yaml.safeLoad(fs.readFileSync(filePath, 'utf8'));
-  } catch (e) {
-    exit(`Could not read service yml file ${filename} for environment: "${environment}", file path: "${filePath}"`);
-  }
+  return yaml.safeLoad(fs.readFileSync(filePath, 'utf8'));
 }
 
 export function writeServiceYaml(environment, filename, data) {
   const filePath = exports.getServiceFilePath(environment, filename);
-  try {
-    const options = {
-      quotingType: '"',
-      forceQuotes: true,
-    };
-    const yamlString = yaml.safeDump(data, options);
-    return fs.writeFileSync(filePath, yamlString, 'utf8');
-  } catch (e) {
-    exit(`Could not read service yml file ${filename} for environment: "${environment}", file path: "${filePath}"`);
-  }
+  const options = {
+    quotingType: '"',
+    forceQuotes: true,
+  };
+  const yamlString = yaml.safeDump(data, options);
+  return fs.writeFileSync(filePath, yamlString, 'utf8');
 }
 
-export function updateServiceYamlEnv(environment, service, envName, envValue) {
+export async function updateServiceYamlEnv(environment, service, envName, envValue) {
   const filename = `${service}-deployment.yml`;
   const deployment = readServiceYaml(environment, filename);
   const { env } = deployment.spec.template.spec.containers[0];
-  deployment.spec.template.spec.containers[0].env = env.map(({ name, value }) =>
-    name == envName ? { name, value: envValue } : { name, value }
+  deployment.spec.template.spec.containers[0].env = env.map(({ name, value = '' }) =>
+    name == envName ? { name, value: envValue || '' } : { name, value }
   );
   writeServiceYaml(environment, filename, deployment);
 }

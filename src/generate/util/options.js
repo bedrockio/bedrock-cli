@@ -38,11 +38,13 @@ async function getResourceOptions(options) {
     resource.subScreens = await getSubScreens(resource);
   }
 
-  resource.menu = await prompt({
-    type: 'confirm',
-    initial: true,
-    message: 'Generate menu link?',
-  });
+  if (options.components.includes('screens')) {
+    resource.menu = await prompt({
+      type: 'confirm',
+      initial: true,
+      message: 'Generate menu link?',
+    });
+  }
 
   return resource;
 }

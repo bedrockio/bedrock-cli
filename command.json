@@ -483,6 +483,10 @@
           ]
         }
       ]
+    },
+    {
+      "name": "update",
+      "description": "Updates this script."
     }
   ]
 }

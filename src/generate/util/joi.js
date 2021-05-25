@@ -49,6 +49,8 @@ function getJoiType(field, type) {
       return `Joi.array().items(${getJoiType(field, field.schemaType)})`;
     case 'Date':
       return 'Joi.date().iso()';
+    case 'Mixed':
+      return 'Joi.object()';
     default:
       return getJoiDefaultType(field);
   }

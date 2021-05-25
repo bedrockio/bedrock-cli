@@ -48,7 +48,6 @@
     {
       "name": "generate",
       "description": "Generate new Bedrock resources.",
-      "collect": "components",
       "commands": [
         {
           "name": "model",

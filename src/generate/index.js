@@ -9,11 +9,12 @@ import { generateDocs, assertApiDocsDir, assertWebDocsDir } from './docs';
 import { generateScreens, generateSubScreens, assertScreensDir } from './screens';
 import { patchMainMenu, assertHeaderPath } from './util/patch';
 
-export default async function generate(options) {
+
+export default async function generate(options, command) {
   await assertBedrockRoot();
 
   if (!options.resources) {
-    await setResourceOptions(options);
+    await setResourceOptions(options, command);
   }
 
   const { components, resources } = options;
@@ -87,4 +88,28 @@ export default async function generate(options) {
   }
 
   await runTasks();
+}
+
+export function model() {
+  generate({ components: ['model'] });
+}
+
+export function routes() {
+  generate({ components: ['routes'] });
+}
+
+export function docs() {
+  generate({ components: ['docs'] });
+}
+
+export function screens() {
+  generate({ components: ['screens'] });
+}
+
+export function subscreens() {
+  generate({ components: ['subscreens'] });
+}
+
+export function modal() {
+  generate({ components: ['modal'] });
 }

@@ -63,7 +63,7 @@ const SCHEMA_OPTIONS = [
   {
     title: 'required',
     value: 'required',
-    selected: false,
+    selected: true,
   },
   {
     title: 'private',
@@ -73,7 +73,7 @@ const SCHEMA_OPTIONS = [
   {
     title: 'trim',
     value: 'trim',
-    selected: false,
+    selected: true,
     types: ['String', 'StringArray'],
   },
   {

@@ -72,29 +72,9 @@ function addCommand(command, descriptor) {
             }
           });
         }
-        if (sub.collect) {
-          await promptFill(options, [
-            {
-              name: sub.collect,
-              type: 'multiple',
-              prompt: true,
-              description: sub.collect,
-              choices: sub.commands.map((command) => {
-                return {
-                  title: command.name,
-                  value: command.name,
-                  description: command.description,
-                  selected: true,
-                }
-              }),
-            },
-          ]);
-        } else if (sub.parent.collect) {
-          options[sub.parent.collect] = [sub.name];
-        }
         await promptFill(options, sub.arguments);
         await promptFill(options, sub.options);
-        await handler(options);
+        await handler(options, sub);
       });
     }
   }

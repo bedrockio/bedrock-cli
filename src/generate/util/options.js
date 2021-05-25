@@ -1,22 +1,56 @@
 import path from 'path';
 import { plural } from 'pluralize';
 import { cwd } from '../../util/dir';
-import { prompt } from '../../util/prompt';
+import { prompt, promptFill } from '../../util/prompt';
 import { saveSnapshot } from '../../util/snapshot';
 import { validateCamelUpper } from '../../util/validation';
 import { getSchema, definitionToSchema } from './schema';
 import { getInflections } from './inflections';
 import { getModels } from './models';
 
-export async function setResourceOptions(options) {
-  const { components = [] } = options;
+export async function setResourceOptions(options, command) {
+  const isNew = await prompt({
+    type: 'confirm',
+    initial: true,
+    message: 'Generate new resource?',
+  });
 
-  if (components.includes('model')) {
+  if (isNew) {
     const resource = await getResourceOptions(options);
     options.resources = [resource];
     await saveSnapshot(path.resolve(cwd, `${resource.kebab}.json`), options);
   } else {
     options.resources = await getExistingResources(options);
+  }
+
+  if (!options.components) {
+    await promptFill(options, [
+      {
+        name: 'components',
+        type: 'multiple',
+        prompt: true,
+        description: 'components',
+        choices: command.commands.map((command) => {
+          return {
+            title: command.name,
+            value: command.name,
+            description: command.description,
+            selected: false,
+          };
+        }),
+      },
+    ]);
+  }
+
+  if (!isNew && options.components.includes('model')) {
+    await Promise.all(
+      options.resources.map(async ({ schema, ...rest }) => {
+        return {
+          schema: await getSchema(schema),
+          ...rest,
+        };
+      })
+    );
   }
 }
 

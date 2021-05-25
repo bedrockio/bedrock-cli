@@ -36,13 +36,18 @@ const SCHEMA_TYPES = [
     value: 'ObjectId',
   },
   {
+    title: 'Date',
+    value: 'Date',
+  },
+  {
+    title: 'Mixed',
+    value: 'Mixed',
+    description: "Mixed content (POJO).",
+  },
+  {
     title: 'Upload',
     value: 'Upload',
     description: "Shortcut for { type: ObjectId, ref: 'Upload' }",
-  },
-  {
-    title: 'Date',
-    value: 'Date',
   },
   {
     title: 'Array (String)',

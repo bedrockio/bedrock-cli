@@ -21,7 +21,7 @@ export async function postSlackMessage(hook, message) {
 }
 
 export async function createDeployMessage(environment, project, services) {
-  const author = await getConfig('git config user.name', 'Anonymous');
+  const author = await getConfig('user.name', 'Anonymous');
   const gitTag = await getTag();
   const branch = await exec('git branch --show-current');
   const ts = Math.floor(Date.now() / 1000);
@@ -53,7 +53,7 @@ export async function createDeployMessage(environment, project, services) {
 }
 
 export async function createFinishDeployMessage(project) {
-  const author = await getConfig('git config user.name', 'Anonymous');
+  const author = await getConfig('user.name', 'Anonymous');
   return {
     text: `Finished Deploying: ${project} (${author})`,
   };

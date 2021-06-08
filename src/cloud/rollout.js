@@ -21,7 +21,7 @@ export async function getTag() {
 }
 
 async function getMetaData() {
-  const author = await getConfig('git config user.name', 'Anonymous');
+  const author = await getConfig('user.name', 'Anonymous');
   const date = new Date().toUTCString();
   const branch = await exec('git branch --show-current');
   const git = await getTag();

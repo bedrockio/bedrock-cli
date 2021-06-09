@@ -22,19 +22,8 @@ export function replaceBlock(source, inject, block) {
 }
 
 export function replacePrimary(source, resource) {
-  const {
-    kebab,
-    camelLower,
-    camelUpper,
-    pluralLower,
-    pluralUpper,
-    pluralKebab,
-  } = resource;
-  source = replaceToken(
-    source,
-    /require\((.*)shops/g,
-    `require($1${pluralKebab})`
-  );
+  const { kebab, camelLower, camelUpper, pluralLower, pluralUpper, pluralKebab } = resource;
+  source = replaceToken(source, /require\((.*)shops/g, `require($1${pluralKebab})`);
   source = replaceToken(source, /require\((.*?)shop\b/g, `require($1${kebab}`);
   source = replaceToken(source, /Shops/g, pluralUpper);
   source = replaceToken(source, /shops/g, pluralLower);
@@ -44,19 +33,8 @@ export function replacePrimary(source, resource) {
 }
 
 export function replaceSecondary(source, resource) {
-  const {
-    kebab,
-    camelLower,
-    camelUpper,
-    pluralLower,
-    pluralUpper,
-    pluralKebab,
-  } = resource;
-  source = replaceToken(
-    source,
-    /require\((.*)products/g,
-    `require($1${pluralKebab})`
-  );
+  const { kebab, camelLower, camelUpper, pluralLower, pluralUpper, pluralKebab } = resource;
+  source = replaceToken(source, /require\((.*)products/g, `require($1${pluralKebab})`);
   source = replaceToken(source, /require\((.*?)product\b/g, `require($1${kebab}`);
   source = replaceToken(source, /Products/g, pluralUpper);
   source = replaceToken(source, /products/g, pluralLower);

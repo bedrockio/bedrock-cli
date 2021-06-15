@@ -20,9 +20,13 @@ export async function setResourceOptions(options, command) {
     const resource = await getResourceOptions(options);
     options.resources = [resource];
     await saveSnapshot(path.resolve(cwd, `${resource.kebab}.json`), options);
+    await setScreenOptions(resource, options);
   } else {
     options.resources = await getExistingResources(options);
     await promptComponents(options, command);
+    for (let resource of options.resources) {
+      await setScreenOptions(resource, options);
+    }
   }
 
   if (!isNew && options.components.includes('model')) {
@@ -71,6 +75,10 @@ async function getResourceOptions(options) {
 
   resource.schema = await getSchema();
 
+  return resource;
+}
+
+async function setScreenOptions(resource, options) {
   if (options.components.includes('subscreens')) {
     resource.externalSubScreens = await getExternalSubScreens(resource);
     resource.subScreens = await getSubScreens(resource);
@@ -83,8 +91,6 @@ async function getResourceOptions(options) {
       message: 'Generate menu link?',
     });
   }
-
-  return resource;
 }
 
 async function getExternalSubScreens(resource) {
@@ -92,19 +98,19 @@ async function getExternalSubScreens(resource) {
   const selectedNames = await prompt({
     type: 'multiselect',
     instructions: false,
-    message: 'Generate external screens:',
+    message: 'Generate reference screens:',
     choices: resource.schema
-    .filter(({ type, schemaType }) => {
-      return schemaType === 'ObjectId' && type !== 'Upload';
-    })
-    .map(({ ref }) => {
-      const name = ref + pluralUpper;
-      return {
-        title: name,
-        value: ref,
-        description: `Generates ${name} screen.`,
-      };
-    }),
+      .filter(({ type, schemaType }) => {
+        return schemaType === 'ObjectId' && type !== 'Upload';
+      })
+      .map(({ ref }) => {
+        const name = ref + pluralUpper;
+        return {
+          title: name,
+          value: ref,
+          description: `Generates ${name} screen.`,
+        };
+      }),
     hint: 'Space to select or Enter for none.',
   });
 
@@ -129,18 +135,18 @@ async function getSubScreens(resource) {
     instructions: false,
     message: 'Generate other screens:',
     choices: modelNames
-    .map((name) => {
-      return {
-        title: name,
-        value: name,
-        description: `Generates ${camelUpper}${plural(name)} screen.`,
-      };
-    })
-    .concat({
-      title: 'Other',
-      value: 'other',
-      description: `Enter manually.`,
-    }),
+      .map((name) => {
+        return {
+          title: name,
+          value: name,
+          description: `Generates ${camelUpper}${plural(name)} screen.`,
+        };
+      })
+      .concat({
+        title: 'Other',
+        value: 'other',
+        description: `Enter manually.`,
+      }),
     hint: 'Space to select or Enter for none.',
   });
 

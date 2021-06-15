@@ -4,21 +4,9 @@ import { queueTask } from '../util/tasks';
 import { block } from './util/template';
 import { replaceFilters } from './util/filters';
 import { patchAppEntrypoint } from './util/patch';
-import {
-  readSourceFile,
-  writeLocalFile,
-  replaceBlock,
-  replacePrimary,
-  replaceSecondary,
-} from './util/source';
+import { readSourceFile, writeLocalFile, replaceBlock, replacePrimary, replaceSecondary } from './util/source';
 
-const FILES = [
-  'index.js',
-  'List/index.js',
-  'Detail/index.js',
-  'Detail/Overview.js',
-  'Detail/Menu.js'
-];
+const FILES = ['index.js', 'List/index.js', 'Detail/index.js', 'Detail/Overview.js', 'Detail/Menu.js'];
 
 const SCREENS_DIR = 'services/web/src/screens';
 
@@ -66,17 +54,12 @@ async function generateSubScreensFor(screensDir, source, primary, secondary) {
         return Promise.all(
           secondary.map(async (secondary) => {
             queueTask(`${primary.camelUpper}${secondary.pluralUpper}`, async () => {
-              source = replacePrimary(source, primary);
-              source = replaceSecondary(source, secondary);
-              source = replaceListHeaderCells(source, secondary);
-              source = replaceListBodyCells(source, secondary, primary);
-              await writeLocalFile(
-                source,
-                screensDir,
-                primary.pluralUpper,
-                'Detail',
-                `${secondary.pluralUpper}.js`
-              );
+              let src = source;
+              src = replacePrimary(src, primary);
+              src = replaceSecondary(src, secondary);
+              src = replaceListHeaderCells(src, secondary);
+              src = replaceListBodyCells(src, secondary, primary);
+              await writeLocalFile(src, screensDir, primary.pluralUpper, 'Detail', `${secondary.pluralUpper}.js`);
             });
           })
         );
@@ -87,10 +70,12 @@ async function generateSubScreensFor(screensDir, source, primary, secondary) {
 
 function replaceSubScreenImports(source, options) {
   const { subScreens = [] } = options;
-  const imports = subScreens.map((resource) => {
-    const { pluralUpper } = resource;
-    return `import ${pluralUpper} from './${pluralUpper}';`;
-  }).join('\n');
+  const imports = subScreens
+    .map((resource) => {
+      const { pluralUpper } = resource;
+      return `import ${pluralUpper} from './${pluralUpper}';`;
+    })
+    .join('\n');
 
   return replaceBlock(source, imports, 'imports');
 }
@@ -137,29 +122,31 @@ function replaceSubScreenMenus(source, options) {
 function replaceOverviewFields(source, options) {
   const { camelLower } = options;
   const summaryFields = getSummaryFields(options);
-  const jsx = summaryFields.map((field, i) => {
-    const { name } = field;
-    const tag = i === 0 ? 'h1' : 'h3';
-    if (name === 'image') {
-      return block`
+  const jsx = summaryFields
+    .map((field, i) => {
+      const { name } = field;
+      const tag = i === 0 ? 'h1' : 'h3';
+      if (name === 'image') {
+        return block`
         {${camelLower}.image && (
           <Image key={${camelLower}.image.id} src={urlForUpload(${camelLower}.image)} />
         )}
       `;
-    } else if (name === 'images') {
-      return block`
+      } else if (name === 'images') {
+        return block`
         <Image.Group size="large">
           {${camelLower}.images.map((image) => (
             <Image key={image.id} src={urlForUpload(image)} />
           ))}
         </Image.Group>
       `;
-    } else {
-      return block`
+      } else {
+        return block`
         <Header as="${tag}">{${camelLower}.${name}}</Header>
       `;
-    }
-  }).join('\n');
+      }
+    })
+    .join('\n');
 
   return replaceBlock(source, jsx, 'overview-fields');
 }
@@ -170,10 +157,11 @@ function replaceOverviewRows(source, options) {
     return !summaryFields.includes(field);
   });
 
-  const rows = otherFields.map((field) => {
-    const { name, type } = field;
-    if (!type.match(/ObjectId/)) {
-      return block`
+  const rows = otherFields
+    .map((field) => {
+      const { name, type } = field;
+      if (!type.match(/ObjectId/)) {
+        return block`
         <Table.Row>
           <Table.Cell>${startCase(name)}</Table.Cell>
           <Table.Cell>
@@ -181,8 +169,9 @@ function replaceOverviewRows(source, options) {
           </Table.Cell>
         </Table.Row>
       `;
-    }
-  }).filter((r) => r);
+      }
+    })
+    .filter((r) => r);
 
   source = replaceBlock(source, rows.join('\n'), 'overview-rows');
 
@@ -232,30 +221,31 @@ function replaceOverviewImports(source, options) {
 
 function replaceListHeaderCells(source, options) {
   const summaryFields = getSummaryFields(options);
-  const jsx = summaryFields.map((field) => {
-    const { name, type } = field;
-    if (type === 'String') {
-      return block`
+  const jsx = summaryFields
+    .map((field) => {
+      const { name, type } = field;
+      if (type === 'String') {
+        return block`
         <Table.HeaderCell
           sorted={getSorted('${name}')}
           onClick={() => setSort('${name}')}>
           ${startCase(name)}
         </Table.HeaderCell>
       `;
-    } else {
-      return block`
+      } else {
+        return block`
         <Table.HeaderCell>
          ${name === 'id' ? 'ID' : startCase(name)}
         </Table.HeaderCell>
       `;
-    }
-  }).join('\n');
+      }
+    })
+    .join('\n');
 
   return replaceBlock(source, jsx, 'list-header-cells');
 }
 
 function replaceListBodyCells(source, options, resource) {
-
   let link = false;
   if (!resource) {
     resource = options;
@@ -265,33 +255,35 @@ function replaceListBodyCells(source, options, resource) {
   const { camelLower, pluralLower } = resource;
 
   const summaryFields = getSummaryFields(options);
-  const jsx = summaryFields.map((field, i) => {
-    const { name } = field;
+  const jsx = summaryFields
+    .map((field, i) => {
+      const { name } = field;
 
-    let inner;
-    if (name === 'image') {
-      inner = `
+      let inner;
+      if (name === 'image') {
+        inner = `
         {${camelLower}.${name} && (
           <Image src={urlForUpload(${camelLower}.${name}, true)} />
         )}
       `;
-    } else {
-      inner = `{${camelLower}.${name}}`;
-    }
+      } else {
+        inner = `{${camelLower}.${name}}`;
+      }
 
-    if (i === 0 && link) {
-      inner = `
+      if (i === 0 && link) {
+        inner = `
           <Link to={\`/${pluralLower}/\${${camelLower}.id}\`}>
             ${inner}
           </Link>
       `;
-    }
-    return block`
+      }
+      return block`
         <Table.Cell>
           ${inner}
         </Table.Cell>
     `;
-  }).join('\n');
+    })
+    .join('\n');
 
   return replaceBlock(source, jsx, 'list-body-cells');
 }

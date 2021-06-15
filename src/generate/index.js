@@ -9,7 +9,6 @@ import { generateDocs, assertApiDocsDir, assertWebDocsDir } from './docs';
 import { generateScreens, generateSubScreens, assertScreensDir } from './screens';
 import { patchMainMenu, assertHeaderPath } from './util/patch';
 
-
 export default async function generate(options, command) {
   await assertBedrockRoot();
 

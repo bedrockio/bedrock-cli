@@ -94,23 +94,25 @@ async function setScreenOptions(resource, options) {
 }
 
 async function getExternalSubScreens(resource) {
-  const { pluralUpper } = resource;
+  const { pluralUpper, schema } = resource;
+  const refFields = schema.filter(({ type, schemaType }) => {
+    return schemaType === 'ObjectId' && type !== 'Upload';
+  });
+  if (!refFields.length) {
+    return [];
+  }
   const selectedNames = await prompt({
     type: 'multiselect',
     instructions: false,
     message: 'Generate reference screens:',
-    choices: resource.schema
-      .filter(({ type, schemaType }) => {
-        return schemaType === 'ObjectId' && type !== 'Upload';
-      })
-      .map(({ ref }) => {
-        const name = ref + pluralUpper;
-        return {
-          title: name,
-          value: ref,
-          description: `Generates ${name} screen.`,
-        };
-      }),
+    choices: refFields.map(({ ref }) => {
+      const name = ref + pluralUpper;
+      return {
+        title: name,
+        value: ref,
+        description: `Generates ${name} screen.`,
+      };
+    }),
     hint: 'Space to select or Enter for none.',
   });
 
@@ -133,7 +135,7 @@ async function getSubScreens(resource) {
   let selectedNames = await prompt({
     type: 'multiselect',
     instructions: false,
-    message: 'Generate other screens:',
+    message: 'Generate subscreens:',
     choices: modelNames
       .map((name) => {
         return {

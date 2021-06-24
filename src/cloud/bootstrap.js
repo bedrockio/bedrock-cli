@@ -235,7 +235,7 @@ function getAppUrl(environment) {
     .filter((env) => {
       return env.name == 'APP_URL';
     })
-    .filter(Boolean)[0]?.value;
+    .filter(Boolean)[0].value;
 }
 
 function getApiUrl(environment) {
@@ -245,5 +245,5 @@ function getApiUrl(environment) {
     .filter((env) => {
       return env.name == 'API_URL';
     })
-    .filter(Boolean)[0]?.value;
+    .filter(Boolean)[0].value;
 }

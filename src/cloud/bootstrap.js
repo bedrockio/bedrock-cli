@@ -92,6 +92,7 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
   const region = computeZone.slice(0, -2); // e.g. us-east1
   const envPath = `deployment/environments/${environment}`;
   const services = gcloud.services || ['api', 'web'];
+  const ingresses = gcloud.ingresses || [];
 
   console.info(yellow('=> Creating data pods'));
   await execSyncInherit(`kubectl delete -f ${envPath}/data --ignore-not-found`);
@@ -107,6 +108,12 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
     await execSyncInherit(`kubectl create -f ${envPath}/services/${service}-service.yml`);
   }
 
+  for (let ingress of ingresses) {
+    console.info(yellow(`=> Configure ${ingress} ingress`));
+    let ip = await configureIngress(ingress);
+    ips.push([ingress+'-ingress', ip]);
+  }
+
   await deploy({ environment, service: 'api', subservice: 'cli' });
   await deploy({ environment, service: 'api' });
   await deploy({ environment, service: 'web' });
@@ -118,11 +125,11 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
   for (const [serviceName, serviceIP] of ips) {
     console.info(green(` ${serviceName}:`));
     console.info(green(` - address: ${serviceIP}`));
-    if (serviceName == 'api') {
+    if (serviceName == 'api' || serviceName.match(/api-ingress$/)) {
       const apiUrl = await getApiUrl(environment);
       console.info(green(` - configuration of API_URL in web deployment: ${apiUrl}\n`));
     }
-    if (serviceName == 'web') {
+    if (serviceName == 'web' || serviceName.match(/web-ingress$/)) {
       const appUrl = await getAppUrl(environment);
       console.info(green(` - configuration of APP_URL in api deployment: ${appUrl}\n`));
     }
@@ -151,6 +158,22 @@ async function configureServiceLoadBalancer(environment, service, region) {
     console.info(serviceYaml);
   }
   console.info(green(`${service.toUpperCase()} service loadBalancerIP: ${addressIP}`));
+  return addressIP;
+}
+
+async function configureIngress(ingress) {
+  let addressIP;
+  const ingressName = ingress + '-ingress';
+  try {
+    const addressJSON = await exec(`gcloud compute addresses describe --global ${ingressName} --format json`);
+    addressIP = JSON.parse(addressJSON).address;
+  } catch (e) {
+    console.info(yellow(`Creating ${ingressName.toUpperCase()} address`));
+    await execSyncInherit(`gcloud compute addresses create ${ingressName} --global`);
+    const addressJSON = await exec(`gcloud compute addresses describe --global ${ingressName} --format json`);
+    addressIP = JSON.parse(addressJSON).address;
+  }
+  console.info(green(`${ingressName.toUpperCase()} ingress addressIP: ${addressIP}`));
   return addressIP;
 }
 

@@ -129,11 +129,16 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
     console.info(green(` - address: ${serviceIP}`));
     if (serviceName == 'api' || serviceName.match(/api-ingress$/)) {
       const apiUrl = await getApiUrl(environment);
-      console.info(green(` - configuration of API_URL in web deployment: ${apiUrl}\n`));
+      if (apiUrl) {
+        console.info(green(` - configuration of API_URL in web deployment: ${apiUrl}\n`));
+      }
     }
     if (serviceName == 'web' || serviceName.match(/web-ingress$/)) {
       const appUrl = await getAppUrl(environment);
-      console.info(green(` - configuration of APP_URL in api deployment: ${appUrl}\n`));
+      if (appUrl) {
+        console.info(green(` - configuration of APP_URL in api deployment: ${appUrl}\n`));
+      }
+
     }
   }
 
@@ -230,7 +235,7 @@ function getAppUrl(environment) {
     .filter((env) => {
       return env.name == 'APP_URL';
     })
-    .filter(Boolean)[0].value;
+    .filter(Boolean)[0]?.value;
 }
 
 function getApiUrl(environment) {
@@ -240,5 +245,5 @@ function getApiUrl(environment) {
     .filter((env) => {
       return env.name == 'API_URL';
     })
-    .filter(Boolean)[0].value;
+    .filter(Boolean)[0]?.value;
 }

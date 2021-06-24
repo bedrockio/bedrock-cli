@@ -11,7 +11,7 @@ export async function assertBedrockRoot() {
 
   while (dir !== ROOT_DIR) {
     try {
-      await fs.access(path.resolve(dir, 'services', 'api'), constants.W_OK);
+      await fs.access(path.resolve(dir, 'deployment', 'environments'), constants.W_OK);
       break;
     } catch (err) {
       dir = path.resolve(dir, '..');

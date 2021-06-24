@@ -87,7 +87,7 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
   //   await createDisk({ computeZone, name: 'elasticsearch-disk' });
   // }
 
-  const { computeZone } = gcloud;
+  const { computeZone, bootstrapDeploy = true } = gcloud;
   // computeZone example: us-east1-c
   const region = computeZone.slice(0, -2); // e.g. us-east1
   const envPath = `deployment/environments/${environment}`;
@@ -114,11 +114,13 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
     ips.push([ingress+'-ingress', ip]);
   }
 
-  await deploy({ environment, service: 'api', subservice: 'cli' });
-  await deploy({ environment, service: 'api' });
-  await deploy({ environment, service: 'web' });
+  if (bootstrapDeploy) {
+    await deploy({ environment, service: 'api', subservice: 'cli' });
+    await deploy({ environment, service: 'api' });
+    await deploy({ environment, service: 'web' });
 
-  await status({ environment });
+    await status({ environment });
+  }
 
   console.info(yellow('=> Finishing up'));
   console.info(green('Make sure to configure your DNS records (Cloudflare recommended)\n'));

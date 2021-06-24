@@ -87,7 +87,7 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
   //   await createDisk({ computeZone, name: 'elasticsearch-disk' });
   // }
 
-  const { computeZone, bootstrapDeploy = true } = gcloud;
+  const { computeZone, bootstrapDeploy = true, recreateIngress = true } = gcloud;
   // computeZone example: us-east1-c
   const region = computeZone.slice(0, -2); // e.g. us-east1
   const envPath = `deployment/environments/${environment}`;
@@ -112,6 +112,11 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
     console.info(yellow(`=> Configure ${ingress} ingress`));
     let ip = await configureIngress(ingress);
     ips.push([ingress+'-ingress', ip]);
+    if (recreateIngress) {
+      console.info(yellow(`=> Creating ${ingress} ingress`));
+      await execSyncInherit(`kubectl delete -f ${envPath}/services/${ingress}-ingress.yml --ignore-not-found`);
+      await execSyncInherit(`kubectl create -f ${envPath}/services/${ingress}-ingress.yml`);
+    }
   }
 
   if (bootstrapDeploy) {

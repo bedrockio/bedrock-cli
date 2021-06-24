@@ -87,10 +87,10 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
   //   await createDisk({ computeZone, name: 'elasticsearch-disk' });
   // }
 
-  const { computeZone } = gcloud;
+  const { computeZone, root = 'deployment' } = gcloud;
   // computeZone example: us-east1-c
   const region = computeZone.slice(0, -2); // e.g. us-east1
-  const envPath = `deployment/environments/${environment}`;
+  const envPath = `${root}/environments/${environment}`;
   const services = gcloud.services || ['api', 'web'];
   const ingresses = gcloud.ingresses || [];
 

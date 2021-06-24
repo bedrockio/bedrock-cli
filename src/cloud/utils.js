@@ -7,12 +7,12 @@ import { prompt } from '../util/prompt';
 import { exit } from '../util/exit';
 import { exec } from '../util/shell';
 
-function getConfigFilePath(environment) {
-  return path.resolve('deployment', 'environments', environment, 'config.json');
+function getConfigFilePath(environment, root = 'deployment') {
+  return path.resolve(root, 'environments', environment, 'config.json');
 }
 
-export function readConfig(environment) {
-  const configFilePath = getConfigFilePath(environment);
+export function readConfig(environment, root = 'deployment') {
+  const configFilePath = getConfigFilePath(environment, root);
   try {
     return require(configFilePath);
   } catch (e) {
@@ -20,8 +20,8 @@ export function readConfig(environment) {
   }
 }
 
-export function writeConfig(environment, config) {
-  const configFilePath = getConfigFilePath(environment);
+export function writeConfig(environment, config, root = 'deployment') {
+  const configFilePath = getConfigFilePath(environment, root);
   try {
     fs.writeFileSync(configFilePath, JSON.stringify(config, null, 2), 'utf8');
   } catch (e) {
@@ -29,17 +29,17 @@ export function writeConfig(environment, config) {
   }
 }
 
-export function getServiceFilePath(environment, filename) {
-  return path.resolve('deployment', 'environments', environment, 'services', filename);
+export function getServiceFilePath(environment, filename, root = 'deployment') {
+  return path.resolve(root, 'environments', environment, 'services', filename);
 }
 
-export function readServiceYaml(environment, filename) {
-  const filePath = exports.getServiceFilePath(environment, filename);
+export function readServiceYaml(environment, filename, root = 'deployment') {
+  const filePath = exports.getServiceFilePath(environment, filename, root);
   return yaml.safeLoad(fs.readFileSync(filePath, 'utf8'));
 }
 
-export function writeServiceYaml(environment, filename, data) {
-  const filePath = exports.getServiceFilePath(environment, filename);
+export function writeServiceYaml(environment, filename, data, root = 'deployment') {
+  const filePath = exports.getServiceFilePath(environment, filename, root);
   const options = {
     quotingType: '"',
     forceQuotes: true,
@@ -48,14 +48,14 @@ export function writeServiceYaml(environment, filename, data) {
   return fs.writeFileSync(filePath, yamlString, 'utf8');
 }
 
-export async function updateServiceYamlEnv(environment, service, envName, envValue) {
+export async function updateServiceYamlEnv(environment, service, envName, envValue, root = 'deployment') {
   const filename = `${service}-deployment.yml`;
-  const deployment = readServiceYaml(environment, filename);
+  const deployment = readServiceYaml(environment, filename, root);
   const { env } = deployment.spec.template.spec.containers[0];
   deployment.spec.template.spec.containers[0].env = env.map(({ name, value = '' }) =>
     name == envName ? { name, value: envValue || '' } : { name, value }
   );
-  writeServiceYaml(environment, filename, deployment);
+  writeServiceYaml(environment, filename, deployment, root);
 }
 
 export function getPlatformName() {
@@ -72,19 +72,19 @@ function getDirectories(folder) {
   return [];
 }
 
-export function getEnvironments() {
-  return getDirectories(path.resolve('deployment', 'environments')).reverse();
+export function getEnvironments(root = 'deployment') {
+  return getDirectories(path.resolve(root, 'environments')).reverse();
 }
 
-export function getSecretsDirectory(environment) {
-  return path.resolve('deployment', 'environments', environment, 'secrets');
+export function getSecretsDirectory(environment, root = 'deployment') {
+  return path.resolve(root, 'environments', environment, 'secrets');
 }
 
-export async function getEnvironmentPrompt() {
+export async function getEnvironmentPrompt(root = 'deployment') {
   return await prompt({
     type: 'select',
     message: 'Select environment:',
-    choices: getEnvironments().map((value) => {
+    choices: getEnvironments(root).map((value) => {
       return { title: value, value };
     }),
   });

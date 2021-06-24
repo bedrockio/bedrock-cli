@@ -97,8 +97,8 @@ async function checkGCloudConfig(environment, options = {}) {
   }
 }
 
-async function checkSecrets(environment) {
-  const secretsDir = path.resolve('deployment', 'environments', environment, 'secrets');
+async function checkSecrets(environment, root = 'deployment') {
+  const secretsDir = path.resolve(root, 'environments', environment, 'secrets');
   if (fs.existsSync(secretsDir)) {
     const secretFilesLS = await exec(`ls ${secretsDir}`);
     const secretFiles = secretFilesLS.split('\n').filter((file) => file.endsWith('.conf'));
@@ -108,7 +108,7 @@ async function checkSecrets(environment) {
       if (!secretInfo) {
         console.info(
           red(
-            `Warning: Found secret file deployment/environments/${environment}/secrets/${secretFile} that has not been created on the cluster.`
+            `Warning: Found secret file ${root}/environments/${environment}/secrets/${secretFile} that has not been created on the cluster.`
           )
         );
         let confirmed = await prompt({
@@ -121,7 +121,7 @@ async function checkSecrets(environment) {
       } else {
         console.info(
           red(
-            `Warning: Found secret file deployment/environments/${environment}/secrets/${secretFile} - make sure to remove this file!`
+            `Warning: Found secret file ${root}/environments/${environment}/secrets/${secretFile} - make sure to remove this file!`
           )
         );
       }
@@ -132,7 +132,7 @@ async function checkSecrets(environment) {
 export async function checkConfig(environment, config) {
   if (!config) exit('Missing config');
   if (!config.gcloud) exit('Missing gcloud field in config');
-  await checkSecrets(environment);
+  await checkSecrets(environment, config.gcloud.root);
   const valid = await checkGCloudConfig(environment, config.gcloud);
   if (!valid) {
     const confirmed = await prompt({

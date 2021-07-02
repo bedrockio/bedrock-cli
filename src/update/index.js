@@ -7,5 +7,5 @@ export default async function update() {
   await withDir(path.resolve(homedir(), '.bedrock'), async () => {
     await exec(`git pull`);
   });
-  console.log(kleur.yellow('Updated!'));
+  console.log(kleur.green('Updated!'));
 }

@@ -395,6 +395,42 @@
               ]
             },
             {
+              "name": "refresh",
+              "functionName": "terraformRefresh",
+              "description": "Terraform apply -refresh-only",
+              "arguments": [
+                {
+                  "name": "environment",
+                  "type": "string",
+                  "description": "Environment (e.g. staging)"
+                }
+              ]
+            },
+            {
+              "name": "reconfigure",
+              "functionName": "terraformReconfigure",
+              "description": "Terraform initialize provisioning with -reconfigure",
+              "arguments": [
+                {
+                  "name": "environment",
+                  "type": "string",
+                  "description": "Environment (e.g. staging)"
+                }
+              ]
+            },
+            {
+              "name": "migrate",
+              "functionName": "terraformMigrate",
+              "description": "Terraform initialize provisioning with -migrate-state",
+              "arguments": [
+                {
+                  "name": "environment",
+                  "type": "string",
+                  "description": "Environment (e.g. staging)"
+                }
+              ]
+            },
+            {
               "name": "destroy",
               "functionName": "terraformDestroy",
               "description": "Terraform destroy provisioned cluster",

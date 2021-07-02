@@ -1,6 +1,6 @@
 import open from 'open';
 import { reset, gray, green, yellow, red } from 'kleur';
-import { assertBedrockRoot } from '../util/dir';
+import { assertBedrockRoot, assertBedrockServicesRoot } from '../util/dir';
 import { exec, execSyncInherit } from '../util/shell';
 import { prompt } from '../util/prompt';
 import { setGCloudConfig, checkConfig } from './authorize';
@@ -28,23 +28,24 @@ export async function authorize(options) {
 }
 
 export async function account(options) {
-
   try {
     const auth = JSON.parse(await exec('gcloud auth list --format json'));
 
-    const name = options.name || (await prompt({
-      message: 'Select Account',
-      type: 'select',
-      choices: auth.map(({ account, status }) => {
-        const active = status === 'ACTIVE' ? ' (active)' : '';
-        return {
-          title: `${account}${reset(gray(active))}`,
-          value: account,
-        };
-      }),
-    }));
+    const name =
+      options.name ||
+      (await prompt({
+        message: 'Select Account',
+        type: 'select',
+        choices: auth.map(({ account, status }) => {
+          const active = status === 'ACTIVE' ? ' (active)' : '';
+          return {
+            title: `${account}${reset(gray(active))}`,
+            value: account,
+          };
+        }),
+      }));
 
-    const active = auth.find(({ status } ) => {
+    const active = auth.find(({ status }) => {
       return status === 'ACTIVE';
     });
     if (!active || active.account !== name) {
@@ -53,12 +54,10 @@ export async function account(options) {
     } else {
       console.info(yellow('No changes'));
     }
-
   } catch (e) {
     console.info(red('Could not get accounts from "gcloud config configuration list"'));
     return;
   }
-
 }
 
 export async function login() {
@@ -106,8 +105,7 @@ export async function status(options) {
 }
 
 export async function build(options) {
-  await assertBedrockRoot();
-
+  await assertBedrockServicesRoot();
   const { service, subservice, tag } = options;
   const platformName = getPlatformName();
 

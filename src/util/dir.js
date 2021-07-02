@@ -28,3 +28,26 @@ export async function assertBedrockRoot() {
 
   return dir;
 }
+
+export async function assertBedrockServicesRoot() {
+  let dir = cwd;
+
+  while (dir !== ROOT_DIR) {
+    try {
+      await fs.access(path.resolve(dir, 'services'), constants.W_OK);
+      break;
+    } catch (err) {
+      dir = path.resolve(dir, '..');
+      if (dir === '/') {
+        console.info(kleur.red('Could not find Bedrock Services root directory!'));
+        process.exit(1);
+      }
+    }
+  }
+
+  if (dir !== process.cwd()) {
+    process.chdir(dir);
+  }
+
+  return dir;
+}

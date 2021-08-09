@@ -11,10 +11,10 @@ const ROUTE_REG = /^(\s*)(<(AuthSwitch|Protected|Route)[\s\S]+?\/>)/m;
 const IMPORTS_REG = /^import.*from.*screens.*$/gm;
 
 export async function patchAppEntrypoint(options) {
-  const { pluralLower, pluralUpper } = options;
+  const { pluralKebab, pluralUpper } = options;
   const entrypointPath = await assertAppEntrypointPath();
   let source = await readLocalFile(entrypointPath);
-  const jsx = `<Protected path="/${pluralLower}/:id?" allowed={${pluralUpper}} />\n`;
+  const jsx = `<Protected path="/${pluralKebab}/:id?" allowed={${pluralUpper}} />\n`;
   if (!source.includes(jsx)) {
     source = source.replace(ROUTE_REG, (match, space, rest) => {
       return space + jsx + space + rest;
@@ -68,7 +68,7 @@ export async function patchIndex(dir, name, ext = '') {
       source += line;
     }
     await writeLocalFile(source, dir, 'index.js');
-  } catch(err) {
+  } catch (err) {
     throw new Error(`Could not patch ${file}`);
   }
 }
@@ -79,7 +79,7 @@ const HEADER_PATH = 'services/web/src/components/Header.js';
 const MENU_ITEM_REG = /<Menu\.Item[\s\S]+?<\/Menu\.Item>/gm;
 
 export async function patchMainMenu(options) {
-  const { pluralLower, pluralUpper } = options;
+  const { pluralKebab, pluralUpper } = options;
 
   const headerPath = await assertHeaderPath();
   let source = await readLocalFile(headerPath);
@@ -92,7 +92,7 @@ export async function patchMainMenu(options) {
     const after = source.slice(index);
     const tabs = after.match(/\n(\s+)/)[1];
     const menuItem = block`
-      <Menu.Item as={NavLink} to="/${pluralLower}">
+      <Menu.Item as={NavLink} to="/${pluralKebab}">
         ${pluralUpper}
       </Menu.Item>
     `;

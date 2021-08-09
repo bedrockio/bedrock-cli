@@ -1,7 +1,7 @@
-import { plural } from 'pluralize';
 import { startCase } from 'lodash';
-import { replaceBlock } from './source';
 import { block } from './template';
+import { replaceBlock } from './source';
+import { getInflections } from './inflections';
 
 export function replaceInputs(source, options) {
   return replaceBlock(source, getInputs(options), 'fields');
@@ -9,6 +9,12 @@ export function replaceInputs(source, options) {
 
 function getInputs(options) {
   return options.schema
+    .concat()
+    .sort((a, b) => {
+      const aVal = isReferenceField(a) ? 0 : 1;
+      const bVal = isReferenceField(b) ? 0 : 1;
+      return bVal - aVal;
+    })
     .map((field) => {
       if (!field.private) {
         return getInputForField(field, options);
@@ -154,7 +160,7 @@ function getDateInput(field, options) {
       ${required ? 'required' : ''}
       name="${name}"
       label="${startCase(name)}"
-      value={${options.camelLower}.${name} || ''}
+      value={${options.camelLower}.${name}}
       onChange={this.setField}
     />
   `;
@@ -162,6 +168,7 @@ function getDateInput(field, options) {
 
 function getReferenceInput(field, options) {
   const { ref, name, type, required } = field;
+  const { pluralKebab, pluralUpper } = getInflections(ref);
   const isArray = type.match(/Array/);
   return block`
       {!this.props.${name} && (
@@ -170,8 +177,9 @@ function getReferenceInput(field, options) {
           name="${name}"
           label="${startCase(name)}"
           value={${options.camelLower}.${name}${isArray ? ' || []' : ''}}
-          onChange={(data) => this.setField(null, data)}
-          resource="${plural(ref)}"
+          path="/1/${pluralKebab}/search"
+          placeholder="Search ${startCase(pluralUpper)}"
+          onChange={this.setField}
         />
       )}
     `;
@@ -186,7 +194,7 @@ function getUploadInput(field, options) {
       name="${name}"
       label="${startCase(name)}"
       value={${options.camelLower}.${name}${isArray ? ' || []' : ''}}
-      onChange={(data) => this.setField(null, data)}
+      onChange={this.setField}
       onError={(error) => this.setState({ error })}
     />
   `;
@@ -212,7 +220,7 @@ function getCurrencyInput(field, options) {
   const { name, required, min, max, currency } = field;
   return block`
     <CurrencyField
-      ${currency === 'cents' ? 'cents': ''}
+      ${currency === 'cents' ? 'cents' : ''}
       ${required ? 'required' : ''}
       name="${name}"
       label="${startCase(name)}"
@@ -235,4 +243,8 @@ function getBooleanInput(field, options) {
       onChange={this.setCheckedField}
     />
   `;
+}
+
+function isReferenceField(field) {
+  return field.type === 'ObjectId' || field.type === 'ObjectIdArray';
 }

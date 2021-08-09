@@ -8,7 +8,7 @@ import {
   validateNumber,
   validateRegExp,
   validateBoolean,
-  validateCamelUpper
+  validateCamelUpper,
 } from '../../util/validation';
 
 let initialBuild = false;
@@ -42,7 +42,7 @@ const SCHEMA_TYPES = [
   {
     title: 'Mixed',
     value: 'Mixed',
-    description: "Mixed content (POJO).",
+    description: 'Mixed content (POJO).',
   },
   {
     title: 'Upload',
@@ -190,8 +190,8 @@ const SCHEMA_OPTIONS = [
           title: 'Cents',
           value: 'cents',
           description: 'Formats as USD. Assumes integer values * 100.',
-        }
-      ]
+        },
+      ],
     },
   },
   {
@@ -254,6 +254,8 @@ export function definitionToSchema(definition) {
     let type;
     if (def.ref === 'Upload') {
       type = 'Upload';
+    } else if (def.text) {
+      type = 'Text';
     } else {
       type = schemaType;
     }
@@ -508,7 +510,7 @@ function outputArrayField(field, hints) {
 function outputFieldOptions(field, hints) {
   const { schemaType: type } = field;
 
-  let typeHint = hints && getTypeHint(field) || '';
+  let typeHint = (hints && getTypeHint(field)) || '';
 
   return `
       type: ${type},${typeHint}

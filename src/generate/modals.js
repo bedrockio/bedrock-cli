@@ -2,12 +2,7 @@ import { camelCase } from 'lodash';
 import { assertPath } from '../util/file';
 import { block } from './util/template';
 import { replaceInputs } from './util/inputs';
-import {
-  readSourceFile,
-  writeLocalFile,
-  replaceSecondary,
-  replaceBlock,
-} from './util/source';
+import { readSourceFile, writeLocalFile, replaceSecondary, replaceBlock } from './util/source';
 
 const MODALS_DIR = 'services/web/src/modals';
 
@@ -43,12 +38,12 @@ function replaceImports(source, options) {
     imports.push("import UploadsField from 'components/form-fields/Uploads';");
   }
 
-  if (schema.some((field) => field.type.match(/ObjectId/))) {
-    imports.push("import ReferenceField from 'components/form-fields/Reference';");
-  }
-
   if (schema.some((field) => field.currency)) {
     imports.push("import CurrencyField from 'components/form-fields/Currency';");
+  }
+
+  if (schema.some((field) => field.type.match(/ObjectId/))) {
+    imports.push("import ReferenceField from 'components/form-fields/Reference';");
   }
 
   source = replaceBlock(source, imports.join('\n'), 'imports');
@@ -62,12 +57,11 @@ function replaceRefs(source, options) {
   const refs = schema
     .filter((field) => {
       return field.type === 'ObjectId';
-    }).map((field) => {
+    })
+    .map((field) => {
       const camelLower = camelCase(field.ref);
       return block`
-        ...(this.props.${camelLower} && {
-          ${camelLower}: this.props.${camelLower}.id,
-        }),
+        ${camelLower}: this.props.${camelLower}?.id || ${options.camelLower}.${camelLower}?.id,
       `;
     });
 

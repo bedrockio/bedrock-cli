@@ -10,11 +10,6 @@ export function replaceInputs(source, options) {
 function getInputs(options) {
   return options.schema
     .concat()
-    .sort((a, b) => {
-      const aVal = isReferenceField(a) ? 0 : 1;
-      const bVal = isReferenceField(b) ? 0 : 1;
-      return bVal - aVal;
-    })
     .map((field) => {
       if (!field.private) {
         return getInputForField(field, options);
@@ -243,8 +238,4 @@ function getBooleanInput(field, options) {
       onChange={this.setCheckedField}
     />
   `;
-}
-
-function isReferenceField(field) {
-  return field.type === 'ObjectId' || field.type === 'ObjectIdArray';
 }

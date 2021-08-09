@@ -252,7 +252,7 @@ function replaceListBodyCells(source, options, resource) {
     link = true;
   }
 
-  const { camelLower, pluralLower } = resource;
+  const { camelLower, kebab } = resource;
 
   const summaryFields = getSummaryFields(options);
   const jsx = summaryFields
@@ -272,7 +272,7 @@ function replaceListBodyCells(source, options, resource) {
 
       if (i === 0 && link) {
         inner = `
-          <Link to={\`/${pluralLower}/\${${camelLower}.id}\`}>
+          <Link to={\`/${kebab}/\${${camelLower}.id}\`}>
             ${inner}
           </Link>
       `;

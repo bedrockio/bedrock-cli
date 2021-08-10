@@ -83,14 +83,6 @@ async function setScreenOptions(resource, options) {
     resource.externalSubScreens = await getExternalSubScreens(resource);
     resource.subScreens = await getSubScreens(resource);
   }
-
-  if (options.components.includes('screens')) {
-    resource.menu = await prompt({
-      type: 'confirm',
-      initial: true,
-      message: 'Generate menu link?',
-    });
-  }
 }
 
 async function getExternalSubScreens(resource) {

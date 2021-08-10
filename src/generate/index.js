@@ -7,7 +7,6 @@ import { generateRoutes, assertRoutesDir } from './routes';
 import { generateModal, assertModalsDir } from './modals';
 import { generateDocs, assertApiDocsDir, assertWebDocsDir } from './docs';
 import { generateScreens, generateSubScreens, assertScreensDir } from './screens';
-import { patchMainMenu, assertHeaderPath } from './util/patch';
 
 export default async function generate(options, command) {
   await assertBedrockRoot();
@@ -42,10 +41,6 @@ export default async function generate(options, command) {
   if (components.includes('modal')) {
     await assertModalsDir();
   }
-  if (resources.some((r) => r.menu)) {
-    await assertHeaderPath();
-  }
-
   for (let resource of resources) {
     queueTask(`Generate ${resource.name} Resources`, async () => {
       if (components.includes('model')) {
@@ -76,11 +71,6 @@ export default async function generate(options, command) {
       if (components.includes('modal')) {
         queueTask('Modal', async () => {
           await generateModal(resource);
-        });
-      }
-      if (resource.menu) {
-        queueTask('Main Menu', async () => {
-          await patchMainMenu(resource);
         });
       }
     });

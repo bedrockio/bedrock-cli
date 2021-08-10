@@ -1,6 +1,5 @@
 import path from 'path';
 import { assertPath } from '../../util/file';
-import { block, indent } from './template';
 import { readLocalFile, writeLocalFile } from './source';
 
 // App Entrypoint
@@ -71,45 +70,6 @@ export async function patchIndex(dir, name, ext = '') {
   } catch (err) {
     throw new Error(`Could not patch ${file}`);
   }
-}
-
-// Main Menu
-
-const HEADER_PATH = 'services/web/src/components/Header.js';
-const MENU_ITEM_REG = /<Menu\.Item[\s\S]+?<\/Menu\.Item>/gm;
-
-export async function patchMainMenu(options) {
-  const { pluralKebab, pluralUpper } = options;
-
-  const headerPath = await assertHeaderPath();
-  let source = await readLocalFile(headerPath);
-
-  const match = source.match(MENU_ITEM_REG);
-  if (match) {
-    const last = match[match.length - 1];
-    const index = source.indexOf(last) + last.length;
-    const before = source.slice(0, index);
-    const after = source.slice(index);
-    const tabs = after.match(/\n(\s+)/)[1];
-    const menuItem = block`
-      <Menu.Item as={NavLink} to="/${pluralKebab}">
-        ${pluralUpper}
-      </Menu.Item>
-    `;
-
-    if (!match.join('').includes(pluralUpper)) {
-      source = '';
-      source += before;
-      source += '\n';
-      source += indent(menuItem, tabs.length);
-      source += after;
-      await writeLocalFile(source, headerPath);
-    }
-  }
-}
-
-export async function assertHeaderPath() {
-  return await assertPath(HEADER_PATH);
 }
 
 // Entrypoint

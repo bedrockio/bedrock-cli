@@ -123,9 +123,9 @@ function replaceOverviewFields(source, options) {
   const { camelLower } = options;
   const summaryFields = getSummaryFields(options);
   const jsx = summaryFields
-    .map((field, i) => {
+    .filter((field) => field.name !== 'name')
+    .map((field) => {
       const { name } = field;
-      const tag = i === 0 ? 'h1' : 'h3';
       if (name === 'image') {
         return block`
         {${camelLower}.image && (
@@ -134,7 +134,7 @@ function replaceOverviewFields(source, options) {
       `;
       } else if (name === 'images') {
         return block`
-        <Image.Group size="large">
+        <Image.Group size="small">
           {${camelLower}.images.map((image) => (
             <Image key={image.id} src={urlForUpload(image)} />
           ))}
@@ -142,7 +142,7 @@ function replaceOverviewFields(source, options) {
       `;
       } else {
         return block`
-        <Header as="${tag}">{${camelLower}.${name}}</Header>
+        <Header as="h3">{${camelLower}.${name}}</Header>
       `;
       }
     })
@@ -252,18 +252,18 @@ function replaceListBodyCells(source, options, resource) {
     link = true;
   }
 
-  const { camelLower, kebab } = resource;
+  const { camelLower, pluralKebab } = resource;
 
   const summaryFields = getSummaryFields(options);
   const jsx = summaryFields
     .map((field, i) => {
       const { name } = field;
-
       let inner;
-      if (name === 'image') {
+      if (name === 'image' || name === 'images') {
+        const idx = name === 'images' ? '[0]' : '';
         inner = `
-        {${camelLower}.${name} && (
-          <Image src={urlForUpload(${camelLower}.${name}, true)} />
+        {${camelLower}.${name}${idx} && (
+          <Image size="tiny" src={urlForUpload(${camelLower}.${name}${idx}, true)} />
         )}
       `;
       } else {
@@ -272,7 +272,7 @@ function replaceListBodyCells(source, options, resource) {
 
       if (i === 0 && link) {
         inner = `
-          <Link to={\`/${kebab}/\${${camelLower}.id}\`}>
+          <Link to={\`/${pluralKebab}/\${${camelLower}.id}\`}>
             ${inner}
           </Link>
       `;
@@ -310,7 +310,7 @@ function getSummaryFields(options) {
   // Try to take the "name" and "image" fields if they exist.
   const summaryFields = (options.schema || []).filter((field) => {
     const { name } = field;
-    return name === 'name' || name === 'image';
+    return name === 'name' || name === 'image' || name === 'images';
   });
   if (!summaryFields.length) {
     summaryFields.push({

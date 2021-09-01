@@ -298,7 +298,7 @@ function replaceListImports(source, options) {
 
   if (listImports.image) {
     imports.push("import { urlForUpload } from 'utils/uploads';");
-    imports.push("import { Image } from 'semantic-ui-react';");
+    imports.push("import { Image } from 'semantic';");
   }
 
   if (listImports.link) {

@@ -250,7 +250,7 @@ export function definitionToSchema(definition) {
   return Object.entries(definition.attributes).map(([name, obj]) => {
     const isArray = Array.isArray(obj);
     const def = isArray ? obj[0] : obj;
-    const schemaType = def.type;
+    const schemaType = def.type || 'Mixed';
     let type;
     if (def.ref === 'Upload') {
       type = 'Upload';

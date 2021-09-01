@@ -75,16 +75,11 @@ function replaceSubScreenRoutes(source, options) {
   const imports = subScreens
     .map(({ pluralLower, pluralUpper }) => {
       return block`
-      <Route
+      <Protected
         exact
         path="/${options.pluralLower}/:id/${pluralLower}"
-        render={(props) => (
-          <${pluralUpper}
-            {...props}
-            {...this.state}
-            onSave={this.fetch${options.camelUpper}}
-          />
-        )}
+        allowed={${pluralUpper}}
+        {...props}
       />
     `;
     })

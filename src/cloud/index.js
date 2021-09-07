@@ -13,6 +13,7 @@ import {
   checkKubectlVersion,
   getEnvironmentPrompt,
   getServicesPrompt,
+  getServices,
   getTagPrompt,
   getPlatformName,
 } from './utils';
@@ -181,7 +182,7 @@ export async function deploy(options) {
   await assertBedrockRoot();
   await checkKubectlVersion();
 
-  const { service, subservice, tag } = options;
+  const { service, subservice, tag, all } = options;
   const environment = options.environment || (await getEnvironmentPrompt());
   const config = readConfig(environment);
   await checkConfig(environment, config);
@@ -189,7 +190,7 @@ export async function deploy(options) {
   const platformName = getPlatformName();
 
   if (!service) {
-    const services = await getServicesPrompt();
+    const services = all ? getServices() : await getServicesPrompt();
     if (!services.length) {
       console.info(yellow('There were no services selected'));
       process.exit(0);

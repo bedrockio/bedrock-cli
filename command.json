@@ -231,6 +231,12 @@
         {
           "name": "deploy",
           "description": "Build, push and rollout service to cluster",
+          "options": [
+            {
+              "name": "all",
+              "description": "Deploy all services."
+            }
+          ],
           "arguments": [
             {
               "name": "environment",

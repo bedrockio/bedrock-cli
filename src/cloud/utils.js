@@ -90,7 +90,7 @@ export async function getEnvironmentPrompt() {
   });
 }
 
-function getServices() {
+export function getServices() {
   const services = [];
   const servicesFolders = getDirectories('services');
   for (const serviceFolder of servicesFolders) {

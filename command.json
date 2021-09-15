@@ -76,10 +76,16 @@
       ],
       "options": [
         {
-          "name": "snapshot",
+          "name": "save",
           "short": "s",
+          "type": "boolean",
+          "description": "Save a snapshot when generating new resources."
+        },
+        {
+          "name": "snapshot",
+          "short": "i",
           "type": "string",
-          "description": "Path to a snapshot file."
+          "description": "Generate using a previously saved snapshot file."
         }
       ]
     },

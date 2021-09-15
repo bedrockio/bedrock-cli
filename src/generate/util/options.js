@@ -21,8 +21,11 @@ export async function setResourceOptions(options, command) {
     options.resources = [resource];
 
     const { kebab } = getInflections(resource.name);
-    await saveSnapshot(path.resolve(cwd, `${kebab}.json`), options);
     await setScreenOptions(resource, options);
+
+    if (options.save) {
+      await saveSnapshot(path.resolve(cwd, `${kebab}.json`), options);
+    }
   } else {
     options.resources = await getExistingResources(options);
     await promptComponents(options, command);

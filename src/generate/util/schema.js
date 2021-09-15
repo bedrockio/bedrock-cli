@@ -532,7 +532,6 @@ function outputFieldOptions(field, hints) {
       ${field.private ? "access: 'private'," : ''}
       ${field.unique ? 'unique: true,' : ''}
       ${field.index ? 'index: true,' : ''}
-      ${outputFieldInteger(field) || ''}
       ${field.autopopulate ? 'autopopulate: true,' : ''}
   `;
 }
@@ -552,16 +551,5 @@ function getTypeHint(field) {
     return gray(' // Formatted in dollars.');
   } else if (field.currency === 'cents') {
     return gray(' // Formatted in dollars. Value in cents.');
-  }
-}
-
-function outputFieldInteger(field) {
-  if (field.integer) {
-    return `
-      validate : {
-        validator: Number.isInteger,
-        message: '{VALUE} is not an integer value',
-      },
-    `;
   }
 }

@@ -176,7 +176,7 @@ function getReferenceInput(field, options) {
           ${required ? 'required' : ''}
           name="${name}"
           label="${startCase(name)}"
-          value={${camelLower}.${name}${isArray ? ' || []' : ''}}
+          value={${camelLower}.${name} || ${isArray ? '[]' : "''"}}
           path="/1/${rInflections.pluralKebab}/search"
           placeholder="Search ${startCase(rInflections.pluralUpper)}"
           onChange={this.setField}

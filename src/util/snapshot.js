@@ -11,7 +11,7 @@ export async function restoreSnapshot(file) {
   try {
     return require(path.resolve(file));
   } catch (err) {
-    console.log(red(`Could not load snapshot file "${file}"`));
-    process.exit(1);
+    console.log(yellow(`Could not load snapshot file "${file}"`));
+    throw err;
   }
 }

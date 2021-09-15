@@ -5,7 +5,8 @@
   "repository": "git@github.com:bedrockio/bedrock-cli.git",
   "license": "MIT",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "lint": "eslint"
   },
   "dependencies": {
     "@yeongjet/joi-to-json-schema": "^1.0.4",

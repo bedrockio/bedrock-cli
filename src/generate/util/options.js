@@ -78,12 +78,12 @@ async function getResourceOptions(options) {
 
 async function setScreenOptions(resource, options) {
   if (options.components.includes('subscreens')) {
-    resource.externalSubScreens = await getExternalSubScreens(resource);
-    resource.subScreens = await getSubScreens(resource);
+    resource.externalScreens = await getExternalScreens(resource);
+    resource.subscreens = await getSubscreens(resource);
   }
 }
 
-async function getExternalSubScreens(resource) {
+async function getExternalScreens(resource) {
   const { schema } = resource;
   const { pluralUpper } = getInflections(resource.name);
   const refFields = schema.filter(({ type, schemaType }) => {
@@ -112,7 +112,7 @@ async function getExternalSubScreens(resource) {
   });
 }
 
-async function getSubScreens(resource) {
+async function getSubscreens(resource) {
   const { camelUpper } = getInflections(resource.name);
 
   const models = await getModels();
@@ -189,8 +189,8 @@ async function getExistingResources() {
       return {
         name: model.name,
         schema: definitionToSchema(model.definition),
-        externalSubScreens: [],
-        subScreens: [],
+        externalScreens: [],
+        subscreens: [],
         ...getInflections(model.name),
       };
     });

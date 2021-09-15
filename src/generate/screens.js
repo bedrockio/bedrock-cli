@@ -33,8 +33,8 @@ export async function generateScreens(options) {
   for (let file of FILES) {
     let source = await readSourceFile(screensDir, 'Shops', file);
     source = replacePrimary(source, options);
-    source = replaceSubScreenRoutes(source, options);
-    source = replaceSubScreenMenus(source, options);
+    source = replaceSubscreenRoutes(source, options);
+    source = replaceSubscreenMenus(source, options);
     source = replaceDetailImports(source, options);
     source = replaceOverviewFields(source, options);
     source = replaceOverviewRows(source, options);
@@ -50,19 +50,19 @@ export async function generateScreens(options) {
   await patchAppEntrypoint(options);
 }
 
-export async function generateSubScreens(options) {
+export async function generateSubscreens(options) {
   const screensDir = await assertScreensDir();
   const source = await readSourceFile(screensDir, 'Shops/Detail/Products.js');
-  await generateSubScreensFor(
+  await generateSubscreensFor(
     screensDir,
     source,
     [options],
-    options.subScreens || []
+    options.subscreens || []
   );
-  await generateSubScreensFor(
+  await generateSubscreensFor(
     screensDir,
     source,
-    options.externalSubScreens || [],
+    options.externalScreens || [],
     [options]
   );
 }
@@ -71,7 +71,7 @@ export async function assertScreensDir() {
   return await assertPath(SCREENS_DIR);
 }
 
-async function generateSubScreensFor(screensDir, source, primary, secondary) {
+async function generateSubscreensFor(screensDir, source, primary, secondary) {
   if (primary.length && secondary.length) {
     await Promise.all(
       primary.map(async (primary) => {
@@ -104,12 +104,12 @@ async function generateSubScreensFor(screensDir, source, primary, secondary) {
   }
 }
 
-function replaceSubScreenRoutes(source, options) {
+function replaceSubscreenRoutes(source, options) {
   const { pluralLower } = getInflections(options.name);
-  const { subScreens = [] } = options;
-  const imports = subScreens
+  const { subscreens = [] } = options;
+  const imports = subscreens
     .map((screen) => {
-      const sInflections = getInflections(screen);
+      const sInflections = getInflections(screen.name);
       return block`
       <Protected
         exact
@@ -123,12 +123,12 @@ function replaceSubScreenRoutes(source, options) {
   return replaceBlock(source, imports, 'routes');
 }
 
-function replaceSubScreenMenus(source, options) {
+function replaceSubscreenMenus(source, options) {
   const { kebab, pluralKebab } = getInflections(options.name);
-  const { subScreens = [] } = options;
-  const imports = subScreens
+  const { subscreens = [] } = options;
+  const imports = subscreens
     .map((screen) => {
-      const sInflections = getInflections(screen);
+      const sInflections = getInflections(screen.name);
       return block`
       <Menu.Item
         name="${sInflections.pluralUpper}"
@@ -143,8 +143,8 @@ function replaceSubScreenMenus(source, options) {
 }
 
 function replaceDetailImports(source, options) {
-  const { subScreens = [] } = options;
-  const imports = subScreens
+  const { subscreens = [] } = options;
+  const imports = subscreens
     .map((resource) => {
       const { pluralUpper } = getInflections(resource.name);
       return `import ${pluralUpper} from './${pluralUpper}';`;

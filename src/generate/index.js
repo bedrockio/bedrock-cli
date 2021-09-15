@@ -6,7 +6,11 @@ import { generateModel, assertModelsDir } from './model';
 import { generateRoutes, assertRoutesDir } from './routes';
 import { generateModal, assertModalsDir } from './modals';
 import { generateDocs, assertApiDocsDir, assertWebDocsDir } from './docs';
-import { generateScreens, generateSubScreens, assertScreensDir } from './screens';
+import {
+  generateScreens,
+  generateSubscreens,
+  assertScreensDir,
+} from './screens';
 
 export default async function generate(options, command) {
   await assertBedrockRoot();
@@ -65,7 +69,7 @@ export default async function generate(options, command) {
       }
       if (components.includes('subscreens')) {
         queueTask('Subscreens', async () => {
-          await generateSubScreens(resource);
+          await generateSubscreens(resource);
         });
       }
       if (components.includes('modal')) {

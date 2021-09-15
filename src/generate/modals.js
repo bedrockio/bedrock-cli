@@ -69,7 +69,7 @@ function replaceRefs(source, options) {
       return field.type === 'ObjectId';
     })
     .map((field) => {
-      const { rCamelLower } = getInflections(field.ref);
+      const { camelLower: rCamelLower } = getInflections(field.ref);
       return block`
         ${rCamelLower}: this.props.${rCamelLower}?.id || ${camelLower}.${rCamelLower}?.id,
       `;

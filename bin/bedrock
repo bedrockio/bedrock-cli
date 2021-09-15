@@ -1,4 +1,4 @@
-#!/usr/bin/env node -r esm
+#!/usr/bin/env node -r esm --unhandled-rejections=strict
 
 import path from 'path';
 import kleur from 'kleur';

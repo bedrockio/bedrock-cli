@@ -1,12 +1,13 @@
 import { assertPath } from '../util/file';
 import { writeLocalFile } from './util/source';
+import { getInflections } from './util/inflections';
 
 const DEFINITIONS_DIR = 'services/api/src/models/definitions';
 
 export async function generateModel(options) {
-  const { kebab } = options;
   const definition = getDefinition(options);
   const dir = await assertModelsDir();
+  const { kebab } = getInflections(options.name);
   await writeLocalFile(JSON.stringify(definition, null, 2), dir, `${kebab}.json`);
 }
 

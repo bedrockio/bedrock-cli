@@ -1,13 +1,18 @@
-import { camelCase } from 'lodash';
 import { assertPath } from '../util/file';
 import { block } from './util/template';
 import { replaceInputs } from './util/inputs';
-import { readSourceFile, writeLocalFile, replaceSecondary, replaceBlock } from './util/source';
+import { getInflections } from './util/inflections';
+import {
+  readSourceFile,
+  writeLocalFile,
+  replaceSecondary,
+  replaceBlock,
+} from './util/source';
 
 const MODALS_DIR = 'services/web/src/modals';
 
 export async function generateModal(options) {
-  const { camelUpper } = options;
+  const { camelUpper } = getInflections(options.name);
 
   const modalsDir = await assertModalsDir();
 
@@ -39,11 +44,15 @@ function replaceImports(source, options) {
   }
 
   if (schema.some((field) => field.currency)) {
-    imports.push("import CurrencyField from 'components/form-fields/Currency';");
+    imports.push(
+      "import CurrencyField from 'components/form-fields/Currency';"
+    );
   }
 
   if (schema.some((field) => field.type.match(/ObjectId/))) {
-    imports.push("import ReferenceField from 'components/form-fields/Reference';");
+    imports.push(
+      "import ReferenceField from 'components/form-fields/Reference';"
+    );
   }
 
   source = replaceBlock(source, imports.join('\n'), 'imports');
@@ -53,15 +62,16 @@ function replaceImports(source, options) {
 
 function replaceRefs(source, options) {
   const { schema } = options;
+  const { camelLower } = getInflections(options.name);
 
   const refs = schema
     .filter((field) => {
       return field.type === 'ObjectId';
     })
     .map((field) => {
-      const camelLower = camelCase(field.ref);
+      const { rCamelLower } = getInflections(field.ref);
       return block`
-        ${camelLower}: this.props.${camelLower}?.id || ${options.camelLower}.${camelLower}?.id,
+        ${rCamelLower}: this.props.${rCamelLower}?.id || ${camelLower}.${rCamelLower}?.id,
       `;
     });
 
@@ -71,7 +81,7 @@ function replaceRefs(source, options) {
 }
 
 function replaceNameReference(source, options) {
-  const { camelUpper } = options;
+  const { camelUpper } = getInflections(options.name);
   const hasName = options.schema.some((field) => field.name === 'name');
 
   if (!hasName) {

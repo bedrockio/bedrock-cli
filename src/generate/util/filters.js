@@ -1,5 +1,6 @@
 import { startCase } from 'lodash';
 import { replaceBlock } from './source';
+import { getInflections } from './inflections';
 import { block } from './template';
 
 export function replaceFilters(source, options) {
@@ -7,23 +8,29 @@ export function replaceFilters(source, options) {
 }
 
 function getFilters(options) {
-  const { camelLower } = options;
-  return options.schema.map((field) => {
-    if (!field.private) {
-      return getFilterForField(field, camelLower);
-    }
-  })
+  const { camelLower } = getInflections(options.name);
+  return options.schema
+    .map((field) => {
+      if (!field.private) {
+        return getFilterForField(field, camelLower);
+      }
+    })
     .filter((f) => f)
     .join('\n');
 }
 
 function getFilterForField(field, camelLower) {
   switch (field.type) {
-    case 'Date': return getDateFilter(field, camelLower);
-    case 'String': return getTextFilter(field, camelLower);
-    case 'Number': return getNumberFilter(field, camelLower);
-    case 'Boolean': return getBooleanFilter(field, camelLower);
-    case 'StringArray': return getMultiDropdownFilter(field, camelLower);
+    case 'Date':
+      return getDateFilter(field, camelLower);
+    case 'String':
+      return getTextFilter(field, camelLower);
+    case 'Number':
+      return getNumberFilter(field, camelLower);
+    case 'Boolean':
+      return getBooleanFilter(field, camelLower);
+    case 'StringArray':
+      return getMultiDropdownFilter(field, camelLower);
   }
 }
 
@@ -48,13 +55,15 @@ function getTextFilter(field) {
         name="${name}"
         label="${startCase(name)}"
         options={[
-        ${field.enum.map((val) => {
-          return `
+        ${field.enum
+          .map((val) => {
+            return `
           {
             text: "${val}",
             value: "${val}",
           }`;
-        }).join(',\n')}
+          })
+          .join(',\n')}
         ]}
       />
     `;
@@ -102,13 +111,15 @@ function getMultiDropdownFilter(field) {
         name="${name}"
         label="${startCase(name)}"
         options={[
-        ${field.enum.map((val) => {
-          return `
+        ${field.enum
+          .map((val) => {
+            return `
           {
             text: "${val}",
             value: "${val}",
           }`;
-        }).join(',\n')}
+          })
+          .join(',\n')}
         ]}
       />
     `;
@@ -122,5 +133,5 @@ function getMultiDropdownFilter(field) {
         label="${startCase(name)}"
       />
     `;
-    }
+  }
 }

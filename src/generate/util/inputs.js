@@ -48,6 +48,7 @@ function getInputForField(field, options) {
 
 function getStringInput(field, options) {
   const { name, required } = field;
+  const { camelLower } = getInflections(options.name);
   if (field.enum) {
     return block`
       <Form.Dropdown
@@ -55,7 +56,7 @@ function getStringInput(field, options) {
         selection
         name="${name}"
         label="${startCase(name)}"
-        value={${options.camelLower}.${name} || ''}
+        value={${camelLower}.${name} || ''}
         options={[
         ${field.enum
           .map((val) => {
@@ -77,7 +78,7 @@ function getStringInput(field, options) {
         type="text"
         name="${name}"
         label="${startCase(name)}"
-        value={${options.camelLower}.${name} || ''}
+        value={${camelLower}.${name} || ''}
         onChange={this.setField}
       />
     `;
@@ -86,6 +87,7 @@ function getStringInput(field, options) {
 
 function getStringArrayInput(field, options) {
   const { name, required } = field;
+  const { camelLower } = getInflections(options.name);
   if (field.enum) {
     return block`
       <Form.Dropdown
@@ -94,7 +96,7 @@ function getStringArrayInput(field, options) {
         selection
         name="${name}"
         label="${startCase(name)}"
-        value={${options.camelLower}.${name} || []}
+        value={${camelLower}.${name} || []}
         options={[
         ${field.enum
           .map((val) => {
@@ -120,7 +122,7 @@ function getStringArrayInput(field, options) {
         name="${name}"
         label="${startCase(name)}"
         options={
-          ${options.camelLower}.${name}?.map((value) => {
+          ${camelLower}.${name}?.map((value) => {
             return {
               value,
               text: value,
@@ -128,7 +130,7 @@ function getStringArrayInput(field, options) {
           }) || []
         }
         onChange={this.setField}
-        value={${options.camelLower}.${name} || []}
+        value={${camelLower}.${name} || []}
       />
     `;
   }
@@ -136,12 +138,13 @@ function getStringArrayInput(field, options) {
 
 function getTextInput(field, options) {
   const { name, required } = field;
+  const { camelLower } = getInflections(options.name);
   return block`
     <Form.TextArea
       ${required ? 'required' : ''}
       name="${name}"
       label="${startCase(name)}"
-      value={${options.camelLower}.${name} || ''}
+      value={${camelLower}.${name} || ''}
       onChange={this.setField}
     />
   `;
@@ -149,13 +152,14 @@ function getTextInput(field, options) {
 
 function getDateInput(field, options) {
   const { name, required } = field;
+  const { camelLower } = getInflections(options.name);
   return block`
     <DateField
       ${field.time ? 'time' : ''}
       ${required ? 'required' : ''}
       name="${name}"
       label="${startCase(name)}"
-      value={${options.camelLower}.${name}}
+      value={${camelLower}.${name}}
       onChange={this.setField}
     />
   `;
@@ -163,7 +167,8 @@ function getDateInput(field, options) {
 
 function getReferenceInput(field, options) {
   const { ref, name, type, required } = field;
-  const { pluralKebab, pluralUpper } = getInflections(ref);
+  const { camelLower } = getInflections(options.name);
+  const rInflections = getInflections(ref);
   const isArray = type.match(/Array/);
   return block`
       {!this.props.${name} && (
@@ -171,9 +176,9 @@ function getReferenceInput(field, options) {
           ${required ? 'required' : ''}
           name="${name}"
           label="${startCase(name)}"
-          value={${options.camelLower}.${name}${isArray ? ' || []' : ''}}
-          path="/1/${pluralKebab}/search"
-          placeholder="Search ${startCase(pluralUpper)}"
+          value={${camelLower}.${name}${isArray ? ' || []' : ''}}
+          path="/1/${rInflections.pluralKebab}/search"
+          placeholder="Search ${startCase(rInflections.pluralUpper)}"
           onChange={this.setField}
         />
       )}
@@ -182,13 +187,14 @@ function getReferenceInput(field, options) {
 
 function getUploadInput(field, options) {
   const { name, type, required } = field;
+  const { camelLower } = getInflections(options.name);
   const isArray = type.match(/Array/);
   return block`
     <UploadsField
       ${required ? 'required' : ''}
       name="${name}"
       label="${startCase(name)}"
-      value={${options.camelLower}.${name}${isArray ? ' || []' : ''}}
+      value={${camelLower}.${name}${isArray ? ' || []' : ''}}
       onChange={this.setField}
       onError={(error) => this.setState({ error })}
     />
@@ -197,13 +203,14 @@ function getUploadInput(field, options) {
 
 function getNumberInput(field, options) {
   const { name, required, min, max } = field;
+  const { camelLower } = getInflections(options.name);
   return block`
     <Form.Input
       ${required ? 'required' : ''}
       type="number"
       name="${name}"
       label="${startCase(name)}"
-      value={${options.camelLower}.${name}?.toFixed() || ''}
+      value={${camelLower}.${name}?.toFixed() || ''}
       onChange={this.setNumberField}
       ${min ? `min="${min}"` : ''}
       ${max ? `max="${max}"` : ''}
@@ -213,13 +220,14 @@ function getNumberInput(field, options) {
 
 function getCurrencyInput(field, options) {
   const { name, required, min, max, currency } = field;
+  const { camelLower } = getInflections(options.name);
   return block`
     <CurrencyField
       ${currency === 'cents' ? 'cents' : ''}
       ${required ? 'required' : ''}
       name="${name}"
       label="${startCase(name)}"
-      value={${options.camelLower}.${name} || ''}
+      value={${camelLower}.${name} || ''}
       onChange={this.setField}
       ${min ? `min="${min}"` : ''}
       ${max ? `max="${max}"` : ''}
@@ -229,12 +237,13 @@ function getCurrencyInput(field, options) {
 
 function getBooleanInput(field, options) {
   const { name, required } = field;
+  const { camelLower } = getInflections(options.name);
   return block`
     <Form.Checkbox
       ${required ? 'required' : ''}
       name="${name}"
       label="${startCase(name)}"
-      checked={${options.camelLower}.${name}}
+      checked={${camelLower}.${name}}
       onChange={this.setCheckedField}
     />
   `;

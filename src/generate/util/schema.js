@@ -111,6 +111,7 @@ const SCHEMA_OPTIONS = [
       type: 'text',
       message: 'Minimum length:',
       validate: validateNumber,
+      format: Number,
     },
   },
   {
@@ -122,6 +123,7 @@ const SCHEMA_OPTIONS = [
       type: 'text',
       message: 'Maximum length:',
       validate: validateNumber,
+      format: Number,
     },
   },
   {
@@ -151,6 +153,7 @@ const SCHEMA_OPTIONS = [
       type: 'text',
       message: 'Minimum value:',
       validate: validateMixed,
+      format: Number,
     },
   },
   {
@@ -162,6 +165,7 @@ const SCHEMA_OPTIONS = [
       type: 'text',
       message: 'Maximum value:',
       validate: validateMixed,
+      format: Number,
     },
   },
   {
@@ -169,7 +173,8 @@ const SCHEMA_OPTIONS = [
     value: 'time',
     selected: true,
     types: ['Date'],
-    description: 'Will not display the time if false. Applies to screens and modals only.',
+    description:
+      'Will not display the time if false. Applies to screens and modals only.',
   },
   {
     title: 'currency',

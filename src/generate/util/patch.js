@@ -1,5 +1,6 @@
 import path from 'path';
 import { assertPath } from '../../util/file';
+import { getInflections } from './inflections';
 import { readLocalFile, writeLocalFile } from './source';
 
 // App Entrypoint
@@ -10,7 +11,7 @@ const ROUTE_REG = /^(\s*)(<(AuthSwitch|Protected|Route)[\s\S]+?\/>)/m;
 const IMPORTS_REG = /^import.*from.*screens.*$/gm;
 
 export async function patchAppEntrypoint(options) {
-  const { pluralKebab, pluralUpper } = options;
+  const { pluralKebab, pluralUpper } = getInflections(options.name);
   const entrypointPath = await assertAppEntrypointPath();
   let source = await readLocalFile(entrypointPath);
   const jsx = `<Protected path="/${pluralKebab}/:id?" allowed={${pluralUpper}} />\n`;
@@ -30,7 +31,7 @@ export async function assertAppEntrypointPath() {
 // Imports
 
 function replaceImports(source, options) {
-  const { pluralUpper } = options;
+  const { pluralUpper } = getInflections(options.name);
   const index = getImportsLastIndex(source);
   if (index > 0) {
     let str = '';
@@ -96,7 +97,7 @@ function injectByReg(source, replace, reg) {
 }
 
 export async function patchRoutesEntrypoint(routesDir, options) {
-  const { pluralLower, pluralKebab } = options;
+  const { pluralLower, pluralKebab } = getInflections(options.name);
   let source = await readLocalFile(routesDir, 'index.js');
 
   const requires = `const ${pluralLower} = require('./${pluralKebab}');`;

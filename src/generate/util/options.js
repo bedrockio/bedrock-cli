@@ -19,7 +19,9 @@ export async function setResourceOptions(options, command) {
     await promptComponents(options, command);
     const resource = await getResourceOptions(options);
     options.resources = [resource];
-    await saveSnapshot(path.resolve(cwd, `${resource.kebab}.json`), options);
+
+    const { kebab } = getInflections(resource.name);
+    await saveSnapshot(path.resolve(cwd, `${kebab}.json`), options);
     await setScreenOptions(resource, options);
   } else {
     options.resources = await getExistingResources(options);
@@ -70,11 +72,7 @@ async function getResourceOptions(options) {
     message: 'Resource name (ex. User):',
     validate: validateCamelUpper,
   });
-
-  Object.assign(resource, getInflections(resource.name));
-
   resource.schema = await getSchema();
-
   return resource;
 }
 
@@ -86,7 +84,8 @@ async function setScreenOptions(resource, options) {
 }
 
 async function getExternalSubScreens(resource) {
-  const { pluralUpper, schema } = resource;
+  const { schema } = resource;
+  const { pluralUpper } = getInflections(resource.name);
   const refFields = schema.filter(({ type, schemaType }) => {
     return schemaType === 'ObjectId' && type !== 'Upload';
   });
@@ -108,15 +107,14 @@ async function getExternalSubScreens(resource) {
     hint: 'Space to select or Enter for none.',
   });
 
-  return selectedNames.map((val) => {
-    return getInflections(val);
+  return selectedNames.map((name) => {
+    return { name };
   });
 }
 
 async function getSubScreens(resource) {
-  const { camelUpper } = resource;
+  const { camelUpper } = getInflections(resource.name);
 
-  const references = [];
   const models = await getModels();
   const modelNames = models
     .map((model) => model.name)
@@ -163,11 +161,9 @@ async function getSubScreens(resource) {
     selectedNames = selectedNames.concat(otherNames);
   }
 
-  for (let name of selectedNames) {
-    references.push(getInflections(name));
-  }
-
-  return references;
+  return selectedNames.map((name) => {
+    return { name };
+  });
 }
 
 async function getExistingResources() {

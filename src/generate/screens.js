@@ -4,14 +4,27 @@ import { queueTask } from '../util/tasks';
 import { block } from './util/template';
 import { replaceFilters } from './util/filters';
 import { patchAppEntrypoint } from './util/patch';
-import { readSourceFile, writeLocalFile, replaceBlock, replacePrimary, replaceSecondary } from './util/source';
+import { getInflections } from './util/inflections';
+import {
+  readSourceFile,
+  writeLocalFile,
+  replaceBlock,
+  replacePrimary,
+  replaceSecondary,
+} from './util/source';
 
-const FILES = ['index.js', 'List/index.js', 'Detail/index.js', 'Detail/Overview.js', 'Detail/Menu.js'];
+const FILES = [
+  'index.js',
+  'List/index.js',
+  'Detail/index.js',
+  'Detail/Overview.js',
+  'Detail/Menu.js',
+];
 
 const SCREENS_DIR = 'services/web/src/screens';
 
 export async function generateScreens(options) {
-  const { pluralUpper } = options;
+  const { pluralUpper } = getInflections(options.name);
   options.overviewImports = {};
 
   const screensDir = await assertScreensDir();
@@ -40,8 +53,18 @@ export async function generateScreens(options) {
 export async function generateSubScreens(options) {
   const screensDir = await assertScreensDir();
   const source = await readSourceFile(screensDir, 'Shops/Detail/Products.js');
-  await generateSubScreensFor(screensDir, source, [options], options.subScreens);
-  await generateSubScreensFor(screensDir, source, options.externalSubScreens, [options]);
+  await generateSubScreensFor(
+    screensDir,
+    source,
+    [options],
+    options.subScreens || []
+  );
+  await generateSubScreensFor(
+    screensDir,
+    source,
+    options.externalSubScreens || [],
+    [options]
+  );
 }
 
 export async function assertScreensDir() {
@@ -52,17 +75,28 @@ async function generateSubScreensFor(screensDir, source, primary, secondary) {
   if (primary.length && secondary.length) {
     await Promise.all(
       primary.map(async (primary) => {
+        const pInflections = getInflections(primary.name);
         return Promise.all(
           secondary.map(async (secondary) => {
-            queueTask(`${primary.camelUpper}${secondary.pluralUpper}`, async () => {
-              let src = source;
-              src = replacePrimary(src, primary);
-              src = replaceSecondary(src, secondary);
-              src = replaceListHeaderCells(src, secondary);
-              src = replaceListBodyCells(src, secondary, primary);
-              src = replaceListImports(src, primary);
-              await writeLocalFile(src, screensDir, primary.pluralUpper, 'Detail', `${secondary.pluralUpper}.js`);
-            });
+            const sInflections = getInflections(secondary.name);
+            queueTask(
+              `${pInflections.camelUpper}${sInflections.pluralUpper}`,
+              async () => {
+                let src = source;
+                src = replacePrimary(src, primary);
+                src = replaceSecondary(src, secondary);
+                src = replaceListHeaderCells(src, secondary);
+                src = replaceListBodyCells(src, secondary, primary);
+                src = replaceListImports(src, primary);
+                await writeLocalFile(
+                  src,
+                  screensDir,
+                  pInflections.pluralUpper,
+                  'Detail',
+                  `${sInflections.pluralUpper}.js`
+                );
+              }
+            );
           })
         );
       })
@@ -71,14 +105,16 @@ async function generateSubScreensFor(screensDir, source, primary, secondary) {
 }
 
 function replaceSubScreenRoutes(source, options) {
+  const { pluralLower } = getInflections(options.name);
   const { subScreens = [] } = options;
   const imports = subScreens
-    .map(({ pluralLower, pluralUpper }) => {
+    .map((screen) => {
+      const sInflections = getInflections(screen);
       return block`
       <Protected
         exact
-        path="/${options.pluralLower}/:id/${pluralLower}"
-        allowed={${pluralUpper}}
+        path="/${pluralLower}/:id/${sInflections.pluralLower}"
+        allowed={${sInflections.pluralUpper}}
         {...props}
       />
     `;
@@ -88,13 +124,15 @@ function replaceSubScreenRoutes(source, options) {
 }
 
 function replaceSubScreenMenus(source, options) {
+  const { kebab, pluralKebab } = getInflections(options.name);
   const { subScreens = [] } = options;
   const imports = subScreens
-    .map(({ pluralLower, pluralUpper }) => {
+    .map((screen) => {
+      const sInflections = getInflections(screen);
       return block`
       <Menu.Item
-        name="${pluralUpper}"
-        to={\`/${options.pluralKebab}/\${${options.kebab}.id}/${pluralLower}\`}
+        name="${sInflections.pluralUpper}"
+        to={\`/${pluralKebab}/\${${kebab}.id}/${sInflections.pluralLower}\`}
         as={NavLink}
         exact
       />
@@ -108,7 +146,7 @@ function replaceDetailImports(source, options) {
   const { subScreens = [] } = options;
   const imports = subScreens
     .map((resource) => {
-      const { pluralUpper } = resource;
+      const { pluralUpper } = getInflections(resource.name);
       return `import ${pluralUpper} from './${pluralUpper}';`;
     })
     .join('\n');
@@ -117,7 +155,7 @@ function replaceDetailImports(source, options) {
 }
 
 function replaceOverviewFields(source, options) {
-  const { camelLower } = options;
+  const { camelLower } = getInflections(options.name);
   const summaryFields = getSummaryFields(options);
   const jsx = summaryFields
     .filter((field) => field.name !== 'name')
@@ -152,6 +190,7 @@ function replaceOverviewFields(source, options) {
 }
 
 function replaceOverviewRows(source, options) {
+  const { camelLower } = getInflections(options.name);
   const summaryFields = getSummaryFields(options);
   const otherFields = options.schema.filter((field) => {
     return !summaryFields.includes(field);
@@ -165,7 +204,7 @@ function replaceOverviewRows(source, options) {
         <Table.Row>
           <Table.Cell>${startCase(name)}</Table.Cell>
           <Table.Cell>
-            {${getOverviewCellValue(`${options.camelLower}.${name}`, field, options)}}
+            {${getOverviewCellValue(`${camelLower}.${name}`, field, options)}}
           </Table.Cell>
         </Table.Row>
       `;
@@ -254,7 +293,7 @@ function replaceListBodyCells(source, options, resource) {
     type: isSubscreen ? 'subscreen-imports' : 'list-imports',
   };
 
-  const { camelLower, pluralKebab } = resource;
+  const { camelLower, pluralKebab } = getInflections(resource.name);
 
   const summaryFields = getSummaryFields(options);
   const jsx = summaryFields

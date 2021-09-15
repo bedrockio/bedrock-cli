@@ -1,16 +1,13 @@
-#!/usr/bin/env node
+#!/usr/bin/env node -r esm
 
-/* eslint-disable-next-line no-global-assign */
-require = require('esm')(module);
-
-const path = require('path');
-const kleur = require('kleur');
-const { program } = require('commander');
-const { camelCase } = require('lodash');
-const { promptFill } = require('../src/util/prompt');
-const { restoreSnapshot } = require('../src/util/snapshot');
-const { version } = require('../package.json');
-const descriptor = require('../command.json');
+import path from 'path';
+import kleur from 'kleur';
+import { program } from 'commander';
+import { camelCase } from 'lodash';
+import { promptFill } from '../src/util/prompt';
+import { restoreSnapshot } from '../src/util/snapshot';
+import { version } from '../package.json';
+import descriptor from '../command.json';
 
 program.version(version);
 addCommand(program, descriptor);
@@ -58,7 +55,7 @@ function addCommand(command, descriptor) {
         let { snapshot, ...options } = gatherOptions(subcommand);
         if (snapshot) {
           options = {
-            ...await restoreSnapshot(snapshot),
+            ...(await restoreSnapshot(snapshot)),
             ...options,
           };
         }
@@ -94,9 +91,13 @@ function getHandler(descriptor) {
   try {
     // Prefer named functions in entrypoints to helper files that may share the same name.
     const name = descriptor.functionName || camelCase(descriptor.name);
-    const mod = require(path.resolve(__dirname, '../src', ...dirs.slice(0, -1)));
+    const mod = require(path.resolve(
+      __dirname,
+      '../src',
+      ...dirs.slice(0, -1)
+    ));
     return mod[name] || mod.default;
-  } catch(err) {
+  } catch (err) {
     if (err.code === 'MODULE_NOT_FOUND') {
       return require(path.resolve(__dirname, '../src', ...dirs)).default;
     } else {

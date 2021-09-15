@@ -3,6 +3,7 @@ import { snakeCase } from 'lodash';
 import { queueTask } from '../util/tasks';
 import { patchIndex } from './util/patch';
 import { assertPath } from '../util/file';
+import { getInflections } from './util/inflections';
 import { readSourceFile, writeLocalFile, replacePrimary } from './util/source';
 import { routerToOpenApi } from './util/openapi';
 import { assertRoutesDir } from './routes';
@@ -29,9 +30,12 @@ export async function assertWebDocsDir() {
 }
 
 async function generateOpenApiDocs(options) {
-  const { pluralKebab } = options;
+  const { pluralKebab } = getInflections(options.name);
   const routesFile = path.resolve(await assertRoutesDir(), `${pluralKebab}.js`);
-  const apiDocsFile = path.resolve(await assertApiDocsDir(), `${pluralKebab}.json`);
+  const apiDocsFile = path.resolve(
+    await assertApiDocsDir(),
+    `${pluralKebab}.json`
+  );
   let router;
   withDirSync('services/api', () => {
     router = require(routesFile);
@@ -44,13 +48,13 @@ async function generateOpenApiDocs(options) {
 function loadExistingDocs(file) {
   try {
     return require(file);
-  } catch(err) {
+  } catch (err) {
     return null;
   }
 }
 
 export async function generateMarkdown(options) {
-  const { pluralLower } = options;
+  const { pluralLower } = getInflections(options.name);
 
   const isAn = pluralLower.match(/^[aeiou]|ho/);
 

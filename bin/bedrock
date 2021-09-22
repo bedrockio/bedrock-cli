@@ -1,13 +1,16 @@
-#!/usr/bin/env node -r esm --unhandled-rejections=strict
+#!/usr/bin/env node
 
-import path from 'path';
-import kleur from 'kleur';
-import { program } from 'commander';
-import { camelCase } from 'lodash';
-import { promptFill } from '../src/util/prompt';
-import { restoreSnapshot } from '../src/util/snapshot';
-import { version } from '../package.json';
-import descriptor from '../command.json';
+/* eslint-disable-next-line no-global-assign */
+require = require('esm')(module);
+
+const path = require('path');
+const kleur = require('kleur');
+const { program } = require('commander');
+const { camelCase } = require('lodash');
+const { promptFill } = require('../src/util/prompt');
+const { restoreSnapshot } = require('../src/util/snapshot');
+const { version } = require('../package.json');
+const descriptor = require('../command.json');
 
 program.version(version);
 addCommand(program, descriptor);

@@ -74,3 +74,30 @@ The `bedrock cloud deploy` command supports posting message on a Slack channel w
 ```
 
 Each environment can use the same webhook for the same channel, or you can set up a different channel and webhook for each environment.
+
+
+## Issues
+
+### Authorization
+
+- Use `gcloud auth login` and `gcloud auth application-default login` to login to the right Google account, or `bedrock cloud login`
+- Use `bedrock cloud authorize staging` to get cluster credentials
+- If you've used `gcloud auth` with another account, run `gcloud config set account <EMAIL>` or `bedrock cloud account <EMAIL>`, then re-run `bedrock cloud authorize`.
+
+If you get this error when trying to deploy:
+
+```
+unauthorized: You don't have the needed permissions to perform this operation, and you may have invalid credentials
+```
+
+Then do the following
+
+```
+gcloud auth configure-docker
+```
+
+or
+
+```
+gcloud docker --authorize-only
+```

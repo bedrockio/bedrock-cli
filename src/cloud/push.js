@@ -9,6 +9,7 @@ async function pushImage(project, image, tag) {
   try {
     await execSyncInherit(`docker push ${gcrTag}`);
   } catch (e) {
+    console.info(kleur.yellow("If You don't have the needed permissions to perform this operation, then run: 'gcloud auth configure-docker'"));
     exit(e.message);
   }
 }

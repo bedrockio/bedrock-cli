@@ -1,10 +1,11 @@
-import { getTag } from './rollout';
+import { getRef } from './rollout';
 import { exec } from '../util/shell';
 import { getConfig } from '../util/git';
 import fetch from 'node-fetch';
 
 export function getSlackWebhook(config) {
-  if (config && config.slack && config.slack.webhook) return config.slack.webhook;
+  if (config && config.slack && config.slack.webhook)
+    return config.slack.webhook;
 }
 
 export async function postSlackMessage(hook, message) {
@@ -22,7 +23,7 @@ export async function postSlackMessage(hook, message) {
 
 export async function createDeployMessage(environment, project, services) {
   const author = await getConfig('user.name', 'Anonymous');
-  const gitTag = await getTag();
+  const gitRef = await getRef();
   const branch = await exec('git branch --show-current');
   const ts = Math.floor(Date.now() / 1000);
   const text = services
@@ -43,7 +44,7 @@ export async function createDeployMessage(environment, project, services) {
       {
         fallback: 'Started Deploying',
         pretext: `Started Deploying: ${project} (${author})`,
-        title: `${environment} | ${branch} | ${gitTag}`,
+        title: `${environment} | ${branch} | ${gitRef}`,
         text,
         ts,
         color,
@@ -63,7 +64,11 @@ export async function slackStartedDeploy(environment, config, services) {
   const hook = getSlackWebhook(config);
   if (hook) {
     const project = config.gcloud && config.gcloud.project;
-    const deployMessage = await createDeployMessage(environment, project, services);
+    const deployMessage = await createDeployMessage(
+      environment,
+      project,
+      services
+    );
     postSlackMessage(hook, deployMessage);
   }
 }

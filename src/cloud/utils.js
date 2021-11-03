@@ -212,7 +212,9 @@ export async function checkKubectlVersion(minVersion = 'v1.19.0') {
 }
 
 export async function getSlackWebhook(config) {
-  if (config && config.slack && config.slack.webhook) return config.slack.webhook;
+  if (config && config.slack && config.slack.webhook) {
+    return config.slack.webhook;
+  }
 }
 
 export function getArchitecture() {

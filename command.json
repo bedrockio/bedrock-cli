@@ -173,6 +173,10 @@
             {
               "name": "remote",
               "description": "Build remotely. Must have Cloud Build API enabled (https://bit.ly/3BC55o5)."
+            },
+            {
+              "name": "native",
+              "description": "Build using native CPU architecture."
             }
           ],
           "arguments": [

@@ -1,4 +1,5 @@
 import fs from 'fs';
+import os from 'os';
 import path from 'path';
 import compareVersions from 'compare-versions';
 const yaml = require('js-yaml');
@@ -236,4 +237,18 @@ export async function checkKubectlVersion(minVersion = 'v1.19.0') {
 export async function getSlackWebhook(config) {
   if (config && config.slack && config.slack.webhook)
     return config.slack.webhook;
+}
+
+export function getArchitecture() {
+  const arch = os.arch();
+
+  // Node versions previous to 16 will be running in Rosetta which
+  // reports "x64" as the architecture, so check CPUs directly.
+  return arch === 'x64' && hasAppleCpus() ? 'arm64' : arch;
+}
+
+function hasAppleCpus() {
+  return os.cpus().some((cpu) => {
+    return cpu.model.includes('Apple');
+  });
 }

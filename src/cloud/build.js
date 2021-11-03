@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import kleur from 'kleur';
+import { getArchitecture } from './utils';
 import { execSyncInherit, withDir } from '../util/shell';
 import { exit } from '../util/exit';
 
@@ -25,9 +26,14 @@ async function buildImageRemote(options) {
   const image = getImage(options);
   const dockerfile = getDockerfile(options);
 
-  let command = 'gcloud builds submit';
-  command += ` --config ${path.resolve(__dirname, 'cloudbuild.yaml')}`;
-  command += ` --substitutions _IMAGE=${image},_DOCKERFILE=${dockerfile}`;
+  const flags = [
+    `--config ${path.resolve(__dirname, 'cloudbuild.yaml')}`,
+    `--substitutions _IMAGE=${image},_DOCKERFILE=${dockerfile}`,
+  ].join(' ');
+
+  const command = `gcloud builds submit ${flags}`;
+  console.info(kleur.yellow(`\n=> Remote build "${image}"`));
+  console.info(kleur.gray(command));
 
   try {
     await execSyncInherit(command);
@@ -35,13 +41,34 @@ async function buildImageRemote(options) {
     exit(e.message);
   }
 }
-
 async function buildImageLocal(options) {
+  const arch = getArchitecture();
+  let platform;
+
+  // Assume x86_64 architecture. This could potentially be derived
+  // from a gcloud command if necessary.
+  if (arch !== 'x64') {
+    if (options.native) {
+      console.info(kleur.yellow(`Building with native architecture ${arch}.`));
+    } else {
+      platform = 'linux/amd64';
+    }
+  }
   const image = getImage(options);
   const dockerfile = getDockerfile(options);
+
+  const flags = [
+    `-t ${image}`,
+    `-f ${dockerfile}`,
+    ...(platform ? [`--platform=${platform}`] : []),
+  ].join(' ');
+
+  const command = `docker build ${flags} .`;
   console.info(kleur.yellow(`\n=> Building "${image}"`));
+  console.info(kleur.gray(command));
+
   try {
-    await execSyncInherit(`docker build -t ${image} -f ${dockerfile} .`);
+    await execSyncInherit(command);
   } catch (e) {
     exit(e.message);
   }

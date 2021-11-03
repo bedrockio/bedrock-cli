@@ -19,42 +19,25 @@ async function pushImage(project, image, tag) {
 }
 
 export async function dockerPush(options) {
-  const {
-    remote,
-    project,
-    service,
-    subservice,
-    platformName,
-    tag = 'latest',
-  } = options;
+  const { remote, project, service, subservice, platformName, tag = 'latest' } = options;
 
   try {
     const dockerImages = await exec(`docker images --format "{{json . }}"`);
     const dockerImagesJSON = dockerImages.split('\n').map((image) => {
       return JSON.parse(image.slice(1, -1));
     });
-    const repositories = dockerImagesJSON
-      .filter((image) => image.Tag == tag)
-      .map((image) => image.Repository);
+    const repositories = dockerImagesJSON.filter((image) => image.Tag == tag).map((image) => image.Repository);
 
     let images = [];
     if (subservice) {
-      images = repositories.filter(
-        (repo) => repo == `${platformName}-services-${service}-${subservice}`
-      );
+      images = repositories.filter((repo) => repo == `${platformName}-services-${service}-${subservice}`);
     } else if (service) {
-      images = repositories.filter(
-        (repo) => repo == `${platformName}-services-${service}`
-      );
+      images = repositories.filter((repo) => repo == `${platformName}-services-${service}`);
     } else {
-      images = repositories.filter((repo) =>
-        repo.startsWith(`${platformName}-services-`)
-      );
+      images = repositories.filter((repo) => repo.startsWith(`${platformName}-services-`));
     }
 
-    images.length
-      ? console.info(kleur.yellow('\n=> Pushing images:'))
-      : console.info(kleur.yellow('No images found'));
+    images.length ? console.info(kleur.yellow('\n=> Pushing images:')) : console.info(kleur.yellow('No images found'));
     images.forEach((image) => console.info('-', image));
 
     for (const image of images) {

@@ -7,12 +7,7 @@ import { setGCloudConfig, checkConfig } from './authorize';
 import { buildImage } from './build';
 import { dockerPush } from './push';
 import { warn } from './deploy';
-import {
-  rolloutDeployment,
-  getDeployment,
-  deleteDeployment,
-  checkDeployment,
-} from './rollout';
+import { rolloutDeployment, getDeployment, deleteDeployment, checkDeployment } from './rollout';
 import {
   readConfig,
   checkKubectlVersion,
@@ -61,9 +56,7 @@ export async function account(options) {
       console.info(yellow('No changes'));
     }
   } catch (e) {
-    console.info(
-      red('Could not get accounts from "gcloud config configuration list"')
-    );
+    console.info(red('Could not get accounts from "gcloud config configuration list"'));
     return;
   }
 }
@@ -333,9 +326,7 @@ export async function shell(options) {
     deployment = getDeployment(service, subservice);
   }
 
-  const filteredPods = pods.filter((pod) =>
-    pod.metadata.name.startsWith(deployment)
-  );
+  const filteredPods = pods.filter((pod) => pod.metadata.name.startsWith(deployment));
 
   if (!filteredPods.length) {
     console.info(yellow(`No running pods for deployment "${deployment}"`));
@@ -352,9 +343,7 @@ export async function shell(options) {
   });
 
   child.on('exit', function (code) {
-    console.info(
-      green(`Finished bash for pod: "${podName}" (exit code: ${code})`)
-    );
+    console.info(green(`Finished bash for pod: "${podName}" (exit code: ${code})`));
   });
 }
 
@@ -407,10 +396,6 @@ export async function bootstrap(options) {
       initial: config.gcloud && config.gcloud.project,
     }));
   console.info(green(`bedrock cloud ${environment} ${project}`));
-  console.info(
-    yellow(
-      `=> Bootstrap GKE cluster and services (environment: [${environment}], project: [${project}])`
-    )
-  );
+  console.info(yellow(`=> Bootstrap GKE cluster and services (environment: [${environment}], project: [${project}])`));
   await bootstrapProjectEnvironment(project, environment, config);
 }

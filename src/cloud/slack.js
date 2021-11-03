@@ -4,8 +4,7 @@ import { getConfig } from '../util/git';
 import fetch from 'node-fetch';
 
 export function getSlackWebhook(config) {
-  if (config && config.slack && config.slack.webhook)
-    return config.slack.webhook;
+  if (config && config.slack && config.slack.webhook) return config.slack.webhook;
 }
 
 export async function postSlackMessage(hook, message) {
@@ -64,11 +63,7 @@ export async function slackStartedDeploy(environment, config, services) {
   const hook = getSlackWebhook(config);
   if (hook) {
     const project = config.gcloud && config.gcloud.project;
-    const deployMessage = await createDeployMessage(
-      environment,
-      project,
-      services
-    );
+    const deployMessage = await createDeployMessage(environment, project, services);
     postSlackMessage(hook, deployMessage);
   }
 }

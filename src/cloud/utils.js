@@ -18,9 +18,7 @@ export function readConfig(environment) {
   try {
     return require(configFilePath);
   } catch (e) {
-    exit(
-      `Could not find config.json for environment: "${environment}", file path: "${configFilePath}"`
-    );
+    exit(`Could not find config.json for environment: "${environment}", file path: "${configFilePath}"`);
   }
 }
 
@@ -29,20 +27,12 @@ export function writeConfig(environment, config) {
   try {
     fs.writeFileSync(configFilePath, JSON.stringify(config, null, 2), 'utf8');
   } catch (e) {
-    exit(
-      `Could not write to config.json for environment: "${environment}", file path: "${configFilePath}"`
-    );
+    exit(`Could not write to config.json for environment: "${environment}", file path: "${configFilePath}"`);
   }
 }
 
 export function getServiceFilePath(environment, filename) {
-  return path.resolve(
-    'deployment',
-    'environments',
-    environment,
-    'services',
-    filename
-  );
+  return path.resolve('deployment', 'environments', environment, 'services', filename);
 }
 
 export function readServiceYaml(environment, filename) {
@@ -60,18 +50,12 @@ export function writeServiceYaml(environment, filename, data) {
   return fs.writeFileSync(filePath, yamlString, 'utf8');
 }
 
-export async function updateServiceYamlEnv(
-  environment,
-  service,
-  envName,
-  envValue
-) {
+export async function updateServiceYamlEnv(environment, service, envName, envValue) {
   const filename = `${service}-deployment.yml`;
   const deployment = readServiceYaml(environment, filename);
   const { env } = deployment.spec.template.spec.containers[0];
-  deployment.spec.template.spec.containers[0].env = env.map(
-    ({ name, value = '' }) =>
-      name == envName ? { name, value: envValue || '' } : { name, value }
+  deployment.spec.template.spec.containers[0].env = env.map(({ name, value = '' }) =>
+    name == envName ? { name, value: envValue || '' } : { name, value }
   );
   writeServiceYaml(environment, filename, deployment);
 }
@@ -112,16 +96,11 @@ export function getServices() {
   const services = [];
   const servicesFolders = getDirectories('services');
   for (const serviceFolder of servicesFolders) {
-    for (const file of fs.readdirSync(
-      path.resolve('services', serviceFolder)
-    )) {
+    for (const file of fs.readdirSync(path.resolve('services', serviceFolder))) {
       if (file == 'Dockerfile') {
         services.push([serviceFolder.toString(), '']);
       } else if (file.startsWith('Dockerfile.')) {
-        services.push([
-          serviceFolder.toString(),
-          file.toString().replace('Dockerfile.', ''),
-        ]);
+        services.push([serviceFolder.toString(), file.toString().replace('Dockerfile.', '')]);
       }
     }
   }
@@ -189,9 +168,7 @@ export async function getSecretNamePrompt() {
 }
 
 async function getAllSecrets() {
-  const secretsJSON = await exec(
-    'kubectl get secret -o json --ignore-not-found'
-  );
+  const secretsJSON = await exec('kubectl get secret -o json --ignore-not-found');
   if (!secretsJSON) return [];
   try {
     const secrets = JSON.parse(secretsJSON);
@@ -235,8 +212,7 @@ export async function checkKubectlVersion(minVersion = 'v1.19.0') {
 }
 
 export async function getSlackWebhook(config) {
-  if (config && config.slack && config.slack.webhook)
-    return config.slack.webhook;
+  if (config && config.slack && config.slack.webhook) return config.slack.webhook;
 }
 
 export function getArchitecture() {

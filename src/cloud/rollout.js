@@ -50,13 +50,7 @@ export async function rolloutDeployment(environment, service, subservice) {
   const deployment = getDeployment(service, subservice);
   console.info(kleur.yellow(`\n=> Rolling out ${environment} ${deployment}`));
 
-  const deploymentFile = path.resolve(
-    'deployment',
-    'environments',
-    environment,
-    'services',
-    `${deployment}.yml`
-  );
+  const deploymentFile = path.resolve('deployment', 'environments', environment, 'services', `${deployment}.yml`);
 
   // Check for config file as it might not exist if the
   // deployment was dynamically created for a feature branch.
@@ -73,9 +67,7 @@ export async function rolloutDeployment(environment, service, subservice) {
   // Patching spec.template forces the container to pull the latest image and
   // perform a rolling update as long as imagePullPolicy: Always is specified.
   try {
-    await execSyncInherit(
-      `kubectl patch deployment ${deployment} -p "${metaData}" --record`
-    );
+    await execSyncInherit(`kubectl patch deployment ${deployment} -p "${metaData}" --record`);
   } catch (e) {
     exit(e.message);
   }
@@ -85,13 +77,7 @@ export async function deleteDeployment(environment, service, subservice) {
   const deployment = getDeployment(service, subservice);
   console.info(kleur.yellow(`\n=> Deleting ${environment} ${deployment}`));
 
-  const deploymentFile = path.resolve(
-    'deployment',
-    'environments',
-    environment,
-    'services',
-    `${deployment}.yml`
-  );
+  const deploymentFile = path.resolve('deployment', 'environments', environment, 'services', `${deployment}.yml`);
 
   // Check for config file as it might not exist if the
   // deployment was dynamically created for a feature branch.
@@ -107,9 +93,7 @@ export async function deleteDeployment(environment, service, subservice) {
 export async function checkDeployment(service, subservice) {
   const deployment = getDeployment(service, subservice);
 
-  const deploymentInfoJSON = await exec(
-    `kubectl get deployment ${deployment} -o json --ignore-not-found`
-  );
+  const deploymentInfoJSON = await exec(`kubectl get deployment ${deployment} -o json --ignore-not-found`);
   if (!deploymentInfoJSON) {
     console.info(kleur.yellow(`Deployment "${deployment}" could not be found`));
     return false;

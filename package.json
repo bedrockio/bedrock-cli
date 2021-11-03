@@ -43,6 +43,5 @@
   "volta": {
     "node": "12.19.0",
     "yarn": "1.22.10"
-  },
-  "prettier": "@bedrockio/prettier-config"
+  }
 }

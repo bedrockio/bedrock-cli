@@ -111,7 +111,7 @@ export async function build(options) {
   options.platformName = await getPlatformName();
 
   if (options.service) {
-    options.services = [[options.service]];
+    options.services = [[options.service, options.subservice]];
   } else {
     options.services = await getServicesPrompt();
     if (!options.services.length) {
@@ -140,7 +140,7 @@ export async function push(options) {
   options.platformName = await getPlatformName();
 
   if (options.service) {
-    options.services = [[options.service]];
+    options.services = [[options.service, options.subservice]];
   } else {
     options.services = await getServicesPrompt();
     if (!options.services.length) {
@@ -198,7 +198,7 @@ export async function deploy(options) {
   options.platformName = await getPlatformName();
 
   if (options.service) {
-    options.services = [[options.service]];
+    options.services = [[options.service, options.subservice]];
   } else {
     options.services = options.all ? getServices() : await getServicesPrompt();
     if (!options.services.length) {

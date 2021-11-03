@@ -107,49 +107,58 @@ export async function status(options) {
 
 export async function build(options) {
   await assertBedrockServicesRoot();
-  const { service, subservice, tag } = options;
-  const platformName = getPlatformName();
 
-  if (!service) {
-    const services = await getServicesPrompt();
-    if (!services.length) {
+  options.platformName = await getPlatformName();
+
+  if (options.service) {
+    options.services = [[options.service, options.subservice]];
+  } else {
+    options.services = await getServicesPrompt();
+    if (!options.services.length) {
       console.info(yellow('There were no services selected'));
       process.exit(0);
     }
-    const enteredTag = await getTagPrompt();
+    options.tag = await getTagPrompt();
+  }
 
-    for (const [service, subservice] of services) {
-      await buildImage(platformName, service, subservice, enteredTag);
-    }
-  } else {
-    await buildImage(platformName, service, subservice, tag);
+  for (const [service, subservice] of options.services) {
+    await buildImage({
+      service,
+      subservice,
+      ...options,
+    });
   }
 }
 
 export async function push(options) {
   await assertBedrockRoot();
 
-  const { service, subservice, tag } = options;
   const environment = options.environment || (await getEnvironmentPrompt());
   const config = readConfig(environment);
   await checkConfig(environment, config);
   const { project } = config.gcloud;
-  const platformName = getPlatformName();
+  options.platformName = await getPlatformName();
 
-  if (!service) {
-    const services = await getServicesPrompt();
-    if (!services.length) {
+  if (options.service) {
+    options.services = [[options.service, options.subservice]];
+  } else {
+    options.services = await getServicesPrompt();
+    if (!options.services.length) {
       console.info(yellow('There were no services selected'));
       process.exit(0);
     }
-    const enteredTag = await getTagPrompt();
-    await warn(environment);
-    for (const [service, subservice] of services) {
-      await dockerPush(project, platformName, service, subservice, enteredTag);
-    }
-  } else {
-    await warn(environment);
-    await dockerPush(project, platformName, service, subservice, tag);
+    options.tag = await getTagPrompt();
+  }
+
+  await warn(environment);
+
+  for (const [service, subservice] of options.services) {
+    await dockerPush({
+      project,
+      service,
+      subservice,
+      ...options,
+    });
   }
 }
 
@@ -182,50 +191,54 @@ export async function deploy(options) {
   await assertBedrockRoot();
   await checkKubectlVersion();
 
-  const { service, subservice, tag, all } = options;
   const environment = options.environment || (await getEnvironmentPrompt());
   const config = readConfig(environment);
   await checkConfig(environment, config);
   const { project } = config.gcloud;
-  const platformName = getPlatformName();
+  options.platformName = await getPlatformName();
 
-  if (!service) {
-    const services = all ? getServices() : await getServicesPrompt();
-    if (!services.length) {
+  if (options.service) {
+    options.services = [[options.service, options.subservice]];
+  } else {
+    options.services = options.all ? getServices() : await getServicesPrompt();
+    if (!options.services.length) {
       console.info(yellow('There were no services selected'));
       process.exit(0);
     }
-    const enteredTag = await getTagPrompt();
-    await warn(environment);
-    const serviceNames = services.map(([service, subservice]) => {
-      let serviceName = service;
-      if (subservice) serviceName += ` / ${subservice}`;
-      return serviceName;
-    });
-    try {
-      slackStartedDeploy(environment, config, serviceNames);
-    } catch (e) {
-      console.error(red('Failed to post to Slack'));
-    }
-    for (const [service, subservice] of services) {
-      await buildImage(platformName, service, subservice, enteredTag);
-      await dockerPush(project, platformName, service, subservice, enteredTag);
-      await rolloutDeployment(environment, service, subservice);
-    }
-  } else {
-    await warn(environment);
+    options.tag = await getTagPrompt();
+  }
+
+  await warn(environment);
+  const serviceNames = options.services.map(([service, subservice]) => {
     let serviceName = service;
     if (subservice) serviceName += ` / ${subservice}`;
-    try {
-      slackStartedDeploy(environment, config, [serviceName]);
-    } catch (e) {
-      console.error(red('Failed to post to Slack'));
+    return serviceName;
+  });
+  try {
+    slackStartedDeploy(environment, config, serviceNames);
+  } catch (e) {
+    console.error(red('Failed to post to Slack'));
+  }
+  for (const [service, subservice] of options.services) {
+    await buildImage({
+      service,
+      subservice,
+      ...options,
+    });
+
+    // Remote builds are already pushed.
+    if (!options.remote) {
+      await dockerPush({
+        project,
+        service,
+        subservice,
+        ...options,
+      });
     }
 
-    await buildImage(platformName, service, subservice, tag);
-    await dockerPush(project, platformName, service, subservice, tag);
     await rolloutDeployment(environment, service, subservice);
   }
+
   try {
     slackFinishedDeploy(config);
   } catch (e) {

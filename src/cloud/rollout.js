@@ -2,6 +2,7 @@ import kleur from 'kleur';
 import { exit } from '../util/exit';
 import { getConfig } from '../util/git';
 import { exec, execSyncInherit } from '../util/shell';
+import { getArchitecture } from './utils';
 import fs from 'fs';
 import path from 'path';
 
@@ -12,28 +13,30 @@ export function getDeployment(service, subservice) {
   return deployment;
 }
 
-export async function getTag() {
-  let tag = await exec('git tag --points-at HEAD');
-  if (!tag) tag = await exec('git rev-parse --short --verify HEAD');
+export async function getRef() {
+  let ref = await exec('git tag --points-at HEAD');
+  if (!ref) ref = await exec('git rev-parse --short --verify HEAD');
   const stat = await exec('git diff --stat');
-  if (stat) tag += '-dirty';
-  return tag;
+  if (stat) ref += '-dirty';
+  return ref;
 }
 
 async function getMetaData() {
-  const author = await getConfig('user.name', 'Anonymous');
   const date = new Date().toUTCString();
+  const author = await getConfig('user.name', 'Anonymous');
   const branch = await exec('git branch --show-current');
-  const git = await getTag();
+  const git = await getRef();
+  const arch = getArchitecture();
 
   const metaData = {
     spec: {
       template: {
         metadata: {
           annotations: {
-            author,
             date,
+            author,
             branch,
+            arch,
             git,
           },
         },

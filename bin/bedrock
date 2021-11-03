@@ -17,7 +17,7 @@ addCommand(program, descriptor);
 
 function addCommand(command, descriptor) {
   const { description, options = [], arguments: args = [] } = descriptor;
-  command.description(description);
+  command.description(getDescription(description));
   command.on('--help', () => {
     console.log('');
   });
@@ -44,7 +44,7 @@ function addCommand(command, descriptor) {
       }
       opts.push(l);
     }
-    command.option(opts.join(', '), description, def);
+    command.option(opts.join(', '), getDescription(description), def);
   }
   for (let sub of descriptor.commands || []) {
     sub.parent = descriptor;
@@ -116,6 +116,10 @@ function getHandlerPath(descriptor) {
     descriptor = descriptor.parent;
   }
   return handlerPath;
+}
+
+function getDescription(arg) {
+  return Array.isArray(arg) ? arg.join('\n') : arg;
 }
 
 program.parse(process.argv);

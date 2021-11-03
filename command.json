@@ -169,6 +169,16 @@
         {
           "name": "build",
           "description": "Build service container",
+          "options": [
+            {
+              "name": "remote",
+              "description": "Build remotely. Must have Cloud Build API enabled (https://bit.ly/3BC55o5)."
+            },
+            {
+              "name": "native",
+              "description": "Build using native CPU architecture."
+            }
+          ],
           "arguments": [
             {
               "name": "service",
@@ -241,6 +251,10 @@
             {
               "name": "all",
               "description": "Deploy all services."
+            },
+            {
+              "name": "remote",
+              "description": "Build remotely. Must have Cloud Build API enabled (https://bit.ly/3BC55o5)."
             }
           ],
           "arguments": [

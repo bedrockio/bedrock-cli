@@ -1,4 +1,5 @@
 import fs from 'fs';
+import os from 'os';
 import path from 'path';
 import compareVersions from 'compare-versions';
 const yaml = require('js-yaml');
@@ -6,6 +7,7 @@ import { red } from 'kleur';
 import { prompt } from '../util/prompt';
 import { exit } from '../util/exit';
 import { exec } from '../util/shell';
+import { getConfig } from '../util/git';
 
 function getConfigFilePath(environment) {
   return path.resolve('deployment', 'environments', environment, 'config.json');
@@ -58,8 +60,8 @@ export async function updateServiceYamlEnv(environment, service, envName, envVal
   writeServiceYaml(environment, filename, deployment);
 }
 
-export function getPlatformName() {
-  return path.basename(process.cwd());
+export async function getPlatformName() {
+  return path.basename(await getConfig('remote.origin.url'), '.git');
 }
 
 function getDirectories(folder) {
@@ -181,7 +183,9 @@ export async function getAllSecretsPrompt() {
   return await prompt({
     type: 'select',
     message: 'Select secret:',
-    choices: (await getAllSecrets())
+    choices: (
+      await getAllSecrets()
+    )
       .map(({ metadata }) => {
         if (!metadata || !metadata.name) return false;
         const { name } = metadata;
@@ -208,5 +212,21 @@ export async function checkKubectlVersion(minVersion = 'v1.19.0') {
 }
 
 export async function getSlackWebhook(config) {
-  if (config && config.slack && config.slack.webhook) return config.slack.webhook;
+  if (config && config.slack && config.slack.webhook) {
+    return config.slack.webhook;
+  }
+}
+
+export function getArchitecture() {
+  const arch = os.arch();
+
+  // Node versions previous to 16 will be running in Rosetta which
+  // reports "x64" as the architecture, so check CPUs directly.
+  return arch === 'x64' && hasAppleCpus() ? 'arm64' : arch;
+}
+
+function hasAppleCpus() {
+  return os.cpus().some((cpu) => {
+    return cpu.model.includes('Apple');
+  });
 }

@@ -9,12 +9,18 @@ async function pushImage(project, image, tag) {
   try {
     await execSyncInherit(`docker push ${gcrTag}`);
   } catch (e) {
-    console.info(kleur.yellow("If You don't have the needed permissions to perform this operation, then run: 'gcloud auth configure-docker'"));
+    console.info(
+      kleur.yellow(
+        "If You don't have the needed permissions to perform this operation, then run: 'gcloud auth configure-docker'"
+      )
+    );
     exit(e.message);
   }
 }
 
-export async function dockerPush(project, platformName, service, subservice, tag = 'latest') {
+export async function dockerPush(options) {
+  const { remote, project, service, subservice, platformName, tag = 'latest' } = options;
+
   try {
     const dockerImages = await exec(`docker images --format "{{json . }}"`);
     const dockerImagesJSON = dockerImages.split('\n').map((image) => {

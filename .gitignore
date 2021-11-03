@@ -1,5 +1,6 @@
+services
 **/node_modules
 credentials.json
 deployment
 .DS_Store
-services
+.vscode

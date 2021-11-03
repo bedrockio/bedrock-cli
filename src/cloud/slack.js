@@ -1,4 +1,4 @@
-import { getTag } from './rollout';
+import { getRef } from './rollout';
 import { exec } from '../util/shell';
 import { getConfig } from '../util/git';
 import fetch from 'node-fetch';
@@ -22,7 +22,7 @@ export async function postSlackMessage(hook, message) {
 
 export async function createDeployMessage(environment, project, services) {
   const author = await getConfig('user.name', 'Anonymous');
-  const gitTag = await getTag();
+  const gitRef = await getRef();
   const branch = await exec('git branch --show-current');
   const ts = Math.floor(Date.now() / 1000);
   const text = services
@@ -43,7 +43,7 @@ export async function createDeployMessage(environment, project, services) {
       {
         fallback: 'Started Deploying',
         pretext: `Started Deploying: ${project} (${author})`,
-        title: `${environment} | ${branch} | ${gitTag}`,
+        title: `${environment} | ${branch} | ${gitRef}`,
         text,
         ts,
         color,

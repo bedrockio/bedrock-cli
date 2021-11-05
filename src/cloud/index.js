@@ -392,7 +392,7 @@ export async function bootstrap(options) {
     options.project ||
     (await prompt({
       type: 'text',
-      message: 'Enter projectId:',
+      message: 'Enter Google Cloud project ID:',
       initial: config.gcloud && config.gcloud.project,
     }));
   console.info(green(`bedrock cloud ${environment} ${project}`));

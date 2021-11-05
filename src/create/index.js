@@ -10,13 +10,6 @@ import { getEnvironments, updateServiceYamlEnv } from '../cloud/utils';
 
 const BEDROCK_REPO = 'bedrockio/bedrock-core';
 
-const COMPLETE_MESSAGE = `
-  Installation Completed!
-  New Bedrock project has been created. To run the stack in Docker:
-
-  docker-compose up
-`;
-
 export default async function create(options) {
   const { project, domain = '', repository = '', address = '', 'admin-password': adminPassword = '' } = options;
 
@@ -34,7 +27,6 @@ export default async function create(options) {
   });
 
   queueTask('Configure', async () => {
-
     const appName = startCase(project);
     const JWT_SECRET = await exec('openssl rand -base64 30');
     const ADMIN_PASSWORD = adminPassword || randomBytes(8).toString('hex');
@@ -68,7 +60,6 @@ export default async function create(options) {
   });
 
   queueTask('Install Dependencies', async () => {
-
     queueTask('API', async () => {
       await exec('yarn install --cwd=services/api');
     });
@@ -76,7 +67,6 @@ export default async function create(options) {
     queueTask('Web', async () => {
       await exec('yarn install --cwd=services/web');
     });
-
   });
 
   queueTask('Finalizing', async () => {
@@ -85,5 +75,19 @@ export default async function create(options) {
 
   await runTasks();
 
-  console.log(kleur.yellow(COMPLETE_MESSAGE));
+  console.log(
+    kleur.yellow(`
+  Installation Completed!
+  New Bedrock project has been created. To run the stack with Docker:
+
+  cd ./${kebab}
+  docker-compose up
+
+  To prepare for deployment:
+
+  - Create a new project in Google Cloud named ${kebab}
+  - Install Terraform (https://www.terraform.io/)
+  - Run \`bedrock cloud bootstrap\`
+  `)
+  );
 }

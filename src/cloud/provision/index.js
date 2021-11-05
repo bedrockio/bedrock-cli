@@ -39,7 +39,7 @@ export async function checkTerraformCommand() {
   try {
     await exec('command -v terraform');
   } catch (e) {
-    exit('Error: Terraform is not installed (https://www.terraform.io/');
+    exit('Error: Terraform is not installed (https://www.terraform.io/)');
   }
 }
 

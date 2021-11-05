@@ -8,11 +8,9 @@ import { getInflections } from './inflections';
 // Set to true to test locally
 const USE_LOCAL = false;
 
-const GITHUB_RAW_BASE =
-  'https://raw.githubusercontent.com/bedrockio/bedrock-core/master';
+const GITHUB_RAW_BASE = 'https://raw.githubusercontent.com/bedrockio/bedrock-core/master';
 
-const GENERATOR_REG =
-  /^([^\n]*)(\/\/|\{\/\*) --- Generator: BLOCK[\s\S]+?--- Generator: end(?: \*\/\})?$/gm;
+const GENERATOR_REG = /^([^\n]*)(\/\/|\{\/\*) --- Generator: BLOCK[\s\S]+?--- Generator: end(?: \*\/\})?$/gm;
 
 export function replaceBlock(source, inject, block) {
   const src = GENERATOR_REG.source.replace(/BLOCK/, block);
@@ -25,19 +23,8 @@ export function replaceBlock(source, inject, block) {
 }
 
 export function replacePrimary(source, resource) {
-  const {
-    kebab,
-    camelLower,
-    camelUpper,
-    pluralLower,
-    pluralUpper,
-    pluralKebab,
-  } = getInflections(resource.name);
-  source = replaceToken(
-    source,
-    /require\((.*)shops/g,
-    `require($1${pluralKebab})`
-  );
+  const { kebab, camelLower, camelUpper, pluralLower, pluralUpper, pluralKebab } = getInflections(resource.name);
+  source = replaceToken(source, /require\((.*)shops/g, `require($1${pluralKebab})`);
   source = replaceToken(source, /require\((.*?)shop\b/g, `require($1${kebab}`);
   source = replaceToken(source, /\/shops/g, `/${pluralKebab}`);
   source = replaceToken(source, /Shops/g, pluralUpper);
@@ -48,24 +35,9 @@ export function replacePrimary(source, resource) {
 }
 
 export function replaceSecondary(source, resource) {
-  const {
-    kebab,
-    camelLower,
-    camelUpper,
-    pluralLower,
-    pluralUpper,
-    pluralKebab,
-  } = getInflections(resource.name);
-  source = replaceToken(
-    source,
-    /require\((.*)products/g,
-    `require($1${pluralKebab})`
-  );
-  source = replaceToken(
-    source,
-    /require\((.*?)product\b/g,
-    `require($1${kebab}`
-  );
+  const { kebab, camelLower, camelUpper, pluralLower, pluralUpper, pluralKebab } = getInflections(resource.name);
+  source = replaceToken(source, /require\((.*)products/g, `require($1${pluralKebab})`);
+  source = replaceToken(source, /require\((.*?)product\b/g, `require($1${kebab}`);
   source = replaceToken(source, /\/products/g, `/${pluralKebab}`);
   source = replaceToken(source, /Products/g, pluralUpper);
   source = replaceToken(source, /products/g, pluralLower);

@@ -52,7 +52,18 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
   console.info(yellow('=> Enabling Compute services (This can take a couple of minutes)'));
   await execSyncInherit('gcloud services enable compute.googleapis.com');
   console.info(yellow('=> Enabling Kubernetes services'));
-  await execSyncInherit('gcloud services enable container.googleapis.com');
+  // await execSyncInherit('gcloud services enable container.googleapis.com');
+  await execSyncInherit('gcloud services enable artifactregistry.googleapis.com');
+  await execSyncInherit('gcloud services enable cloudbuild.googleapis.com');
+
+  try {
+    // TODO: better way than hardcoding the location?
+    await execSyncInherit(
+      'gcloud artifacts repositories create default --repository-format=docker --location=us-east1'
+    );
+  } catch (error) {
+    // Repository may already exist when re-running script
+  }
 
   console.info(yellow('=> Configure deployment GCR paths'));
   for (const service of ['api', 'api-cli', 'api-jobs', 'web']) {
@@ -111,7 +122,7 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
   for (let ingress of ingresses) {
     console.info(yellow(`=> Configure ${ingress} ingress`));
     let ip = await configureIngress(ingress);
-    ips.push([ingress+'-ingress', ip]);
+    ips.push([ingress + '-ingress', ip]);
     if (recreateIngress) {
       console.info(yellow(`=> Creating ${ingress} ingress`));
       await execSyncInherit(`kubectl delete -f ${envPath}/services/${ingress}-ingress.yml --ignore-not-found`);
@@ -143,7 +154,6 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
       if (appUrl) {
         console.info(green(` - configuration of APP_URL in api deployment: ${appUrl}\n`));
       }
-
     }
   }
 

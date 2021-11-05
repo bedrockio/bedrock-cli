@@ -28,7 +28,7 @@ async function buildImageRemote(options) {
 
   const flags = [
     `--config ${path.resolve(__dirname, 'cloudbuild.yaml')}`,
-    `--substitutions _IMAGE=${image},_DOCKERFILE=${dockerfile}`,
+    `--substitutions _IMAGE=${image},_DOCKERFILE=${dockerfile},_LOCATION=us-east1,_REPOSITORY=default`,
   ].join(' ');
 
   const command = `gcloud builds submit ${flags}`;

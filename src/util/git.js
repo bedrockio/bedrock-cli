@@ -1,7 +1,7 @@
 import { exec } from './shell';
 
 export async function cloneRepository(dir, repo) {
-  await exec(`git clone --single-branch --depth 1 --branch compose-tweaks https://github.com/${repo}.git ${dir}`);
+  await exec(`git clone --single-branch --depth 1 https://github.com/${repo}.git ${dir}`);
 }
 
 export async function initializeRepository(dir, repo) {

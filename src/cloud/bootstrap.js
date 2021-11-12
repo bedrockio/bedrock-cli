@@ -52,7 +52,7 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
   console.info(yellow('=> Enabling Compute services (This can take a couple of minutes)'));
   await execSyncInherit('gcloud services enable compute.googleapis.com');
   console.info(yellow('=> Enabling Kubernetes services'));
-  // await execSyncInherit('gcloud services enable container.googleapis.com');
+  await execSyncInherit('gcloud services enable container.googleapis.com');
   await execSyncInherit('gcloud services enable artifactregistry.googleapis.com');
   await execSyncInherit('gcloud services enable cloudbuild.googleapis.com');
 

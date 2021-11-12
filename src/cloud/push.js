@@ -3,11 +3,12 @@ import kleur from 'kleur';
 import { exec, execSyncInherit } from '../util/shell';
 
 async function pushImage(project, image, tag) {
-  const gcrTag = `gcr.io/${project}/${image}:${tag}`;
-  console.info(kleur.green(`Pushing ${gcrTag}`));
-  await exec(`docker tag ${image}:${tag} ${gcrTag}`);
+  // TODO: don't hardcode location
+  const url = `us-east1-docker.pkg.dev/${project}/default/${image}:${tag}`;
+  console.info(kleur.green(`Pushing ${url}`));
+  await exec(`docker tag ${image}:${tag} ${url}`);
   try {
-    await execSyncInherit(`docker push ${gcrTag}`);
+    await execSyncInherit(`docker push ${url}`);
   } catch (e) {
     console.info(
       kleur.yellow(
@@ -19,7 +20,7 @@ async function pushImage(project, image, tag) {
 }
 
 export async function dockerPush(options) {
-  const { remote, project, service, subservice, platformName, tag = 'latest' } = options;
+  const { project, service, subservice, platformName, tag = 'latest' } = options;
 
   try {
     const dockerImages = await exec(`docker images --format "{{json . }}"`);

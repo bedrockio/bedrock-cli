@@ -205,7 +205,7 @@ function configureDeploymentGCRPath(environment, service, project) {
   const serviceYaml = readServiceYaml(environment, fileName);
 
   const image = serviceYaml.spec.template.spec.containers[0].image;
-  const newImage = image.replace(/gcr\.io\/.*\//, `gcr.io/${project}/`);
+  const newImage = image.replace(/(docker\.pkg\.dev|gcr\.io)\/.*?\//, `$1/${project}/`);
   console.info(green(newImage));
 
   if (image != newImage) {

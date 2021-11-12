@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { red, green } from 'kleur';
+import { red, yellow, green } from 'kleur';
 import { exit } from '../util/exit';
 import { exec, execSyncInherit } from '../util/shell';
 import { prompt } from '../util/prompt';
@@ -40,8 +40,13 @@ export async function checkGCloudProject(options = {}) {
   if (!project) exit('Missing project');
   const currentProject = await exec('gcloud config get-value project');
   if (project != currentProject) {
-    console.info(red(`Invalid Google Cloud config: project = ${currentProject}`));
-    return false;
+    console.info(yellow(`Switching to project  ${project}`));
+    try {
+      await setGCloudConfig(options);
+      return true;
+    } catch {
+      return false;
+    }
   }
   return true;
 }
@@ -51,9 +56,7 @@ function getKubectlContext(project, computeZone, clusterName) {
 }
 
 async function getCurrentKubectlContext() {
-  const kubectlConfigJSON = await exec('kubectl config view -o json');
-  const kubectlConfig = JSON.parse(kubectlConfigJSON);
-  return kubectlConfig['current-context']; // e.g. 'gke_bedrock-foundation_us-east1-c_cluster-2'
+  return await exec('kubectl config current-context');
 }
 
 async function checkGCloudConfig(environment, options = {}) {

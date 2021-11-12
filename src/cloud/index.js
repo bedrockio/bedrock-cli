@@ -64,7 +64,7 @@ export async function account(options) {
 export async function login() {
   console.info(
     yellow(
-      'This will open a glcoud login URL in your browser twice. First for your account auth, and a second time for your application default.'
+      'This will open a gcloud login URL in your browser twice. First for your account auth, and a second time for your application default.'
     )
   );
   let confirmed = await prompt({

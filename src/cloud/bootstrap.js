@@ -14,7 +14,7 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
     activeAccount = await exec('gcloud config get-value account');
     if (!activeAccount) throw new Error('No activeAccount');
   } catch (e) {
-    exit('There is no active glcoud account. Please login to glcloud first. Run: "bedrock cloud login"');
+    exit('There is no active gcloud account. Please login to gcloud first with: "bedrock cloud login"');
   }
 
   try {

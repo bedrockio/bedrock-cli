@@ -66,9 +66,9 @@ async function plan(options, planFile, refresh = false) {
   const { clusterName, nodePoolCount, minNodeCount, maxNodeCount, machineType } = kubernetes;
   console.info(kleur.yellow(`=> Planning with planFile: "${planFile}"`));
   const refreshOnly = refresh ? '-refresh-only' : '';
-  await execSyncInherit(
-    `terraform plan ${refreshOnly} -var "project=${project}" -var "environment=${envName}" -var "cluster_name=${clusterName}" -var "bucket_prefix=${bucketPrefix}" -var "region=${region}" -var "zone=${zone}" -var "node_pool_count=${nodePoolCount}" -var "min_node_count=${minNodeCount}" -var "max_node_count=${maxNodeCount}" -var "machine_type=${machineType}" -out="${planFile}"`
-  );
+  const command = `terraform plan ${refreshOnly} -var "project=${project}" -var "environment=${envName}" -var "cluster_name=${clusterName}" -var "bucket_prefix=${bucketPrefix}" -var "region=${region}" -var "zone=${zone}" -var "node_pool_count=${nodePoolCount}" -var "min_node_count=${minNodeCount}" -var "max_node_count=${maxNodeCount}" -var "machine_type=${machineType}" -out="${planFile}"`;
+  console.info(command);
+  await execSyncInherit(command);
 }
 
 export async function provisionTerraform(environment, terraform, options) {

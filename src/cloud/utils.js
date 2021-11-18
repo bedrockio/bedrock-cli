@@ -99,7 +99,7 @@ export function getServices() {
     for (const file of fs.readdirSync(path.resolve('services', serviceFolder))) {
       if (file == 'Dockerfile') {
         services.push([serviceFolder.toString(), '']);
-      } else if (file.startsWith('Dockerfile.')) {
+      } else if (file.startsWith('Dockerfile.') && !file.endsWith('.dev')) {
         services.push([serviceFolder.toString(), file.toString().replace('Dockerfile.', '')]);
       }
     }

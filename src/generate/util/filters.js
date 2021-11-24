@@ -35,10 +35,9 @@ function getFilterForField(field, camelLower) {
 }
 
 function getDateFilter(field) {
-  const { name, time } = field;
+  const { name } = field;
   return block`
-    <Filters.Date
-      ${time ? 'time' : ''}
+    <Filters.DateRange
       name="${name}"
       label="${startCase(name)}"
     />
@@ -69,7 +68,7 @@ function getTextFilter(field) {
     `;
   } else {
     return block`
-    <Filters.Text name="${name}" label="${startCase(name)}" />
+    <Filters.Search name="${name}" label="${startCase(name)}" />
   `;
   }
 }

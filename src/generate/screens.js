@@ -5,21 +5,9 @@ import { block } from './util/template';
 import { replaceFilters } from './util/filters';
 import { patchAppEntrypoint } from './util/patch';
 import { getInflections } from './util/inflections';
-import {
-  readSourceFile,
-  writeLocalFile,
-  replaceBlock,
-  replacePrimary,
-  replaceSecondary,
-} from './util/source';
+import { readSourceFile, writeLocalFile, replaceBlock, replacePrimary, replaceSecondary } from './util/source';
 
-const FILES = [
-  'index.js',
-  'List/index.js',
-  'Detail/index.js',
-  'Detail/Overview.js',
-  'Detail/Menu.js',
-];
+const FILES = ['index.js', 'List/index.js', 'Detail/index.js', 'Detail/Overview.js', 'Detail/Menu.js'];
 
 const SCREENS_DIR = 'services/web/src/screens';
 
@@ -53,18 +41,8 @@ export async function generateScreens(options) {
 export async function generateSubscreens(options) {
   const screensDir = await assertScreensDir();
   const source = await readSourceFile(screensDir, 'Shops/Detail/Products.js');
-  await generateSubscreensFor(
-    screensDir,
-    source,
-    [options],
-    options.subscreens || []
-  );
-  await generateSubscreensFor(
-    screensDir,
-    source,
-    options.externalScreens || [],
-    [options]
-  );
+  await generateSubscreensFor(screensDir, source, [options], options.subscreens || []);
+  await generateSubscreensFor(screensDir, source, options.externalScreens || [], [options]);
 }
 
 export async function assertScreensDir() {
@@ -79,24 +57,21 @@ async function generateSubscreensFor(screensDir, source, primary, secondary) {
         return Promise.all(
           secondary.map(async (secondary) => {
             const sInflections = getInflections(secondary.name);
-            queueTask(
-              `${pInflections.camelUpper}${sInflections.pluralUpper}`,
-              async () => {
-                let src = source;
-                src = replacePrimary(src, primary);
-                src = replaceSecondary(src, secondary);
-                src = replaceListHeaderCells(src, secondary);
-                src = replaceListBodyCells(src, secondary, primary);
-                src = replaceListImports(src, primary);
-                await writeLocalFile(
-                  src,
-                  screensDir,
-                  pInflections.pluralUpper,
-                  'Detail',
-                  `${sInflections.pluralUpper}.js`
-                );
-              }
-            );
+            queueTask(`${pInflections.camelUpper}${sInflections.pluralUpper}`, async () => {
+              let src = source;
+              src = replacePrimary(src, primary);
+              src = replaceSecondary(src, secondary);
+              src = replaceListHeaderCells(src, secondary);
+              src = replaceListBodyCells(src, secondary, primary);
+              src = replaceListImports(src, primary);
+              await writeLocalFile(
+                src,
+                screensDir,
+                pInflections.pluralUpper,
+                'Detail',
+                `${sInflections.pluralUpper}.js`
+              );
+            });
           })
         );
       })
@@ -178,7 +153,6 @@ function replaceOverviewFields(source, options) {
         </Image.Group>
       `;
       } else {
-        options.overviewImports.header = true;
         return block`
         <Header as="h3">{${camelLower}.${name}}</Header>
       `;
@@ -240,6 +214,7 @@ function getOverviewCellValue(token, field, options) {
 
 function replaceOverviewImports(source, options) {
   const imports = [];
+  const semantic = [];
 
   const dateMethods = ['formatDateTime'];
 
@@ -250,7 +225,12 @@ function replaceOverviewImports(source, options) {
   imports.push(`import { ${dateMethods.join(', ')} } from 'utils/date';`);
 
   if (options.overviewImports.image) {
+    semantic.push('Image');
     imports.push("import { urlForUpload } from 'utils/uploads';");
+  }
+
+  if (semantic.length) {
+    imports.unshift(`import { ${semantic.join(', ')} } from 'semantic';`);
   }
 
   source = replaceBlock(source, imports.join('\n'), 'overview-imports');

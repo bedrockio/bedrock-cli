@@ -4,8 +4,8 @@
 
 The Bedrock Command Line Interface can be used to manage Bedrock projects:
 
-- Create a new Project
-- Generate Code: Models, Routes, CRUD UIs, etc.
+- [Create a new Project](#create-a-new-project)
+- [`bedrock generate`](#bedrock-generate) (Generate Models, Routes, CRUD UIs, etc)
 - Installing Plugins into your Project
 - Provisioning new infrastructure on Google Cloud using Terraform
 - Deploying and controlling a Kubernetes cluster
@@ -64,17 +64,16 @@ The `bedrock cloud deploy` command supports posting message on a Slack channel w
       "minNodeCount": 1,
       "maxNodeCount": 3,
       "machineType": "n2-standard-2"
-     },
+    },
     "label": "app"
   },
-  "slack" : {
+  "slack": {
     "webhook": "https://hooks.slack.com/services/xxxxxxxx/xxxxxxxx"
   }
 }
 ```
 
 Each environment can use the same webhook for the same channel, or you can set up a different channel and webhook for each environment.
-
 
 ## Issues
 
@@ -101,3 +100,30 @@ or
 ```
 gcloud docker --authorize-only
 ```
+
+## `bedrock generate`
+
+This CLI command can be used to generate the following:
+
+- `model` - model definitions
+- `routes` - API routes
+- `docs` - documentation
+- `modal` - modal dialogs for editing objects from anywhere
+- `screens` - basic CRUD screens (search/filter, detail page, etc)
+- `subscreens` - screens for associated models (for example a page for `products` that belong to a `shop`)
+
+Running `bedrock generate` can generate one or many of these resources. As the foundation for your generated code, models must be first created to allow generation of other resources so generating other resources will ask you to create a new model or load an existing one.
+
+### Schema Creation
+
+Generating a model requires creating a schema. Understanding [Mongoose schema types](https://mongoosejs.com/docs/schematypes.html) will be helpful here. The schema definition can be edited or changed within the CLI, then choosing `Build Schema` will continue on to generate other resources that are derived from it.
+
+### Integration
+
+The generator makes a best effort to integrate generated code into your app, and on a fresh Bedrock codebase can even generate new resources without restarting the server. However as your code diverges it may require some manual tweaking to correctly integrate with your app.
+
+### Re-generating
+
+As structured JSON data, models can safely be re-generated after manual changes but as a general rule, generated code is expected to diverge as it is modified. However if the code has not been manually changed then it is safe to re-run generators. Another strategy is to allow the generator to overwrite existing files and use `git diff` to manually merge custom and generated code.
+
+Client side code specifically is expected to diverge, however `modal` dialogs benefit greatly from avoiding manual changes as editiable fields inside them can be re-generated after changes your model definition changes.

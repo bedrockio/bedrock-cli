@@ -73,20 +73,6 @@
           "name": "modal",
           "description": "Generate create/update modal"
         }
-      ],
-      "options": [
-        {
-          "name": "save",
-          "short": "s",
-          "type": "boolean",
-          "description": "Save a snapshot when generating new resources."
-        },
-        {
-          "name": "snapshot",
-          "short": "i",
-          "type": "string",
-          "description": "Generate using a previously saved snapshot file."
-        }
       ]
     },
     {

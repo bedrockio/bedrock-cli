@@ -529,6 +529,29 @@
               ]
             }
           ]
+        },
+        {
+          "name": "export",
+          "description": "Export models to a zip file that can be used as fixtures.",
+          "arguments": [
+            {
+              "name": "environment",
+              "type": "string",
+              "description": "Environment (e.g. staging)"
+            }
+          ],
+          "options": [
+            {
+              "name": "model",
+              "type": "string",
+              "description": "The Mongoose name of the model to export. May be a comma separated list."
+            },
+            {
+              "name": "id",
+              "type": "string",
+              "description": "ObjectId of the document to export. May be a comma separated list."
+            }
+          ]
         }
       ]
     },

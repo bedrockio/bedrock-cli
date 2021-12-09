@@ -56,7 +56,7 @@ async function getCurrentKubectlContext() {
   return kubectlConfig['current-context']; // e.g. 'gke_bedrock-foundation_us-east1-c_cluster-2'
 }
 
-async function checkGCloudConfig(environment, options = {}) {
+async function checkGCloudConfig(environment, options = {}, quiet) {
   const { project, computeZone, kubernetes } = options;
   if (!kubernetes) exit('Missing kubernetes settings in config');
   try {
@@ -84,7 +84,7 @@ async function checkGCloudConfig(environment, options = {}) {
       console.info(red(`Invalid Google Cloud config: kubectl context = ${currentkubectlContext}`));
     }
 
-    if (valid) {
+    if (valid && !quiet) {
       console.info(green(`Using Google Cloud environment "${environment}"`));
       console.info('project=' + green(project));
       console.info('compute/zone=' + green(computeZone));
@@ -129,18 +129,22 @@ async function checkSecrets(environment) {
   }
 }
 
-export async function checkConfig(environment, config) {
+export async function checkConfig(environment, config, quiet) {
   if (!config) exit('Missing config');
   if (!config.gcloud) exit('Missing gcloud field in config');
   await checkSecrets(environment);
-  const valid = await checkGCloudConfig(environment, config.gcloud);
+  const valid = await checkGCloudConfig(environment, config.gcloud, quiet);
   if (!valid) {
-    const confirmed = await prompt({
-      type: 'confirm',
-      name: 'authorize',
-      message: `Would you like to switch and authorize project: "${config.gcloud.project}" for environment: "${environment}"?`,
-    });
-    if (!confirmed) process.exit(0);
-    await setGCloudConfig(config.gcloud);
+    if (quiet) {
+      exit(`Not authorized for ${environment}. Run "bedrock cloud authorize ${environment}".`);
+    } else {
+      const confirmed = await prompt({
+        type: 'confirm',
+        name: 'authorize',
+        message: `Would you like to switch and authorize project: "${config.gcloud.project}" for environment: "${environment}"?`,
+      });
+      if (!confirmed) process.exit(0);
+      await setGCloudConfig(config.gcloud);
+    }
   }
 }

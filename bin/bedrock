@@ -91,15 +91,17 @@ function gatherOptions(command) {
 
 function getHandler(descriptor) {
   const dirs = getHandlerPath(descriptor);
+  const name = descriptor.functionName || camelCase(descriptor.name);
   try {
     // Prefer named functions in entrypoints to helper files that may share the same name.
-    const name = descriptor.functionName || camelCase(descriptor.name);
-    const mod = require(path.resolve(
-      __dirname,
-      '../src',
-      ...dirs.slice(0, -1)
-    ));
-    return mod[name] || mod.default;
+    const mod = require(path.resolve(__dirname, '../src', ...dirs.slice(0, -1)));
+    const handler = mod[name] || mod.default;
+    if (!handler) {
+      const err = new Error();
+      err.code = 'MODULE_NOT_FOUND';
+      throw err;
+    }
+    return handler;
   } catch (err) {
     if (err.code === 'MODULE_NOT_FOUND') {
       return require(path.resolve(__dirname, '../src', ...dirs)).default;

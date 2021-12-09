@@ -6,11 +6,7 @@ import { generateModel, assertModelsDir } from './model';
 import { generateRoutes, assertRoutesDir } from './routes';
 import { generateModal, assertModalsDir } from './modals';
 import { generateDocs, assertApiDocsDir, assertWebDocsDir } from './docs';
-import {
-  generateScreens,
-  generateSubscreens,
-  assertScreensDir,
-} from './screens';
+import { generateScreens, generateSubscreens, promptScreensDir } from './screens';
 
 export default async function generate(options, command) {
   await assertBedrockRoot();
@@ -36,11 +32,9 @@ export default async function generate(options, command) {
     await assertApiDocsDir();
     await assertWebDocsDir();
   }
-  if (components.includes('screens')) {
-    await assertScreensDir();
-  }
-  if (components.includes('subscreens')) {
-    await assertScreensDir();
+  if (components.includes('screens') || components.includes('subscreens')) {
+    // Often admin/screens is a pattern so need to prompt
+    await promptScreensDir(options);
   }
   if (components.includes('modal')) {
     await assertModalsDir();
@@ -49,32 +43,32 @@ export default async function generate(options, command) {
     queueTask(`Generate ${resource.name} Resources`, async () => {
       if (components.includes('model')) {
         queueTask('Model', async () => {
-          await generateModel(resource);
+          await generateModel(resource, options);
         });
       }
       if (components.includes('routes')) {
         queueTask('Routes', async () => {
-          await generateRoutes(resource);
+          await generateRoutes(resource, options);
         });
       }
       if (components.includes('docs')) {
         queueTask('Docs', async () => {
-          await generateDocs(resource);
+          await generateDocs(resource, options);
         });
       }
       if (components.includes('screens')) {
         queueTask('Screens', async () => {
-          await generateScreens(resource);
+          await generateScreens(resource, options);
         });
       }
       if (components.includes('subscreens')) {
         queueTask('Subscreens', async () => {
-          await generateSubscreens(resource);
+          await generateSubscreens(resource, options);
         });
       }
       if (components.includes('modal')) {
         queueTask('Modal', async () => {
-          await generateModal(resource);
+          await generateModal(resource, options);
         });
       }
     });

@@ -81,42 +81,36 @@ async function getResourceOptions(options) {
 
 async function setScreenOptions(resource, options) {
   if (options.components.includes('subscreens')) {
-    resource.externalScreens = await getExternalScreens(resource);
     resource.subscreens = await getSubscreens(resource);
+    resource.externalSubscreens = await getExternalSubscreens(resource);
   }
 }
 
-async function getExternalScreens(resource) {
-  const { schema } = resource;
-  const { pluralUpper } = getInflections(resource.name);
-  const refFields = schema.filter(({ type, schemaType }) => {
-    return schemaType === 'ObjectId' && type !== 'Upload';
-  });
-  if (!refFields.length) {
-    return [];
-  }
-  const selectedNames = await prompt({
-    type: 'multiselect',
-    instructions: false,
-    message: 'Generate reference screens:',
-    choices: refFields.map(({ ref }) => {
-      const name = ref + pluralUpper;
-      return {
-        title: name,
-        value: ref,
-        description: `Generates ${name} screen.`,
-      };
-    }),
-    hint: 'Space to select or Enter for none.',
-  });
+async function getExternalSubscreens(resource) {
+  const { camelUpper, pluralUpper } = getInflections(resource.name);
 
-  return selectedNames.map((name) => {
-    return { name };
+  return await promptModelsWithOther(resource, {
+    message: `Generate subscreens referencing ${camelUpper}:`,
+    getDescription: (modelName) => {
+      return `Generates ${modelName} -> ${pluralUpper} screen.`;
+    },
   });
 }
 
 async function getSubscreens(resource) {
   const { camelUpper } = getInflections(resource.name);
+
+  return await promptModelsWithOther(resource, {
+    message: `Generate ${camelUpper} subscreens:`,
+    getDescription: (modelName) => {
+      return `Generates ${camelUpper} -> ${plural(modelName)} screen.`;
+    },
+  });
+}
+
+async function promptModelsWithOther(resource, options) {
+  const { camelUpper } = getInflections(resource.name);
+  const { message, getDescription } = options;
 
   const models = await getModels();
   const modelNames = models
@@ -128,13 +122,13 @@ async function getSubscreens(resource) {
   let selectedNames = await prompt({
     type: 'multiselect',
     instructions: false,
-    message: 'Generate subscreens:',
+    message,
     choices: modelNames
-      .map((name) => {
+      .map((modelName) => {
         return {
-          title: name,
-          value: name,
-          description: `Generates ${camelUpper}${plural(name)} screen.`,
+          title: modelName,
+          value: modelName,
+          description: getDescription(modelName),
         };
       })
       .concat({
@@ -172,7 +166,7 @@ async function getSubscreens(resource) {
 async function getExistingResources() {
   const models = await getModels();
   const selectedNames = await prompt({
-    type: 'multiselect',
+    type: 'autocompleteMultiselect',
     instructions: false,
     message: 'Select models:',
     choices: models.map(({ name }) => {

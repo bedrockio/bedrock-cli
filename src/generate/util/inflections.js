@@ -1,11 +1,13 @@
 import { kebabCase, camelCase, upperFirst } from 'lodash';
-import { plural } from 'pluralize';
+import pluralize from 'pluralize';
+
+pluralize.addPluralRule(/z$/i, 'zzes');
 
 export function getInflections(str) {
   const kebab = kebabCase(str);
   const camelLower = camelCase(str);
   const camelUpper = upperFirst(camelLower);
-  const pluralLower = plural(camelLower);
+  const pluralLower = pluralize.plural(camelLower);
   const pluralUpper = upperFirst(pluralLower);
   const pluralKebab = kebabCase(pluralLower);
   return {

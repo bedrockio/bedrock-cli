@@ -1,25 +1,25 @@
 import { startCase } from 'lodash';
-import { assertPath } from '../util/file';
 import { queueTask } from '../util/tasks';
+import { assertPath } from '../util/file';
 import { block } from './util/template';
 import { replaceFilters } from './util/filters';
 import { patchAppEntrypoint } from './util/patch';
 import { getInflections } from './util/inflections';
 import { readSourceFile, writeLocalFile, replaceBlock, replacePrimary, replaceSecondary } from './util/source';
+import { prompt } from '../util/prompt';
 
 const FILES = ['index.js', 'List/index.js', 'Detail/index.js', 'Detail/Overview.js', 'Detail/Menu.js'];
 
 const SCREENS_DIR = 'services/web/src/screens';
 
-export async function generateScreens(options) {
+export async function generateScreens(options, globalOptions) {
+  const { screensDir } = globalOptions;
   const { pluralUpper } = getInflections(options.name);
   options.overviewImports = {};
 
-  const screensDir = await assertScreensDir();
-
   // Do this sequentially to ensure order
   for (let file of FILES) {
-    let source = await readSourceFile(screensDir, 'Shops', file);
+    let source = await readSourceFile(SCREENS_DIR, 'Shops', file);
     source = replacePrimary(source, options);
     source = replaceSubscreenRoutes(source, options);
     source = replaceSubscreenMenus(source, options);
@@ -38,15 +38,20 @@ export async function generateScreens(options) {
   await patchAppEntrypoint(options);
 }
 
-export async function generateSubscreens(options) {
-  const screensDir = await assertScreensDir();
-  const source = await readSourceFile(screensDir, 'Shops/Detail/Products.js');
+export async function generateSubscreens(options, globalOptions) {
+  const { screensDir } = globalOptions;
+  const source = await readSourceFile(SCREENS_DIR, 'Shops/Detail/Products.js');
   await generateSubscreensFor(screensDir, source, [options], options.subscreens || []);
-  await generateSubscreensFor(screensDir, source, options.externalScreens || [], [options]);
+  await generateSubscreensFor(screensDir, source, options.externalSubscreens || [], [options]);
 }
 
-export async function assertScreensDir() {
-  return await assertPath(SCREENS_DIR);
+export async function promptScreensDir(options) {
+  const dir = await prompt({
+    type: 'text',
+    message: `Path to screens:`,
+    initial: SCREENS_DIR,
+  });
+  options.screensDir = await assertPath(dir);
 }
 
 async function generateSubscreensFor(screensDir, source, primary, secondary) {

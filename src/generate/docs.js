@@ -32,10 +32,7 @@ export async function assertWebDocsDir() {
 async function generateOpenApiDocs(options) {
   const { pluralKebab } = getInflections(options.name);
   const routesFile = path.resolve(await assertRoutesDir(), `${pluralKebab}.js`);
-  const apiDocsFile = path.resolve(
-    await assertApiDocsDir(),
-    `${pluralKebab}.json`
-  );
+  const apiDocsFile = path.resolve(await assertApiDocsDir(), `${pluralKebab}.json`);
   let router;
   withDirSync('services/api', () => {
     router = require(routesFile);

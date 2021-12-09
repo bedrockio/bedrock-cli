@@ -12,7 +12,7 @@ export function removeFiles(path) {
   return new Promise((resolve, reject) => {
     try {
       rimraf(path, resolve);
-    } catch(err) {
+    } catch (err) {
       reject(err);
     }
   });
@@ -32,11 +32,11 @@ export async function assertPath(dir) {
   try {
     await fs.stat(relDir);
     return relDir;
-  } catch(err) {
+  } catch (err) {
     const newDir = await prompt({
       type: 'text',
       name: 'path',
-      message: `${path.basename(relDir)} dir`,
+      message: `Create ${relDir}?`,
       initial: relDir,
     });
     await mkdir(newDir);

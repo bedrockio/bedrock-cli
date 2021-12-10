@@ -2,7 +2,7 @@ import { yellow } from 'kleur';
 import { assertBedrockRoot } from '../util/dir';
 import { checkConfig } from './authorize';
 import { readConfig } from './utils';
-import { exec } from '../util/shell';
+import { exec, execSyncInherit } from '../util/shell';
 
 export default async function exportDocuments(options) {
   const { environment, model = '', id = '' } = options;
@@ -19,12 +19,12 @@ export default async function exportDocuments(options) {
   await checkConfig(environment, config, true);
 
   const cliPodName = await getCliPodName();
-  let script = `/services/scripts/fixtures/export --stdout --model=${model}`;
+  let script = `/service/scripts/fixtures/export --stdout --model=${model}`;
   if (id) {
     script += ` --id=${id}`;
   }
   try {
-    await exec(`kubectl exec ${cliPodName} -- ${script}`);
+    execSyncInherit(`kubectl exec ${cliPodName} -- ${script}`);
   } catch (error) {
     console.error(error.original);
     process.exit(1);

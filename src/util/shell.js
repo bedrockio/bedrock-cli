@@ -1,7 +1,7 @@
 import execa from 'execa';
 import { execSync } from 'child_process';
 
-export async function exec(commands, std = `stdout`) {
+export async function exec(commands, std = 'stdout') {
   try {
     if (typeof commands === 'string') {
       commands = [commands];
@@ -25,8 +25,8 @@ export async function exec(commands, std = `stdout`) {
 // Use when you need to pass through the corresponding stdio stream to the Node.js script output.
 // This facilitates live updates to the output, e.g., when "watching" output or pushing docker images.
 // See: https://stackoverflow.com/a/31104898
-export async function execSyncInherit(command) {
-  await execSync(command, { stdio: 'inherit' });
+export function execSyncInherit(command) {
+  execSync(command, { stdio: 'inherit' });
 }
 
 export async function withDir(dir, fn) {

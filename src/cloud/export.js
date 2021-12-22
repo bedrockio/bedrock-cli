@@ -5,7 +5,7 @@ import { readConfig } from './utils';
 import { exec, execSyncInherit } from '../util/shell';
 
 export default async function exportDocuments(options) {
-  const { environment, model = '', id = '' } = options;
+  const { environment, models = '', ids = '' } = options;
   if (!environment) {
     console.error(yellow('Environment required'));
     process.exit(1);
@@ -19,9 +19,9 @@ export default async function exportDocuments(options) {
   await checkConfig(environment, config, true);
 
   const cliPodName = await getCliPodName();
-  let script = `/service/scripts/fixtures/export --stdout --model=${model}`;
-  if (id) {
-    script += ` --id=${id}`;
+  let script = `/service/scripts/fixtures/export --stdout --models=${models}`;
+  if (ids) {
+    script += ` --ids=${ids}`;
   }
   try {
     execSyncInherit(`kubectl exec ${cliPodName} -- ${script}`);

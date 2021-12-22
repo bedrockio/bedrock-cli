@@ -542,14 +542,14 @@
           ],
           "options": [
             {
-              "name": "model",
+              "name": "models",
               "type": "string",
-              "description": "The Mongoose name of the model to export. May be a comma separated list."
+              "description": "Comma separated list of Mongoose model names to export."
             },
             {
-              "name": "id",
+              "name": "ids",
               "type": "string",
-              "description": "ObjectId of the document to export. May be a comma separated list."
+              "description": "Comma separated list of ObjectIds to export."
             }
           ]
         }

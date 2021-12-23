@@ -56,7 +56,7 @@ export async function rolloutDeployment(environment, service, subservice) {
   // deployment was dynamically created for a feature branch.
   if (fs.existsSync(deploymentFile)) {
     try {
-      await execSyncInherit(`kubectl apply -f ${deploymentFile} --record`);
+      await execSyncInherit(`kubectl apply -f ${deploymentFile}`);
     } catch (e) {
       exit(e.message);
     }
@@ -67,7 +67,7 @@ export async function rolloutDeployment(environment, service, subservice) {
   // Patching spec.template forces the container to pull the latest image and
   // perform a rolling update as long as imagePullPolicy: Always is specified.
   try {
-    await execSyncInherit(`kubectl patch deployment ${deployment} -p "${metaData}" --record`);
+    await execSyncInherit(`kubectl patch deployment ${deployment} -p "${metaData}"`);
   } catch (e) {
     exit(e.message);
   }

@@ -367,6 +367,37 @@
           ]
         },
         {
+          "name": "port-forward",
+          "description": "port-forward service to localhost",
+          "arguments": [
+            {
+              "name": "environment",
+              "type": "string",
+              "description": "Environment (e.g. staging)"
+            },
+            {
+              "name": "service",
+              "type": "string",
+              "description": "Service (e.g. api)"
+            },
+            {
+              "name": "subservice",
+              "type": "string",
+              "description": "SubService (e.g. cli)"
+            },
+            {
+              "name": "localPort",
+              "type": "string",
+              "description": "Local Port number"
+            },
+            {
+              "name": "remotePort",
+              "type": "string",
+              "description": "Remote Port number"
+            }
+          ]
+        },
+        {
           "name": "provision",
           "description": "Provision cluster on Google Cloud with Terraform (subcommands: <plan>, <apply>, <init> and <destroy>)",
           "commands": [

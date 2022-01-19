@@ -22,7 +22,7 @@ export async function secretInfo(options) {
 }
 
 export async function secretDelete(options) {
-  await secret(options, 'delele');
+  await secret(options, 'delete');
 }
 
 export async function secret(options, subcommand) {
@@ -48,8 +48,6 @@ export async function secret(options, subcommand) {
       secretInfo.data = `*** hidden to avoid sensitive information in your shell history ***`;
       console.info(secretInfo);
       console.info(yellow(`Note: Run 'bedrock cloud secret get' to retrieve decrypted data into local file`));
-      // console.info(yellow('=> Decrypt data'));
-      // console.info(decryptSecretData(secretInfo));
     } else {
       console.info(yellow(`Could not find secret "${secretName}"`));
     }

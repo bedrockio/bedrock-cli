@@ -14,7 +14,7 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
     activeAccount = await exec('gcloud config get-value account');
     if (!activeAccount) throw new Error('No activeAccount');
   } catch (e) {
-    exit('There is no active glcoud account. Please login to glcloud first. Run: "bedrock cloud login"');
+    exit('There is no active gcloud account. Please login to gcloud first. Run: "bedrock cloud login"');
   }
 
   try {
@@ -111,7 +111,7 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
   for (let ingress of ingresses) {
     console.info(yellow(`=> Configure ${ingress} ingress`));
     let ip = await configureIngress(ingress);
-    ips.push([ingress+'-ingress', ip]);
+    ips.push([ingress + '-ingress', ip]);
     if (recreateIngress) {
       console.info(yellow(`=> Creating ${ingress} ingress`));
       await execSyncInherit(`kubectl delete -f ${envPath}/services/${ingress}-ingress.yml --ignore-not-found`);
@@ -143,7 +143,6 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
       if (appUrl) {
         console.info(green(` - configuration of APP_URL in api deployment: ${appUrl}\n`));
       }
-
     }
   }
 

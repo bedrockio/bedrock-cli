@@ -1,7 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 import kleur from 'kleur';
-import { getArchitecture } from './utils';
+import { getArchitecture, checkSubdeployment, checkPlatformName, checkTag } from './utils';
+import { checkConfig } from './authorize';
 import { execSyncInherit, withDir } from '../util/shell';
 import { exit } from '../util/exit';
 
@@ -11,6 +12,10 @@ export async function buildImage(options) {
 
   if (!fs.existsSync(serviceDir)) {
     exit(`Service ${service} does not exist`);
+  }
+
+  if (options.remote) {
+    await checkConfig(options);
   }
 
   await withDir(serviceDir, async () => {
@@ -23,7 +28,9 @@ export async function buildImage(options) {
 }
 
 async function buildImageRemote(options) {
-  const image = getImage(options);
+  await checkSubdeployment(options);
+
+  const image = await getImage(options);
   const dockerfile = getDockerfile(options);
 
   const flags = [
@@ -54,7 +61,7 @@ async function buildImageLocal(options) {
       platform = 'linux/amd64';
     }
   }
-  const image = getImage(options);
+  const image = await getImage(options);
   const dockerfile = getDockerfile(options);
 
   const flags = [`-t ${image}`, `-f ${dockerfile}`, ...(platform ? [`--platform=${platform}`] : [])].join(' ');
@@ -71,7 +78,9 @@ async function buildImageLocal(options) {
 }
 
 // Gets the full image name plus tag.
-function getImage(options) {
+async function getImage(options) {
+  await checkPlatformName(options);
+  await checkTag(options);
   const { service, subservice, platformName, tag = 'latest' } = options;
   let name = `${platformName}-services-${service}`;
   if (subservice) {

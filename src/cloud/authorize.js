@@ -5,9 +5,10 @@ import { exit } from '../util/exit';
 import { exec, execSyncInherit } from '../util/shell';
 import { prompt } from '../util/prompt';
 import { getSecretInfo, setSecret } from './secret';
+import { checkEnvironment, readConfig } from './utils';
 
-export async function setGCloudConfig(options = {}) {
-  const { project, computeZone, kubernetes } = options;
+async function setGCloudConfig(config = {}) {
+  const { project, computeZone, kubernetes } = config;
   if (!kubernetes) exit('Missing kubernetes settings in config');
   try {
     // gcloud returns output on stderr
@@ -35,8 +36,8 @@ export async function setGCloudConfig(options = {}) {
   }
 }
 
-export async function checkGCloudProject(options = {}) {
-  const { project } = options;
+async function checkGCloudProject(config = {}) {
+  const { project } = config;
   if (!project) exit('Missing project');
   const currentProject = await exec('gcloud config get-value project');
   if (project != currentProject) {
@@ -56,11 +57,11 @@ async function getCurrentKubectlContext() {
   return kubectlConfig['current-context']; // e.g. 'gke_bedrock-foundation_us-east1-c_cluster-2'
 }
 
-async function checkGCloudConfig(environment, options = {}, quiet) {
-  const { project, computeZone, kubernetes } = options;
+async function checkGCloudConfig(environment, config = {}, quiet) {
+  const { project, computeZone, kubernetes } = config;
   if (!kubernetes) exit('Missing kubernetes settings in config');
   try {
-    let valid = await checkGCloudProject(options);
+    let valid = await checkGCloudProject(config);
 
     if (!computeZone) exit('Missing computeZone');
     const currentComputeZone = await exec('gcloud config get-value compute/zone');
@@ -129,21 +130,31 @@ async function checkSecrets(environment) {
   }
 }
 
-export async function checkConfig(environment, config, quiet) {
-  if (!config) exit('Missing config');
-  if (!config.gcloud) exit('Missing gcloud field in config');
+// TODO: rename to something more understandable
+export async function checkConfig(options) {
+  await checkEnvironment(options);
+
+  options.config = readConfig(options.environment);
+  const { config, environment, force, quiet } = options;
+
+  if (!config) exit('Missing config.');
+  if (!config.gcloud) exit('Missing gcloud field in config.');
   await checkSecrets(environment);
-  const valid = await checkGCloudConfig(environment, config.gcloud, quiet);
+  const valid = await checkGCloudConfig(environment, config.gcloud, quiet || !force);
   if (!valid) {
     if (quiet) {
+      // export command requires terminal to be quiet as it will stream back binary data
+      // so simply error here instead of following prompt flow.
       exit(`Not authorized for ${environment}. Run "bedrock cloud authorize ${environment}".`);
     } else {
-      const confirmed = await prompt({
-        type: 'confirm',
-        name: 'authorize',
-        message: `Would you like to switch and authorize project: "${config.gcloud.project}" for environment: "${environment}"?`,
-      });
-      if (!confirmed) process.exit(0);
+      if (!force) {
+        const confirmed = await prompt({
+          type: 'confirm',
+          name: 'authorize',
+          message: `Would you like to switch and authorize project: "${config.gcloud.project}" for environment: "${environment}"?`,
+        });
+        if (!confirmed) process.exit(1);
+      }
       await setGCloudConfig(config.gcloud);
     }
   }

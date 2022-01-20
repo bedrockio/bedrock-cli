@@ -6,9 +6,16 @@ import { getArchitecture } from './utils';
 import fs from 'fs';
 import path from 'path';
 
-export function getDeployment(service, subservice) {
-  let deployment = service;
-  if (subservice) deployment += `-${subservice}`;
+export function getDeployment(options) {
+  const { service, subservice, subdeployment } = options;
+  let deployment = '';
+  if (subdeployment) {
+    deployment += `${subdeployment}-`;
+  }
+  deployment += service;
+  if (subservice) {
+    deployment += `-${subservice}`;
+  }
   deployment += '-deployment';
   return deployment;
 }
@@ -46,8 +53,9 @@ async function getMetaData() {
   return JSON.stringify(metaData).replace(/"/g, '\\"');
 }
 
-export async function rolloutDeployment(environment, service, subservice) {
-  const deployment = getDeployment(service, subservice);
+export async function rolloutDeployment(options) {
+  const { environment } = options;
+  const deployment = getDeployment(options);
   console.info(kleur.yellow(`\n=> Rolling out ${environment} ${deployment}`));
 
   const deploymentFile = path.resolve('deployment', 'environments', environment, 'services', `${deployment}.yml`);
@@ -73,8 +81,9 @@ export async function rolloutDeployment(environment, service, subservice) {
   }
 }
 
-export async function deleteDeployment(environment, service, subservice) {
-  const deployment = getDeployment(service, subservice);
+export async function deleteDeployment(options) {
+  const { environment } = options;
+  const deployment = getDeployment(options);
   console.info(kleur.yellow(`\n=> Deleting ${environment} ${deployment}`));
 
   const deploymentFile = path.resolve('deployment', 'environments', environment, 'services', `${deployment}.yml`);
@@ -90,8 +99,8 @@ export async function deleteDeployment(environment, service, subservice) {
   }
 }
 
-export async function checkDeployment(service, subservice) {
-  const deployment = getDeployment(service, subservice);
+export async function checkDeployment(options) {
+  const deployment = getDeployment(options);
 
   const deploymentInfoJSON = await exec(`kubectl get deployment ${deployment} -o json --ignore-not-found`);
   if (!deploymentInfoJSON) {

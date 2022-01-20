@@ -1,0 +1,13 @@
+host: '{{domain}}'
+http:
+  paths:
+    # Path must contain a star after the forward slash:
+    # Note that Prefix and Exact types are not supported in GKE < 1.21.3
+    # https://cloud.google.com/kubernetes-engine/docs/how-to/load-balance-ingress
+    - path: /*
+      pathType: ImplementationSpecific
+      backend:
+        service:
+          name: {{name}}-{{service}}-nodeport
+          port:
+            number: 80

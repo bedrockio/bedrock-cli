@@ -19,7 +19,7 @@ async function pushImage(project, image, tag) {
 }
 
 export async function dockerPush(options) {
-  const { remote, project, service, subservice, platformName, tag = 'latest' } = options;
+  const { project, service, subservice, platformName, tag = 'latest' } = options;
 
   try {
     const dockerImages = await exec(`docker images --format "{{json . }}"`);

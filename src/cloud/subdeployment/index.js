@@ -120,7 +120,7 @@ async function runCommand(command) {
   await execSyncInherit(command);
 }
 
-function patchIngress(options) {
+async function patchIngress(options) {
   const { environment, service } = options;
   const filename = `${service}-ingress.yml`;
   let ingress = readServiceYaml(environment, filename);
@@ -144,7 +144,7 @@ function patchIngress(options) {
   addIngressRule(ingress, options);
   addNodePort(docs, options);
   writeServiceYaml(environment, filename, docs);
-  applyServiceFile(filename, options);
+  await applyServiceFile(filename, options);
 }
 
 function addIngressRule(ingress, options) {

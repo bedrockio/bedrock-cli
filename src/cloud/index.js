@@ -214,16 +214,21 @@ export async function undeploy(options) {
   await warn(options.environment);
 
   for (const [service, subservice] of options.services) {
-    const exists = await checkDeployment(service, subservice);
+    const options = {
+      ...options,
+      service,
+      subservice,
+    };
+    const exists = await checkDeployment(options);
     if (exists) {
-      await deleteDeployment(options.environment, service, subservice);
+      await deleteDeployment(options);
     }
   }
 }
 
-async function showDeploymentInfo(service, subservice) {
-  const deployment = getDeployment(service, subservice);
-  const deploymentInfo = await checkDeployment(service, subservice);
+async function showDeploymentInfo(options) {
+  const deployment = getDeployment(options);
+  const deploymentInfo = await checkDeployment(options);
   if (deploymentInfo) {
     const { annotations } = deploymentInfo.spec.template.metadata;
     console.info(green(`Deployment "${deployment}" annotations:`));
@@ -238,7 +243,11 @@ export async function info(options) {
   await checkServices(options);
 
   for (const [service, subservice] of options.services) {
-    await showDeploymentInfo(service, subservice);
+    await showDeploymentInfo({
+      ...options,
+      service,
+      subservice,
+    });
   }
 }
 
@@ -248,7 +257,6 @@ export async function shell(options) {
   await checkConfig(options);
   await checkService(options);
 
-  const { service, subservice } = options;
   const podsJSON = await exec(`kubectl get pods -o json --ignore-not-found`);
   if (!podsJSON) {
     console.info(yellow(`No running pods`));
@@ -257,8 +265,8 @@ export async function shell(options) {
   const pods = JSON.parse(podsJSON).items;
 
   let deployment = 'api-cli-deployment';
-  if (service) {
-    deployment = getDeployment(service, subservice);
+  if (options.service) {
+    deployment = getDeployment(options);
   }
 
   const filteredPods = pods.filter((pod) => pod.metadata.name.startsWith(deployment));

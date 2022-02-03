@@ -6,6 +6,7 @@ import { exec, withDir } from '../util/shell';
 export default async function update() {
   await withDir(path.resolve(homedir(), '.bedrock'), async () => {
     await exec(`git pull`);
+    await exec(`yarn install`);
   });
   console.log(kleur.green('Updated!'));
 }

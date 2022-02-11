@@ -7,7 +7,7 @@ import { checkConfig } from './authorize';
 import { buildImage } from './build';
 import { dockerPush } from './push';
 import { warn } from './deploy';
-import { rolloutDeployment, getDeployment, deleteDeployment, checkDeployment } from './rollout';
+import { rolloutDeployment, deleteDeployment, checkDeployment } from './rollout';
 import {
   checkKubectlVersion,
   checkTag,
@@ -15,6 +15,7 @@ import {
   checkSubdeployment,
   checkServices,
   checkService,
+  getDeployment,
 } from './utils';
 import { bootstrapProjectEnvironment } from './bootstrap';
 import { slackStartedDeploy, slackFinishedDeploy } from './slack';

@@ -2,23 +2,9 @@ import kleur from 'kleur';
 import { exit } from '../util/exit';
 import { getConfig } from '../util/git';
 import { exec, execSyncInherit } from '../util/shell';
-import { getArchitecture } from './utils';
+import { getArchitecture, getDeployment } from './utils';
 import fs from 'fs';
 import path from 'path';
-
-export function getDeployment(options) {
-  const { service, subservice, subdeployment } = options;
-  let deployment = '';
-  if (subdeployment) {
-    deployment += `${subdeployment}-`;
-  }
-  deployment += service;
-  if (subservice) {
-    deployment += `-${subservice}`;
-  }
-  deployment += '-deployment';
-  return deployment;
-}
 
 export async function getRef() {
   let ref = await exec('git tag --points-at HEAD');

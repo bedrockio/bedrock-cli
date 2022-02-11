@@ -9,8 +9,18 @@ import { exit } from '../util/exit';
 import { exec } from '../util/shell';
 import { getConfig } from '../util/git';
 
-function getConfigFilePath(environment) {
-  return path.resolve('deployment', 'environments', environment, 'config.json');
+export function getDeployment(options) {
+  const { service, subservice, subdeployment } = options;
+  let deployment = '';
+  if (subdeployment) {
+    deployment += `${subdeployment}-`;
+  }
+  deployment += service;
+  if (subservice) {
+    deployment += `-${subservice}`;
+  }
+  deployment += '-deployment';
+  return deployment;
 }
 
 export function readConfig(environment) {
@@ -164,6 +174,10 @@ export function getServices() {
     }
   }
   return services;
+}
+
+function getConfigFilePath(environment) {
+  return path.resolve('deployment', 'environments', environment, 'config.json');
 }
 
 async function getServicesPrompt(type = 'multiselect') {

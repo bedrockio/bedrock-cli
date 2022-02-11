@@ -7,9 +7,8 @@ import { exit } from '../../util/exit';
 import { prompt } from '../../util/prompt';
 import { assertBedrockRoot } from '../../util/dir';
 import { validateSimpleName } from '../../util/validation';
-import { readServiceYaml, writeServiceYaml, getServiceFilePath } from '../utils';
+import { readServiceYaml, writeServiceYaml, getServiceFilePath, getDeployment, checkService } from '../utils';
 import { exec, execSyncInherit } from '../../util/shell';
-import { checkService } from '../utils';
 import { checkConfig } from '../authorize';
 
 const TAG_REG = /(:\w+)?$/;
@@ -34,7 +33,10 @@ export async function create(options) {
     });
   }
 
-  const { name, environment, service } = options;
+  options.subdeployment = options.name;
+
+  const { name, environment, service, subservice } = options;
+
   const deployFile = `${service}-deployment.yml`;
   const deployment = readServiceYaml(environment, deployFile);
   updateDeployment(deployment, options);
@@ -46,8 +48,12 @@ export async function create(options) {
     exit(`Could not derive the service port from ${deployFile}.`);
   }
 
-  writeServiceYaml(environment, `${name}-${deployFile}`, deployment);
-  await patchIngress(options);
+  const newDeployment = getDeployment(options);
+  writeServiceYaml(environment, `${newDeployment}.yml`, deployment);
+
+  if (!subservice) {
+    await patchIngress(options);
+  }
 
   console.info(`
   ${green(`Subdeployment "${name}" created successfully.`)}
@@ -69,7 +75,7 @@ export async function create(options) {
 }
 
 function updateDeployment(deployment, options) {
-  const { name, service } = options;
+  const { name, service, subservice } = options;
   const containers = get(deployment, 'spec.template.spec.containers') || [];
 
   for (let container of containers) {
@@ -83,7 +89,7 @@ function updateDeployment(deployment, options) {
       }
     }
 
-    // Derive and update APP_URL
+    // Derive domain from APP_URL
     for (let env of container.env) {
       if (env.name === 'APP_URL') {
         if (!options.domain) {
@@ -99,14 +105,37 @@ function updateDeployment(deployment, options) {
             exit(`Could not derive domain for ${service}. Please pass as an option.`);
           }
         }
-        env.value = `https://${options.domain}`;
+      }
+    }
+
+    const { domain } = options;
+    const [sub, ...rest] = domain.split('.');
+
+    let appDomain;
+    let apiDomain;
+
+    if (service === 'web') {
+      appDomain = options.domain;
+      apiDomain = [`${sub}-api`, ...rest].join('.');
+    } else if (service === 'api') {
+      apiDomain = options.domain;
+      appDomain = [sub.replace(/-api/, ''), ...rest].join('.');
+    }
+
+    for (let env of container.env) {
+      if (env.name === 'APP_URL') {
+        env.value = `https://${appDomain}`;
+      } else if (env.name === 'API_URL') {
+        env.value = `https://${apiDomain}`;
       }
     }
   }
 
-  deployment.metadata.name = `${name}-${service}-deployment`;
-  deployment.spec.selector.matchLabels.app = `${name}-${service}`;
-  deployment.spec.template.metadata.labels.app = `${name}-${service}`;
+  const app = [name, service, subservice].filter((p) => p).join('-');
+
+  deployment.metadata.name = `${app}-deployment`;
+  deployment.spec.selector.matchLabels.app = app;
+  deployment.spec.template.metadata.labels.app = app;
 }
 
 async function applyServiceFile(filename, options) {

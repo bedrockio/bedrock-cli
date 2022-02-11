@@ -583,6 +583,11 @@
                   "name": "service",
                   "type": "string",
                   "description": "Service to base subdeployment off of (e.g. web, api)"
+                },
+                {
+                  "name": "subservice",
+                  "type": "string",
+                  "description": "SubService (e.g. cli)"
                 }
               ],
               "options": [

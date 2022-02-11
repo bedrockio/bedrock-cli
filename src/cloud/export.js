@@ -1,22 +1,18 @@
 import { yellow } from 'kleur';
 import { assertBedrockRoot } from '../util/dir';
 import { checkConfig } from './authorize';
-import { readConfig } from './utils';
 import { exec, execSyncInherit } from '../util/shell';
 
 export default async function exportDocuments(options) {
-  const { environment, models = '', ids = '' } = options;
-  if (!environment) {
-    console.error(yellow('Environment required'));
-    process.exit(1);
-  } else if (!model) {
+  await assertBedrockRoot();
+  await checkConfig(options);
+
+  const { models = '', ids = '' } = options;
+
+  if (!models) {
     console.error(yellow('Model name is required.'));
     process.exit(1);
   }
-
-  await assertBedrockRoot();
-  const config = readConfig(environment);
-  await checkConfig(environment, config, true);
 
   const cliPodName = await getCliPodName();
   let script = `/service/scripts/fixtures/export --stdout --models=${models}`;

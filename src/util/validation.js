@@ -27,6 +27,15 @@ export function validateDomain(str = '', option) {
   return true;
 }
 
+const SIMPLE_NAME_REG = /^[a-z][a-z-]+[a-z]$/i;
+
+export function validateSimpleName(str = '') {
+  if (!SIMPLE_NAME_REG.test(str)) {
+    return 'Name must start and end with a letter and may include only hyphens.';
+  }
+  return true;
+}
+
 export function validateEnum(arg, option) {
   let values;
   if (Array.isArray(arg)) {

@@ -1,9 +1,9 @@
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import yaml from 'js-yaml';
 import compareVersions from 'compare-versions';
-const yaml = require('js-yaml');
-import { red } from 'kleur';
+import { red, yellow } from 'kleur';
 import { prompt } from '../util/prompt';
 import { exit } from '../util/exit';
 import { exec } from '../util/shell';
@@ -36,18 +36,31 @@ export function getServiceFilePath(environment, filename) {
 }
 
 export function readServiceYaml(environment, filename) {
-  const filePath = exports.getServiceFilePath(environment, filename);
-  return yaml.safeLoad(fs.readFileSync(filePath, 'utf8'));
+  const filePath = getServiceFilePath(environment, filename);
+  const content = fs.readFileSync(filePath, 'utf8');
+  const data = content.split(/^---$/gm).map((str) => {
+    return yaml.load(str);
+  });
+  if (data.length === 1) {
+    return data[0];
+  } else {
+    return data;
+  }
 }
 
-export function writeServiceYaml(environment, filename, data) {
-  const filePath = exports.getServiceFilePath(environment, filename);
-  const options = {
-    quotingType: '"',
-    forceQuotes: true,
-  };
-  const yamlString = yaml.safeDump(data, options);
-  return fs.writeFileSync(filePath, yamlString, 'utf8');
+export function writeServiceYaml(environment, filename, docs) {
+  if (!Array.isArray(docs)) {
+    docs = [docs];
+  }
+  const output = docs
+    .map((doc) => {
+      return yaml.dump(doc, {
+        quotingType: '"',
+      });
+    })
+    .join('\n---\n');
+  const filePath = getServiceFilePath(environment, filename);
+  return fs.writeFileSync(filePath, output, 'utf8');
 }
 
 export async function updateServiceYamlEnv(environment, service, envName, envValue) {
@@ -60,8 +73,30 @@ export async function updateServiceYamlEnv(environment, service, envName, envVal
   writeServiceYaml(environment, filename, deployment);
 }
 
-export async function getPlatformName() {
-  return path.basename(await getConfig('remote.origin.url'), '.git');
+export async function checkPlatformName(options) {
+  if (!options.platformName) {
+    options.platformName = path.basename(await getConfig('remote.origin.url'), '.git');
+  }
+}
+
+export async function checkServices(options) {
+  if (options.service) {
+    options.services = [[options.service, options.subservice]];
+  } else {
+    options.services = options.all ? getServices() : await getServicesPrompt();
+    if (!options.services.length) {
+      console.info(yellow('There were no services selected'));
+      process.exit(1);
+    }
+  }
+}
+
+export async function checkService(options) {
+  if (!options.service) {
+    const [service, subservice] = await getServicesPrompt('select');
+    options.service = service;
+    options.subservice = subservice;
+  }
 }
 
 function getDirectories(folder) {
@@ -82,14 +117,38 @@ export function getSecretsDirectory(environment) {
   return path.resolve('deployment', 'environments', environment, 'secrets');
 }
 
-export async function getEnvironmentPrompt() {
-  return await prompt({
-    type: 'select',
-    message: 'Select environment:',
-    choices: getEnvironments().map((value) => {
-      return { title: value, value };
-    }),
-  });
+export async function checkEnvironment(options) {
+  const environments = getEnvironments();
+  if (options.environment) {
+    if (!environments.includes(options.environment)) {
+      exit(`Cannot find environment "${options.environment}".`);
+    }
+  } else {
+    options.environment = await prompt({
+      type: 'select',
+      message: 'Select environment:',
+      choices: environments.map((value) => {
+        return { title: value, value };
+      }),
+    });
+  }
+}
+
+export async function checkSubdeployment(options) {
+  if (!options.subdeployment) {
+    const branch = await exec('git branch --show-current');
+    if (branch !== 'master' && branch !== 'main') {
+      if (
+        await prompt({
+          type: 'confirm',
+          message: `You are currently on branch "${branch}". Would you like to target this instead?`,
+          initial: true,
+        })
+      ) {
+        options.subdeployment = branch;
+      }
+    }
+  }
 }
 
 export function getServices() {
@@ -107,7 +166,7 @@ export function getServices() {
   return services;
 }
 
-export async function getServicesPrompt(type = 'multiselect') {
+async function getServicesPrompt(type = 'multiselect') {
   const services = getServices();
   return await prompt({
     type,
@@ -124,12 +183,18 @@ export async function getServicesPrompt(type = 'multiselect') {
   });
 }
 
-export async function getTagPrompt() {
-  return await prompt({
-    type: 'text',
-    message: 'Enter build tag:',
-    initial: 'latest',
-  });
+export async function checkTag(options) {
+  if (!options.tag) {
+    if (options.subdeployment) {
+      options.tag = options.subdeployment;
+    } else {
+      options.tag = await prompt({
+        type: 'text',
+        message: 'Enter build tag:',
+        initial: 'latest',
+      });
+    }
+  }
 }
 
 export async function getTerraformPrompt() {

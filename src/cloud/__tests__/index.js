@@ -1,8 +1,8 @@
 import fs from 'fs';
-import path from 'path';
-import tmp from 'tmp';
 
 import * as utils from '../utils';
+
+jest.mock('fs');
 
 describe('cloud utils', () => {
   it('should update service yaml env', async () => {
@@ -55,28 +55,28 @@ spec:
       volumes:
         - name: cache
           emptyDir: {}`;
-    const dir = tmp.dirSync().name;
     const filename = 'test-api-deployment.yml';
-    const apiYamlFile = path.resolve(dir, filename);
-    // console.info(apiYamlFile);
-
-    const mock = jest.spyOn(utils, 'getServiceFilePath').mockImplementation(() => apiYamlFile);
-    const mockedApiYamlFile = utils.getServiceFilePath();
-
-    expect(apiYamlFile).toBe(mockedApiYamlFile);
-
-    fs.writeFileSync(apiYamlFile, apiYamlFileString, 'utf8');
-    const deployment = utils.readServiceYaml();
-    expect(deployment.spec.template.spec.containers[0].env.length).toBe(10);
     const environment = 'staging';
     const service = 'api';
+
+    let updated = apiYamlFileString;
+    fs.readFileSync.mockImplementation(() => {
+      return updated;
+    });
+
+    fs.writeFileSync.mockImplementation((str, content) => {
+      updated = content;
+    });
+
+    const deployment = utils.readServiceYaml(environment, service);
+    expect(deployment.spec.template.spec.containers[0].env.length).toBe(10);
 
     utils.updateServiceYamlEnv(environment, service, 'JWT_SECRET', `changed`);
     utils.updateServiceYamlEnv(environment, service, 'NODE_ENV', `demo`);
     utils.updateServiceYamlEnv(environment, service, 'DOES_NOT_EXIST', `nope`);
 
-    const str = fs.readFileSync(apiYamlFile, 'utf8');
-    const updatedYamlString = `
+    expect(updated.trim()).toBe(
+      `
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -99,7 +99,7 @@ spec:
             - name: NODE_ENV
               value: demo
             - name: MONGO_URI
-              value: 'mongodb://mongo:27017/bedrock_staging'
+              value: mongodb://mongo:27017/bedrock_staging
             - name: ADMIN_EMAIL
               value: admin@bedrock.foundation
             - name: APP_DOMAIN
@@ -107,7 +107,7 @@ spec:
             - name: JWT_SECRET
               value: changed
             - name: APP_URL
-              value: 'https://bedrock.foundation'
+              value: https://bedrock.foundation
             - name: POSTMARK_FROM
               value: no-reply@bedrock.foundation
             - name: POSTMARK_APIKEY
@@ -125,12 +125,10 @@ spec:
       volumes:
         - name: cache
           emptyDir: {}
-`;
-    expect(str.trim()).toBe(updatedYamlString.trim());
+`.trim()
+    );
 
     const updatedDeployment = utils.readServiceYaml(environment, filename);
     expect(updatedDeployment.spec.template.spec.containers[0].env.length).toBe(10);
-
-    mock.mockRestore();
   });
 });

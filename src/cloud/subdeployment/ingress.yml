@@ -1,0 +1,12 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{service}}-ingress
+  annotations:
+    kubernetes.io/ingress.global-static-ip-name: {{service}}-ingress
+spec:
+  defaultBackend:
+    service:
+      name: {{service}}-nodeport
+      port:
+        number: 80

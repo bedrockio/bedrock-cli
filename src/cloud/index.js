@@ -1,31 +1,30 @@
 import open from 'open';
 import { reset, gray, green, yellow, red } from 'kleur';
-import { assertBedrockRoot, assertBedrockServicesRoot } from '../util/dir';
+import { assertBedrockRoot } from '../util/dir';
 import { exec, execSyncInherit } from '../util/shell';
 import { prompt } from '../util/prompt';
-import { setGCloudConfig, checkConfig } from './authorize';
+import { checkConfig } from './authorize';
 import { buildImage } from './build';
 import { dockerPush } from './push';
 import { warn } from './deploy';
 import { rolloutDeployment, getDeployment, deleteDeployment, checkDeployment } from './rollout';
 import {
-  readConfig,
   checkKubectlVersion,
-  getEnvironmentPrompt,
-  getServicesPrompt,
-  getServices,
-  getTagPrompt,
-  getPlatformName,
+  checkTag,
+  checkPlatformName,
+  checkSubdeployment,
+  checkServices,
+  checkService,
 } from './utils';
 import { bootstrapProjectEnvironment } from './bootstrap';
 import { slackStartedDeploy, slackFinishedDeploy } from './slack';
 
 export async function authorize(options) {
   await assertBedrockRoot();
-
-  const environment = options.environment || (await getEnvironmentPrompt());
-  const config = readConfig(environment);
-  await setGCloudConfig(config.gcloud);
+  await checkConfig({
+    ...options,
+    force: true,
+  });
 }
 
 export async function account(options) {
@@ -64,7 +63,7 @@ export async function account(options) {
 export async function login() {
   console.info(
     yellow(
-      'This will open a glcoud login URL in your browser twice. First for your account auth, and a second time for your application default.'
+      'This will open a gcloud login URL in your browser twice. First for your account auth, and a second time for your application default.'
     )
   );
   let confirmed = await prompt({
@@ -83,11 +82,9 @@ export async function login() {
 export async function status(options) {
   await assertBedrockRoot();
   await checkKubectlVersion();
+  await checkConfig(options);
 
-  const environment = options.environment || (await getEnvironmentPrompt());
-  const config = readConfig(environment);
-  await checkConfig(environment, config);
-
+  const { environment } = options;
   await execSyncInherit('kubectl get ingress');
   console.info('');
   await execSyncInherit('kubectl get services');
@@ -106,20 +103,8 @@ export async function status(options) {
 }
 
 export async function build(options) {
-  await assertBedrockServicesRoot();
-
-  options.platformName = await getPlatformName();
-
-  if (options.service) {
-    options.services = [[options.service, options.subservice]];
-  } else {
-    options.services = await getServicesPrompt();
-    if (!options.services.length) {
-      console.info(yellow('There were no services selected'));
-      process.exit(0);
-    }
-    options.tag = await getTagPrompt();
-  }
+  await assertBedrockRoot();
+  await checkServices(options);
 
   for (const [service, subservice] of options.services) {
     await buildImage({
@@ -132,26 +117,14 @@ export async function build(options) {
 
 export async function push(options) {
   await assertBedrockRoot();
+  await checkConfig(options);
+  await checkPlatformName(options);
+  await checkServices(options);
+  await checkTag(options);
 
-  const environment = options.environment || (await getEnvironmentPrompt());
-  const config = readConfig(environment);
-  await checkConfig(environment, config);
-  const { project } = config.gcloud;
-  options.platformName = await getPlatformName();
+  await warn(options.environment);
 
-  if (options.service) {
-    options.services = [[options.service, options.subservice]];
-  } else {
-    options.services = await getServicesPrompt();
-    if (!options.services.length) {
-      console.info(yellow('There were no services selected'));
-      process.exit(0);
-    }
-    options.tag = await getTagPrompt();
-  }
-
-  await warn(environment);
-
+  const { project } = options.config.gcloud;
   for (const [service, subservice] of options.services) {
     await dockerPush({
       project,
@@ -165,57 +138,40 @@ export async function push(options) {
 export async function rollout(options) {
   await assertBedrockRoot();
   await checkKubectlVersion();
+  await checkConfig(options);
+  await checkSubdeployment(options);
+  await checkServices(options);
 
-  const { service, subservice } = options;
-  const environment = options.environment || (await getEnvironmentPrompt());
-  const config = readConfig(environment);
-  await checkConfig(environment, config);
+  await warn(options.environment);
 
-  if (!service) {
-    const services = await getServicesPrompt();
-    if (!services.length) {
-      console.info(yellow('There were no services selected'));
-      process.exit(0);
-    }
-    await warn(environment);
-    for (const [service, subservice] of services) {
-      await rolloutDeployment(environment, service, subservice);
-    }
-  } else {
-    await warn(environment);
-    await rolloutDeployment(environment, service, subservice);
+  for (const [service, subservice] of options.services) {
+    await rolloutDeployment({
+      service,
+      subservice,
+      ...options,
+    });
   }
 }
 
 export async function deploy(options) {
   await assertBedrockRoot();
   await checkKubectlVersion();
+  await checkConfig(options);
+  await checkSubdeployment(options);
+  await checkPlatformName(options);
+  await checkServices(options);
+  await checkTag(options);
 
-  const environment = options.environment || (await getEnvironmentPrompt());
-  const config = readConfig(environment);
-  await checkConfig(environment, config);
-  const { project } = config.gcloud;
-  options.platformName = await getPlatformName();
+  await warn(options.environment);
 
-  if (options.service) {
-    options.services = [[options.service, options.subservice]];
-  } else {
-    options.services = options.all ? getServices() : await getServicesPrompt();
-    if (!options.services.length) {
-      console.info(yellow('There were no services selected'));
-      process.exit(0);
-    }
-    options.tag = await getTagPrompt();
-  }
-
-  await warn(environment);
+  const { project } = options.config.gcloud;
   const serviceNames = options.services.map(([service, subservice]) => {
     let serviceName = service;
     if (subservice) serviceName += ` / ${subservice}`;
     return serviceName;
   });
   try {
-    slackStartedDeploy(environment, config, serviceNames);
+    slackStartedDeploy(options.environment, options.config, serviceNames);
   } catch (e) {
     console.error(red('Failed to post to Slack'));
   }
@@ -236,11 +192,15 @@ export async function deploy(options) {
       });
     }
 
-    await rolloutDeployment(environment, service, subservice);
+    await rolloutDeployment({
+      service,
+      subservice,
+      ...options,
+    });
   }
 
   try {
-    slackFinishedDeploy(config);
+    slackFinishedDeploy(options.config);
   } catch (e) {
     console.error(red('Failed to post to Slack'));
   }
@@ -248,33 +208,27 @@ export async function deploy(options) {
 
 export async function undeploy(options) {
   await assertBedrockRoot();
+  await checkConfig(options);
+  await checkServices(options);
 
-  const { service, subservice } = options;
-  const environment = options.environment || (await getEnvironmentPrompt());
-  const config = readConfig(environment);
-  await checkConfig(environment, config);
+  await warn(options.environment);
 
-  if (!service) {
-    const services = await getServicesPrompt();
-    if (!services.length) {
-      console.info(yellow('There were no services selected'));
-      process.exit(0);
+  for (const [service, subservice] of options.services) {
+    const options = {
+      ...options,
+      service,
+      subservice,
+    };
+    const exists = await checkDeployment(options);
+    if (exists) {
+      await deleteDeployment(options);
     }
-    await warn(environment);
-    for (const [service, subservice] of services) {
-      const exists = await checkDeployment(service, subservice);
-      if (exists) await deleteDeployment(environment, service, subservice);
-    }
-  } else {
-    await warn(environment);
-    const exists = await checkDeployment(service, subservice);
-    if (exists) await deleteDeployment(environment, service, subservice);
   }
 }
 
-async function showDeploymentInfo(service, subservice) {
-  const deployment = getDeployment(service, subservice);
-  const deploymentInfo = await checkDeployment(service, subservice);
+async function showDeploymentInfo(options) {
+  const deployment = getDeployment(options);
+  const deploymentInfo = await checkDeployment(options);
   if (deploymentInfo) {
     const { annotations } = deploymentInfo.spec.template.metadata;
     console.info(green(`Deployment "${deployment}" annotations:`));
@@ -285,34 +239,23 @@ async function showDeploymentInfo(service, subservice) {
 export async function info(options) {
   await assertBedrockRoot();
   await checkKubectlVersion();
+  await checkConfig(options);
+  await checkServices(options);
 
-  const { service, subservice } = options;
-  const environment = options.environment || (await getEnvironmentPrompt());
-  const config = readConfig(environment);
-  await checkConfig(environment, config);
-
-  if (!service) {
-    const services = await getServicesPrompt();
-    if (!services.length) {
-      console.info(yellow('There were no services selected'));
-      process.exit(0);
-    }
-    for (const [service, subservice] of services) {
-      await showDeploymentInfo(service, subservice);
-    }
-  } else {
-    await showDeploymentInfo(service, subservice);
+  for (const [service, subservice] of options.services) {
+    await showDeploymentInfo({
+      ...options,
+      service,
+      subservice,
+    });
   }
 }
 
 export async function shell(options) {
   await assertBedrockRoot();
-
-  const { service, subservice } = options;
-  const environment = options.environment || (await getEnvironmentPrompt());
   await checkKubectlVersion();
-  const config = readConfig(environment);
-  await checkConfig(environment, config);
+  await checkConfig(options);
+  await checkService(options);
 
   const podsJSON = await exec(`kubectl get pods -o json --ignore-not-found`);
   if (!podsJSON) {
@@ -322,8 +265,8 @@ export async function shell(options) {
   const pods = JSON.parse(podsJSON).items;
 
   let deployment = 'api-cli-deployment';
-  if (service) {
-    deployment = getDeployment(service, subservice);
+  if (options.service) {
+    deployment = getDeployment(options);
   }
 
   const filteredPods = pods.filter((pod) => pod.metadata.name.startsWith(deployment));
@@ -349,17 +292,11 @@ export async function shell(options) {
 
 export async function portForward(options) {
   await assertBedrockRoot();
-
-  const environment = options.environment || (await getEnvironmentPrompt());
   await checkKubectlVersion();
-  const config = readConfig(environment);
-  await checkConfig(environment, config);
+  await checkConfig(options);
+  await checkService(options);
 
-  let service = options.service;
-  let subservice = options.subservice;
-  if (!service) {
-    [service, subservice] = await getServicesPrompt(environment, 'select');
-  }
+  const { service, subservice } = options;
 
   let deployment = `deployment/${service}`;
   if (subservice) {
@@ -392,17 +329,11 @@ export async function portForward(options) {
 
 export async function logs(options) {
   await assertBedrockRoot();
+  await checkConfig(options);
+  await checkService(options);
 
-  const environment = options.environment || (await getEnvironmentPrompt());
-  const config = readConfig(environment);
-  await checkConfig(environment, config);
+  const { config, service, subservice } = options;
   const { project, computeZone, kubernetes, label } = config.gcloud;
-
-  let service = options.service;
-  let subservice = options.subservice;
-  if (!service) {
-    [service, subservice] = await getServicesPrompt('select');
-  }
 
   let labelName = service;
   if (subservice) labelName += `-${subservice}`;
@@ -427,9 +358,9 @@ export async function logs(options) {
 
 export async function bootstrap(options) {
   await assertBedrockRoot();
+  await checkConfig(options);
 
-  const environment = options.environment || (await getEnvironmentPrompt());
-  const config = readConfig(environment);
+  const { environment, config } = options;
 
   const project =
     options.project ||

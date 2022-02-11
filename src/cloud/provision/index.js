@@ -4,8 +4,7 @@ import { prompt } from '../../util/prompt';
 import { exec, execSyncInherit, withDir } from '../../util/shell';
 import { exit } from '../../util/exit';
 import { assertBedrockRoot } from '../../util/dir';
-import { checkGCloudProject } from '../authorize';
-import { readConfig, getEnvironmentPrompt } from '../utils';
+import { checkConfig } from '../authorize';
 
 export async function terraformPlan(options) {
   await terraform(options, 'plan');
@@ -45,10 +44,9 @@ export async function checkTerraformCommand() {
 
 async function terraform(options, command) {
   await assertBedrockRoot();
+  await checkConfig(options);
 
-  const environment = options.environment || (await getEnvironmentPrompt());
-  const config = readConfig(environment);
-  await checkGCloudProject(config.gcloud);
+  const { environment, config } = options;
   await checkTerraformCommand();
 
   try {

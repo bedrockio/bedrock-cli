@@ -1,5 +1,5 @@
 import path from 'path';
-import { yellow, red } from 'kleur';
+import { yellow } from 'kleur';
 import { promises as fs } from 'fs';
 
 export async function saveSnapshot(file, data) {

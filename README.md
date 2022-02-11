@@ -2,13 +2,12 @@
 
 ![Run Tests](https://github.com/bedrockio/bedrock-cli/workflows/Run%20Tests/badge.svg)
 
-The Bedrock Command Line Interface can be used to manage Bedrock projects:
+The Bedrock Command Line Interface can be used to manage Bedrock projects and deployments.
 
-- [Create a new Project](#create-a-new-project)
-- [`bedrock generate`](#bedrock-generate) (Generate Models, Routes, CRUD UIs, etc)
-- Installing Plugins into your Project
-- Provisioning new infrastructure on Google Cloud using Terraform
-- Deploying and controlling a Kubernetes cluster
+- [Installation](#installation)
+- [Create a New Project](#create-a-new-project)
+- [Deploy your Project](#deploy-your-project)
+- [Generate Code](#generate-code)
 
 ## Installation
 
@@ -31,17 +30,17 @@ bedrock create \
   seltzer-box
 ```
 
-## Cloud Deployment
+## Deploy your Project
 
 To use the bedrock `cloud` commands, check the `bedrock-core` Deployment [README.md](https://github.com/bedrockio/bedrock-core/tree/master/deployment), which includes: gcloud setup, deployment and provisioning.
 
-## More
+Provisioning will allow new infrastructure to be created on Google Cloud using Terraform. CLI commands will also let you deploy and control a Kubernetes cluster.
 
-```bash
-bedrock --help
-```
+### Google Cloud Platform
 
-## Slack integration
+Bedrock uses GCP as it's standard cloud solution for hosting and deploying Bedrock projects. Projects are built using docker and deployed with kubernetes.
+
+### Slack integration
 
 The `bedrock cloud deploy` command supports posting message on a Slack channel when starting and finishing the deploy. This requires the following steps:
 
@@ -75,8 +74,6 @@ The `bedrock cloud deploy` command supports posting message on a Slack channel w
 
 Each environment can use the same webhook for the same channel, or you can set up a different channel and webhook for each environment.
 
-## Issues
-
 ### Authorization
 
 - Use `gcloud auth login` and `gcloud auth application-default login` to login to the right Google account, or `bedrock cloud login`
@@ -101,9 +98,23 @@ or
 gcloud docker --authorize-only
 ```
 
-## `bedrock generate`
+### Remote Builds
 
-This CLI command can be used to generate the following:
+The following commands will build a docker image locally:
+
+- `bedrock cloud build`
+- `bedrock cloud deploy`
+
+There is also the option to build the image remotely using GCP Container Registry:
+
+- `bedrock cloud build --remote`
+- `bedrock cloud deploy --remote`
+
+This may be advantageous as it requires less data to transfer (pushing a tarball of the source vs pushing up an entire docker image), also notably docker images take much longer to build on Apple Silicon as they must compile to `x86` targets.
+
+## Generate Code
+
+The CLI `generate` command can be used to generate the following:
 
 - `model` - model definitions
 - `routes` - API routes
@@ -127,3 +138,11 @@ The generator makes a best effort to integrate generated code into your app, and
 As structured JSON data, models can safely be re-generated after manual changes but as a general rule, generated code is expected to diverge as it is modified. However if the code has not been manually changed then it is safe to re-run generators. Another strategy is to allow the generator to overwrite existing files and use `git diff` to manually merge custom and generated code.
 
 Client side code specifically is expected to diverge, however `modal` dialogs benefit greatly from avoiding manual changes as editiable fields inside them can be re-generated after changes your model definition changes.
+
+## More
+
+Use the `help` command for more information on CLI commands:
+
+```bash
+bedrock help
+```

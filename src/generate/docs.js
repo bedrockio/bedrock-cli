@@ -2,8 +2,8 @@ import path from 'path';
 import { snakeCase } from 'lodash';
 import { queueTask } from '../util/tasks';
 import { patchIndex } from './util/patch';
-import { assertPath } from '../util/file';
 import { getInflections } from './util/inflections';
+import { assertPath, readDirectory } from '../util/file';
 import { readSourceFile, writeLocalFile, replacePrimary } from './util/source';
 import { routerToOpenApi } from './util/openapi';
 import { assertRoutesDir } from './routes';
@@ -31,7 +31,8 @@ export async function assertWebDocsDir() {
 
 async function generateOpenApiDocs(options) {
   const { pluralKebab } = getInflections(options.name);
-  const routesFile = path.resolve(await assertRoutesDir(), `${pluralKebab}.js`);
+
+  const routesFile = await resolveRoutesFile(pluralKebab);
   const apiDocsFile = path.resolve(await assertApiDocsDir(), `${pluralKebab}.json`);
   let router;
   withDirSync('services/api', () => {
@@ -40,6 +41,22 @@ async function generateOpenApiDocs(options) {
   let data = loadExistingDocs(apiDocsFile);
   data = routerToOpenApi(router, data || {});
   await writeLocalFile(JSON.stringify(data, null, 2), apiDocsFile);
+}
+
+async function resolveRoutesFile(pluralKebab) {
+  const dir = await assertRoutesDir();
+  const glob = path.resolve(dir, '**', '*.js');
+  const files = await readDirectory(glob, {
+    ignore: '**/__tests__/*',
+  });
+  const target = `${pluralKebab}.js`;
+  const file = files.find((file) => {
+    return path.basename(file) === target;
+  });
+  if (!file) {
+    throw new Error(`Could not find a routes file named "${target}".`);
+  }
+  return file;
 }
 
 function loadExistingDocs(file) {

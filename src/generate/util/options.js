@@ -9,11 +9,15 @@ import { getInflections } from './inflections';
 import { getModels } from './models';
 
 export async function setResourceOptions(options, command) {
-  const isNew = await prompt({
-    type: 'confirm',
-    initial: true,
-    message: 'Generate new resource?',
-  });
+  let isNew = false;
+
+  if (!options.models) {
+    isNew = await prompt({
+      type: 'confirm',
+      initial: true,
+      message: 'Generate new model?',
+    });
+  }
 
   if (isNew) {
     await promptComponents(options, command);
@@ -72,7 +76,7 @@ async function getResourceOptions(options) {
   resource.name = await prompt({
     type: 'text',
     initial: options.name,
-    message: 'Resource name (ex. User):',
+    message: 'Model name (ex. User):',
     validate: validateCamelUpper,
   });
   resource.schema = await getSchema();
@@ -163,21 +167,40 @@ async function promptModelsWithOther(resource, options) {
   });
 }
 
-async function getExistingResources() {
+async function getExistingResources(options) {
+  const { models: modelNames } = options;
+  let selectedNames;
+
   const models = await getModels();
-  const selectedNames = await prompt({
-    type: 'autocompleteMultiselect',
-    instructions: false,
-    message: 'Select models:',
-    choices: models.map(({ name }) => {
-      return {
-        title: name,
-        value: name,
-        description: `Generate resources for ${name} model.`,
-      };
-    }),
-    hint: 'Space to select or Enter for none.',
-  });
+
+  if (modelNames) {
+    selectedNames = modelNames.map((name) => {
+      const lower = name.toLowerCase();
+      const model = models.find((model) => {
+        const { kebab, camelLower, pluralLower } = getInflections(model.name);
+        return lower === kebab || lower === camelLower.toLowerCase() || lower === pluralLower.toLowerCase();
+      });
+      if (!model) {
+        throw new Error(`Could not resolve model "${name}".`);
+      }
+      return model.name;
+    });
+  } else {
+    selectedNames = await prompt({
+      type: 'autocompleteMultiselect',
+      instructions: false,
+      message: 'Select models:',
+      choices: models.map(({ name }) => {
+        return {
+          title: name,
+          value: name,
+          description: `Generate resources for ${name} model.`,
+        };
+      }),
+      hint: 'Space to select or Enter for none.',
+    });
+  }
+
   return models
     .filter((model) => {
       return selectedNames.includes(model.name);

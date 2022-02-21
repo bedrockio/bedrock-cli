@@ -26,37 +26,19 @@ export function routerToOpenApi(router, data = {}) {
 
     const validationMiddleware = layer.stack.find((layer) => !!layer.schemas);
     if (validationMiddleware) {
-      const query = getParamsFromValidationMiddleware(
-        validationMiddleware,
-        'query'
-      );
+      const query = getParamsFromValidationMiddleware(validationMiddleware, 'query');
       if (query && query.length) {
-        definition.requestQuery = mergeArraysBy(
-          definition.requestQuery,
-          query,
-          'name'
-        );
+        definition.requestQuery = mergeArraysBy(definition.requestQuery, query, 'name');
       }
-      const body = getParamsFromValidationMiddleware(
-        validationMiddleware,
-        'body'
-      );
+      const body = getParamsFromValidationMiddleware(validationMiddleware, 'body');
       if (body && body.length) {
-        definition.requestBody = mergeArraysBy(
-          definition.requestBody,
-          body,
-          'name'
-        );
+        definition.requestBody = mergeArraysBy(definition.requestBody, body, 'name');
       }
     }
     if (!definition.responseBody) {
       definition.responseBody = [];
     }
-    definition.examples = mergeArraysBy(
-      definition.examples || [],
-      getExamplesFromDefinition(definition),
-      'name'
-    );
+    definition.examples = mergeArraysBy(definition.examples || [], getExamplesFromDefinition(definition), 'name');
   }
   return data;
 }
@@ -104,9 +86,7 @@ function getParamsFromValidationMiddleware(validationMiddleware, type) {
     });
     return params;
   } catch (error) {
-    console.warn(
-      `Warning could not convert Joi validation to JSON: ${error.message}`
-    );
+    console.warn(`Warning could not convert Joi validation to JSON: ${error.message}`);
     return [];
   }
 }

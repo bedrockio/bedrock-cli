@@ -11,9 +11,7 @@ import { generateScreens, generateSubscreens, promptScreensDir } from './screens
 export default async function generate(options, command) {
   await assertBedrockRoot();
 
-  if (!options.resources) {
-    await setResourceOptions(options, command);
-  }
+  await setResourceOptions(options, command);
 
   const { components, resources } = options;
 
@@ -77,26 +75,44 @@ export default async function generate(options, command) {
   await runTasks();
 }
 
-export function model() {
-  generate({ components: ['model'] });
+export function model(options) {
+  generate({
+    ...options,
+    components: ['model'],
+  });
 }
 
-export function routes() {
-  generate({ components: ['routes'] });
+export function routes(options) {
+  generate({
+    ...options,
+    components: ['routes'],
+  });
 }
 
-export function docs() {
-  generate({ components: ['docs'] });
+export function docs(options) {
+  generate({
+    ...options,
+    components: ['docs'],
+  });
 }
 
-export function screens() {
-  generate({ components: ['screens'] });
+export function screens(options) {
+  generate({
+    ...options,
+    components: ['screens'],
+  });
 }
 
-export function subscreens() {
-  generate({ components: ['subscreens'] });
+export function subscreens(options) {
+  generate({
+    ...options,
+    components: ['subscreens'],
+  });
 }
 
-export function modal() {
-  generate({ components: ['modal'] });
+export function modal(options) {
+  generate({
+    ...options,
+    components: ['modal'],
+  });
 }

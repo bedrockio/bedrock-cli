@@ -72,6 +72,12 @@ function addCommand(command, descriptor) {
             }
           });
         }
+        for (let { name, type } of sub.options || []) {
+          const val = options[name];
+          if (val && type === 'array') {
+            options[name] = val.trim().split(',');
+          }
+        }
         await promptFill(options, sub.arguments);
         await promptFill(options, sub.options);
         await handler(options, sub);

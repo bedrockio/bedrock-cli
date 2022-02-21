@@ -2,13 +2,7 @@ import prompts from 'prompts';
 import kleur from 'kleur';
 import { lowerFirst } from 'lodash';
 
-import {
-  validateEnum,
-  validateEmail,
-  validateDomain,
-  validateString,
-  validateRepository,
-} from './validation';
+import { validateEnum, validateEmail, validateDomain, validateString, validateRepository } from './validation';
 
 export async function promptFill(answers, options = []) {
   prompts.override(answers);

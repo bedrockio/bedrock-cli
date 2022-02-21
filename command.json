@@ -55,23 +55,58 @@
         },
         {
           "name": "routes",
-          "description": "Generate API routes"
+          "description": "Generate API routes",
+          "options": [
+            {
+              "name": "models",
+              "type": "array",
+              "description": "List of models (comma separated string)."
+            }
+          ]
         },
         {
           "name": "docs",
-          "description": "Generate documentation"
+          "description": "Generate documentation",
+          "options": [
+            {
+              "name": "models",
+              "type": "array",
+              "description": "List of models (comma separated string)."
+            }
+          ]
         },
         {
           "name": "screens",
-          "description": "Generate top level screens"
+          "description": "Generate top level screens",
+          "options": [
+            {
+              "name": "models",
+              "type": "array",
+              "description": "List of models (comma separated string)."
+            }
+          ]
         },
         {
           "name": "subscreens",
-          "description": "Generate sub level screens for references"
+          "description": "Generate sub level screens for references",
+          "options": [
+            {
+              "name": "models",
+              "type": "array",
+              "description": "List of models (comma separated string)."
+            }
+          ]
         },
         {
           "name": "modal",
-          "description": "Generate create/update modal"
+          "description": "Generate create/update modal",
+          "options": [
+            {
+              "name": "models",
+              "type": "array",
+              "description": "List of models (comma separated string)."
+            }
+          ]
         }
       ]
     },

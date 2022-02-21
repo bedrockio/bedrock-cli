@@ -209,7 +209,6 @@ export async function destroy(options) {
         await prompt({
           type: 'confirm',
           message: `Would you like to delete subdeployment "${branch}"?`,
-          initial: true,
         })
       ) {
         options.name = branch;

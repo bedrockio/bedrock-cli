@@ -152,7 +152,6 @@ export async function checkSubdeployment(options) {
         await prompt({
           type: 'confirm',
           message: `You are currently on branch "${branch}". Would you like to target this instead?`,
-          initial: true,
         })
       ) {
         options.subdeployment = branch;

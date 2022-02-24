@@ -144,10 +144,12 @@ export async function checkEnvironment(options) {
   }
 }
 
+const KNOWN_BRANCHES = ['master', 'main', 'development', 'staging', 'production'];
+
 export async function checkSubdeployment(options) {
   if (!options.subdeployment) {
     const branch = await exec('git branch --show-current');
-    if (branch !== 'master' && branch !== 'main') {
+    if (!KNOWN_BRANCHES.includes(branch)) {
       if (
         await prompt({
           type: 'confirm',

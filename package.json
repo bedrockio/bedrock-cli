@@ -1,6 +1,6 @@
 {
   "name": "bedrock-cli",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Bedrock CLI",
   "repository": "git@github.com:bedrockio/bedrock-cli.git",
   "license": "MIT",

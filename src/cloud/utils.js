@@ -149,7 +149,7 @@ const KNOWN_BRANCHES = ['master', 'main', 'development', 'staging', 'production'
 export async function checkSubdeployment(options) {
   if (!options.subdeployment) {
     const branch = await exec('git branch --show-current');
-    if (!KNOWN_BRANCHES.includes(branch)) {
+    if (!KNOWN_BRANCHES.includes(branch) && !branch.includes('/')) {
       if (
         await prompt({
           type: 'confirm',

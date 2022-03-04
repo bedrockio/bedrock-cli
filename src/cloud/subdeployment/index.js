@@ -98,7 +98,7 @@ function updateDeployment(deployment, options) {
             if (service === 'web' && split.length < 3) {
               split.unshift(name);
             } else {
-              split[0] = `${name}-${service}`;
+              split.unshift(`${name}-${service}`);
             }
             options.domain = split.join('.');
           } catch (error) {

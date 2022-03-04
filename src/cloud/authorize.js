@@ -36,7 +36,7 @@ async function setGCloudConfig(config = {}) {
   }
 }
 
-async function checkGCloudProject(config = {}) {
+export async function checkGCloudProject(config = {}) {
   const { project } = config;
   if (!project) exit('Missing project');
   const currentProject = await exec('gcloud config get-value project');

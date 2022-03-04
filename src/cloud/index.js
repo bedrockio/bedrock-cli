@@ -16,6 +16,8 @@ import {
   checkServices,
   checkService,
   getDeployment,
+  readConfig,
+  checkEnvironment,
 } from './utils';
 import { bootstrapProjectEnvironment } from './bootstrap';
 import { slackStartedDeploy, slackFinishedDeploy } from './slack';
@@ -359,9 +361,9 @@ export async function logs(options) {
 
 export async function bootstrap(options) {
   await assertBedrockRoot();
-  await checkConfig(options);
-
-  const { environment, config } = options;
+  await checkEnvironment(options);
+  const { environment } = options;
+  const config = readConfig(environment);
 
   const project =
     options.project ||

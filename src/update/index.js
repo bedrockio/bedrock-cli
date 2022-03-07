@@ -13,6 +13,7 @@ export default async function update() {
 }
 
 async function getPackageManager() {
+
   let manager = await tryPackageManager('yarn');
   if (!manager) {
     manager = await tryPackageManager('npm');
@@ -25,7 +26,7 @@ async function getPackageManager() {
 
 async function tryPackageManager(name) {
   try {
-    await exec(`command -v ${name}`);
+    await exec(`which ${name}`);
     return name;
   } catch (error) {
     console.log(kleur.red(`Try package manager failed for ${name}`));

@@ -264,7 +264,6 @@ export async function shell(options) {
   await assertBedrockRoot();
   await checkKubectlVersion();
   await checkConfig(options);
-  //await checkService(options);
 
   const podsJSON = await exec(`kubectl get pods -o json --ignore-not-found`);
   if (!podsJSON) {

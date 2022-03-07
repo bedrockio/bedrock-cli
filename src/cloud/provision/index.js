@@ -37,7 +37,7 @@ export async function terraformDestroy(options) {
 
 export async function checkTerraformCommand() {
   try {
-    await exec('command -v terraform');
+    await exec('which terraform');
   } catch (e) {
     exit('Error: Terraform is not installed (https://www.terraform.io/)');
   }

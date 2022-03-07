@@ -139,7 +139,7 @@ export async function checkConfig(options) {
 
   if (!config) exit('Missing config.');
   if (!config.gcloud) exit('Missing gcloud field in config.');
-  await checkSecrets(environment);
+
   const valid = await checkGCloudConfig(environment, config.gcloud, quiet || !force);
   if (!valid) {
     if (quiet) {
@@ -158,4 +158,5 @@ export async function checkConfig(options) {
       await setGCloudConfig(config.gcloud);
     }
   }
+  await checkSecrets(environment);
 }

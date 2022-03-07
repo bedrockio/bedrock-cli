@@ -3,7 +3,7 @@ import { reset, gray, green, yellow, red } from 'kleur';
 import { assertBedrockRoot } from '../util/dir';
 import { exec, execSyncInherit } from '../util/shell';
 import { prompt } from '../util/prompt';
-import { checkConfig } from './authorize';
+import { checkConfig, setGCloudConfig } from './authorize';
 import { buildImage } from './build';
 import { dockerPush } from './push';
 import { warn } from './deploy';
@@ -24,10 +24,11 @@ import { slackStartedDeploy, slackFinishedDeploy } from './slack';
 
 export async function authorize(options) {
   await assertBedrockRoot();
-  await checkConfig({
-    ...options,
-    force: true,
-  });
+  await checkEnvironment(options);
+  const { environment } = options;
+  const config = readConfig(environment);
+
+  await setGCloudConfig(config.gcloud);
 }
 
 export async function account(options) {

@@ -7,7 +7,7 @@ import { prompt } from '../util/prompt';
 import { getSecretInfo, setSecret } from './secret';
 import { checkEnvironment, readConfig } from './utils';
 
-async function setGCloudConfig(config = {}) {
+export async function setGCloudConfig(config = {}) {
   const { project, computeZone, kubernetes } = config;
   if (!kubernetes) exit('Missing kubernetes settings in config');
   try {

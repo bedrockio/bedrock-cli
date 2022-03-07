@@ -122,6 +122,9 @@ export async function push(options) {
   await assertBedrockRoot();
   await checkConfig(options);
   await checkPlatformName(options);
+  if (options.service && !options.tag) {
+    options.tag = options.subdeployment || 'latest';
+  }
   await checkServices(options);
   await checkTag(options);
 
@@ -162,6 +165,9 @@ export async function deploy(options) {
   await checkConfig(options);
   await checkSubdeployment(options);
   await checkPlatformName(options);
+  if (options.service && !options.tag) {
+    options.tag = options.subdeployment || 'latest';
+  }
   await checkServices(options);
   await checkTag(options);
 
@@ -258,7 +264,7 @@ export async function shell(options) {
   await assertBedrockRoot();
   await checkKubectlVersion();
   await checkConfig(options);
-  await checkService(options);
+  //await checkService(options);
 
   const podsJSON = await exec(`kubectl get pods -o json --ignore-not-found`);
   if (!podsJSON) {

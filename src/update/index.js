@@ -28,6 +28,8 @@ async function tryPackageManager(name) {
     await exec(`command -v ${name}`);
     return name;
   } catch (error) {
+    console.log(kleur.red(`Try package manager failed for ${name}`));
+    console.error(error);
     return null;
   }
 }

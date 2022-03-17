@@ -3,7 +3,7 @@ import os from 'os';
 import path from 'path';
 import yaml from 'js-yaml';
 import compareVersions from 'compare-versions';
-import { red, yellow } from 'kleur';
+import { red, yellow, dim } from 'kleur';
 import { prompt } from '../util/prompt';
 import { exit } from '../util/exit';
 import { exec } from '../util/shell';
@@ -153,10 +153,12 @@ export async function checkSubdeployment(options) {
       if (
         await prompt({
           type: 'confirm',
-          message: `You are currently on branch "${branch}". Would you like to deploy to ${branch} subdeployment instead?`,
+          message: `You are currently on branch "${branch}". Would you like to deploy to ${branch} subdeployment instead? `,
         })
       ) {
         options.subdeployment = branch;
+      } else {
+        console.info(dim('Run "bedrock cloud subdeployment" for more about subdeployments.'));
       }
     }
   }

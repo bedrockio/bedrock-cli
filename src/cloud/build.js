@@ -66,7 +66,7 @@ async function buildImageLocal(options) {
 
   const flags = [`-t ${image}`, `-f ${dockerfile}`, ...(platform ? [`--platform=${platform}`] : [])].join(' ');
 
-  const command = `docker build ${flags} .`;
+  const command = `DOCKER_BUILDKIT=1 docker build ${flags} .`;
   console.info(kleur.yellow(`\n=> Building "${image}"`));
   console.info(kleur.gray(command));
 

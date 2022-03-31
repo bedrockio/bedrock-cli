@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { red, green } from 'kleur';
+import { yellow, green } from 'kleur';
 import { exit } from '../util/exit';
 import { exec, execSyncInherit } from '../util/shell';
 import { prompt } from '../util/prompt';
@@ -41,7 +41,7 @@ export async function checkGCloudProject(config = {}) {
   if (!project) exit('Missing project');
   const currentProject = await exec('gcloud config get-value project');
   if (project != currentProject) {
-    console.info(red(`Invalid Google Cloud config: project = ${currentProject}`));
+    console.info(yellow(`Invalid Google Cloud config: project = ${currentProject}`));
     return false;
   }
   return true;
@@ -67,7 +67,7 @@ async function checkGCloudConfig(environment, config = {}, quiet) {
     const currentComputeZone = await exec('gcloud config get-value compute/zone');
     if (computeZone != currentComputeZone) {
       valid = false;
-      console.info(red(`Invalid Google Cloud config: compute/zone = ${currentComputeZone}`));
+      console.info(yellow(`Invalid Google Cloud config: compute/zone = ${currentComputeZone}`));
     }
 
     const { clusterName } = kubernetes;
@@ -75,14 +75,14 @@ async function checkGCloudConfig(environment, config = {}, quiet) {
     const currentClusterName = await exec('gcloud config get-value container/cluster');
     if (clusterName != currentClusterName) {
       valid = false;
-      console.info(red(`Invalid Google Cloud config: container/cluster = ${currentClusterName}`));
+      console.info(yellow(`Invalid Google Cloud config: container/cluster = ${currentClusterName}`));
     }
 
     const kubectlContext = getKubectlContext(project, computeZone, clusterName);
     const currentkubectlContext = await getCurrentKubectlContext();
     if (kubectlContext != currentkubectlContext) {
       valid = false;
-      console.info(red(`Invalid Google Cloud config: kubectl context = ${currentkubectlContext}`));
+      console.info(yellow(`Invalid Google Cloud config: kubectl context = ${currentkubectlContext}`));
     }
 
     if (valid && !quiet) {
@@ -108,7 +108,7 @@ async function checkSecrets(environment) {
       const secretInfo = await getSecretInfo(secretName);
       if (!secretInfo) {
         console.info(
-          red(
+          yellow(
             `Warning: Found secret file deployment/environments/${environment}/secrets/${secretFile} that has not been created on the cluster.`
           )
         );
@@ -121,7 +121,7 @@ async function checkSecrets(environment) {
         if (confirmed) await setSecret(environment, secretName);
       } else {
         console.info(
-          red(
+          yellow(
             `Warning: Found secret file deployment/environments/${environment}/secrets/${secretFile} - make sure to remove this file!`
           )
         );

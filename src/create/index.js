@@ -4,7 +4,7 @@ import { cloneRepository, initializeRepository } from '../util/git';
 import { queueTask, runTasks } from '../util/tasks';
 import { removeFiles } from '../util/file';
 import { replaceAll } from '../util/replace';
-import { exec } from '../util/shell';
+import { exec, withDir } from '../util/shell';
 import { randomBytes } from 'crypto';
 import { getEnvironments, updateServiceYamlEnv } from '../cloud/utils';
 
@@ -61,11 +61,15 @@ export default async function create(options) {
 
   queueTask('Install Dependencies', async () => {
     queueTask('API', async () => {
-      await exec('yarn install --cwd=services/api');
+      await withDir('services/api', async () => {
+        await exec('volta run yarn install');
+      });
     });
 
     queueTask('Web', async () => {
-      await exec('yarn install --cwd=services/web');
+      await withDir('services/web', async () => {
+        await exec('volta run yarn install');
+      });
     });
   });
 

@@ -1,6 +1,6 @@
 import open from 'open';
 import { reset, gray, green, yellow, red } from 'kleur';
-import { assertBedrockRoot } from '../util/dir';
+import { assertBedrockRoot, assertBedrockServicesRoot } from '../util/dir';
 import { exec, execSyncInherit } from '../util/shell';
 import { prompt } from '../util/prompt';
 import { checkConfig, setGCloudConfig } from './authorize';
@@ -107,7 +107,7 @@ export async function status(options) {
 }
 
 export async function build(options) {
-  await assertBedrockRoot();
+  await assertBedrockServicesRoot();
   await checkServices(options);
 
   for (const [service, subservice] of options.services) {

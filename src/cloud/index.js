@@ -278,6 +278,17 @@ export async function shell(options) {
     deployment = getDeployment(options);
   }
 
+  if (options.config && options.config.gcloud) {
+    const { dropDeploymentPostfix, gcrPrefix} = options.config.gcloud;
+    if (dropDeploymentPostfix && '-deployment' == deployment.slice(-11)) {
+      // drop -deployment from deployment name
+      deployment = deployment.slice(0, -11);
+    }
+    if (gcrPrefix) {
+      deployment = gcrPrefix + deployment;
+    }
+  }
+
   const filteredPods = pods.filter((pod) => pod.metadata.name.startsWith(deployment));
 
   if (!filteredPods.length) {

@@ -98,9 +98,20 @@ export async function deleteDeployment(options) {
 export async function checkDeployment(options) {
   const deployment = getDeployment(options);
 
-  const deploymentInfoJSON = await exec(`kubectl get deployment ${deployment} -o json --ignore-not-found`);
+  let deploymentName = deployment;
+  if (options.config && options.config.gcloud) {
+    const { dropDeploymentPostfix, gcrPrefix} = options.config.gcloud;
+    if (dropDeploymentPostfix && '-deployment' == deploymentName.slice(-11)) {
+      // drop -deployment from deployment name
+      deploymentName = deployment.slice(0, -11);
+    }
+    if (gcrPrefix) {
+      deploymentName = gcrPrefix + deploymentName;
+    }
+  }
+  const deploymentInfoJSON = await exec(`kubectl get deployment ${deploymentName} -o json --ignore-not-found`);
   if (!deploymentInfoJSON) {
-    console.info(kleur.yellow(`Deployment "${deployment}" could not be found`));
+    console.info(kleur.yellow(`Deployment "${deploymentName}" could not be found`));
     return false;
   }
   return JSON.parse(deploymentInfoJSON);

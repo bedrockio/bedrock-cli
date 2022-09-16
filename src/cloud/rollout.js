@@ -68,6 +68,9 @@ export async function rolloutDeployment(options) {
         deploymentName = deployment.slice(0, -11);
       }
     }
+    if (options.config && options.config.gcloud && options.config.gcloud.gcrPrefix) {
+       deploymentName = options.config.gcloud.gcrPrefix + deploymentName;
+    }
     await execSyncInherit(`kubectl patch deployment ${deploymentName} -p "${metaData}"`);
   } catch (e) {
     exit(e.message);

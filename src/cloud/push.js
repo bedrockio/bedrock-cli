@@ -20,7 +20,7 @@ async function pushImage(project, image, tag, gcrPrefix = '') {
 
 export async function dockerPush(options) {
   const { project, service, subservice, platformName, config, tag = 'latest' } = options;
-  const gcrPrefix = config?.gcloud?.gcrPrefix || '';
+  const gcrPrefix = (config && config.gcloud && config.gcloud.gcrPrefix) || '';
 
   try {
     const dockerImages = await exec(`docker images --format "{{json . }}"`);

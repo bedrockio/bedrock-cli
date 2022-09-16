@@ -61,7 +61,14 @@ export async function rolloutDeployment(options) {
   // Patching spec.template forces the container to pull the latest image and
   // perform a rolling update as long as imagePullPolicy: Always is specified.
   try {
-    await execSyncInherit(`kubectl patch deployment ${deployment} -p "${metaData}"`);
+    let deploymentName = deployment;
+    if (options.config && options.config.gcloud && options.config.gcloud.dropDeploymentPostfix) {
+      // drop -deployment from deployment name
+      if ('-deployment' == deploymentName.slice(-11)) {
+        deploymentName = deployment.slice(0, -11);
+      }
+    }
+    await execSyncInherit(`kubectl patch deployment ${deploymentName} -p "${metaData}"`);
   } catch (e) {
     exit(e.message);
   }

@@ -2,8 +2,8 @@ import { exit } from '../util/exit';
 import kleur from 'kleur';
 import { exec, execSyncInherit } from '../util/shell';
 
-async function pushImage(project, image, tag) {
-  const gcrTag = `gcr.io/${project}/${image}:${tag}`;
+async function pushImage(project, image, tag, gcrPrefix = '') {
+  const gcrTag = `gcr.io/${project}/${gcrPrefix+image}:${tag}`;
   console.info(kleur.green(`Pushing ${gcrTag}`));
   await exec(`docker tag ${image}:${tag} ${gcrTag}`);
   try {
@@ -19,7 +19,8 @@ async function pushImage(project, image, tag) {
 }
 
 export async function dockerPush(options) {
-  const { project, service, subservice, platformName, tag = 'latest' } = options;
+  const { project, service, subservice, platformName, config, tag = 'latest' } = options;
+  const gcrPrefix = config?.gcloud?.gcrPrefix || '';
 
   try {
     const dockerImages = await exec(`docker images --format "{{json . }}"`);
@@ -41,7 +42,7 @@ export async function dockerPush(options) {
     images.forEach((image) => console.info('-', image));
 
     for (const image of images) {
-      await pushImage(project, image, tag);
+      await pushImage(project, image, tag, gcrPrefix);
     }
   } catch (e) {
     exit(e.message);

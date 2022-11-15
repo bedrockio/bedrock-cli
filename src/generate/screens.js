@@ -8,7 +8,15 @@ import { getInflections } from './util/inflections';
 import { readSourceFile, writeLocalFile, replaceBlock, replacePrimary, replaceSecondary } from './util/source';
 import { prompt } from '../util/prompt';
 
-const FILES = ['index.js', 'List/index.js', 'Detail/index.js', 'Detail/Overview.js', 'Detail/Menu.js'];
+const FILES = [
+  'index.js',
+  'Actions.js',
+  'List/index.js',
+  'Detail/index.js',
+  'Detail/Context.js',
+  'Detail/Overview.js',
+  'Detail/Menu.js',
+];
 
 const SCREENS_DIR = 'services/web/src/screens';
 
@@ -20,6 +28,7 @@ export async function generateScreens(options, globalOptions) {
   // Do this sequentially to ensure order
   for (let file of FILES) {
     let source = await readSourceFile(SCREENS_DIR, 'Shops', file);
+    source = replaceExcluded(source, options);
     source = replacePrimary(source, options);
     source = replaceSubscreenRoutes(source, options);
     source = replaceSubscreenMenus(source, options);
@@ -84,6 +93,10 @@ async function generateSubscreensFor(screensDir, source, primary, secondary) {
   }
 }
 
+function replaceExcluded(source) {
+  return replaceBlock(source, '', 'exclude');
+}
+
 function replaceSubscreenRoutes(source, options) {
   const { pluralLower } = getInflections(options.name);
   const { subscreens = [] } = options;
@@ -135,7 +148,6 @@ function replaceDetailImports(source, options) {
 }
 
 function replaceOverviewFields(source, options) {
-  const { camelLower } = getInflections(options.name);
   const summaryFields = getSummaryFields(options);
   const jsx = summaryFields
     .filter((field) => field.name !== 'name')
@@ -144,22 +156,22 @@ function replaceOverviewFields(source, options) {
       if (name === 'image') {
         options.overviewImports.image = true;
         return block`
-        {${camelLower}.image && (
-          <Image key={${camelLower}.image.id} src={urlForUpload(${camelLower}.image)} />
+        {item.image && (
+          <Image key={item.image.id} src={urlForUpload(item.image)} />
         )}
       `;
       } else if (name === 'images') {
         options.overviewImports.image = true;
         return block`
         <Image.Group size="small">
-          {${camelLower}.images.map((image) => (
+          {item.images.map((image) => (
             <Image key={image.id} src={urlForUpload(image)} />
           ))}
         </Image.Group>
       `;
       } else {
         return block`
-        <Header as="h3">{${camelLower}.${name}}</Header>
+        <Header as="h3">{item.${name}}</Header>
       `;
       }
     })
@@ -169,7 +181,6 @@ function replaceOverviewFields(source, options) {
 }
 
 function replaceOverviewRows(source, options) {
-  const { camelLower } = getInflections(options.name);
   const summaryFields = getSummaryFields(options);
   const otherFields = options.schema.filter((field) => {
     return !summaryFields.includes(field);
@@ -183,7 +194,7 @@ function replaceOverviewRows(source, options) {
         <Table.Row>
           <Table.Cell>${startCase(name)}</Table.Cell>
           <Table.Cell>
-            {${getOverviewCellValue(`${camelLower}.${name}`, field, options)}}
+            {${getOverviewCellValue(`item.${name}`, field, options)}}
           </Table.Cell>
         </Table.Row>
       `;
@@ -278,7 +289,7 @@ function replaceListBodyCells(source, options, resource) {
     type: isSubscreen ? 'subscreen-imports' : 'list-imports',
   };
 
-  const { camelLower, pluralKebab } = getInflections(resource.name);
+  const { pluralKebab } = getInflections(resource.name);
 
   const summaryFields = getSummaryFields(options);
   const jsx = summaryFields
@@ -289,18 +300,18 @@ function replaceListBodyCells(source, options, resource) {
         const idx = name === 'images' ? '[0]' : '';
         resource.listImports.image = true;
         inner = `
-        {${camelLower}.${name}${idx} && (
-          <Image size="tiny" src={urlForUpload(${camelLower}.${name}${idx}, true)} />
+        {item.${name}${idx} && (
+          <Image size="tiny" src={urlForUpload(item.${name}${idx}, true)} />
         )}
       `;
       } else {
-        inner = `{${camelLower}.${name}}`;
+        inner = `{item.${name}}`;
       }
 
       if (i === 0 && !isSubscreen) {
         resource.listImports.link = true;
         inner = `
-          <Link to={\`/${pluralKebab}/\${${camelLower}.id}\`}>
+          <Link to={\`/${pluralKebab}/\${item.id}\`}>
             ${inner}
           </Link>
       `;

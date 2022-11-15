@@ -37,7 +37,7 @@ function getFilterForField(field, camelLower) {
 function getDateFilter(field) {
   const { name } = field;
   return block`
-    <Filters.DateRange
+    <SearchFilters.DateRange
       name="${name}"
       label="${startCase(name)}"
     />
@@ -49,7 +49,7 @@ function getTextFilter(field) {
 
   if (field.enum) {
     return block`
-      <Filters.Dropdown
+      <SearchFilters.Dropdown
         search
         name="${name}"
         label="${startCase(name)}"
@@ -68,7 +68,7 @@ function getTextFilter(field) {
     `;
   } else {
     return block`
-    <Filters.Search name="${name}" label="${startCase(name)}" />
+    <SearchFilters.Search name="${name}" label="${startCase(name)}" />
   `;
   }
 }
@@ -79,7 +79,7 @@ function getNumberFilter(field) {
   const hasMax = max != null;
   if (hasMin || hasMax) {
     return block`
-      <Filters.Number
+      <SearchFilters.Number
         name="${name}"
         label="${startCase(name)}"
         ${hasMin ? `min="${min}"` : ''}
@@ -88,7 +88,7 @@ function getNumberFilter(field) {
     `;
   } else {
     return block`
-      <Filters.Number name="${name}" label="${startCase(name)}" />
+      <SearchFilters.Number name="${name}" label="${startCase(name)}" />
     `;
   }
 }
@@ -96,7 +96,7 @@ function getNumberFilter(field) {
 function getBooleanFilter(field) {
   const { name } = field;
   return block`
-    <Filters.Checkbox name="${name}" label="${startCase(name)}" />
+    <SearchFilters.Checkbox name="${name}" label="${startCase(name)}" />
   `;
 }
 
@@ -104,7 +104,7 @@ function getMultiDropdownFilter(field) {
   const { name } = field;
   if (field.enum) {
     return block`
-      <Filters.Dropdown
+      <SearchFilters.Dropdown
         search
         multiple
         name="${name}"
@@ -124,7 +124,7 @@ function getMultiDropdownFilter(field) {
     `;
   } else {
     return block`
-      <Filters.Dropdown
+      <SearchFilters.Dropdown
         search
         multiple
         allowAdditions

@@ -108,7 +108,6 @@ function replaceSubscreenRoutes(source, options) {
         exact
         path="/${pluralLower}/:id/${sInflections.pluralLower}"
         allowed={${sInflections.pluralUpper}}
-        {...props}
       />
     `;
     })
@@ -117,7 +116,7 @@ function replaceSubscreenRoutes(source, options) {
 }
 
 function replaceSubscreenMenus(source, options) {
-  const { kebab, pluralKebab } = getInflections(options.name);
+  const { pluralKebab } = getInflections(options.name);
   const { subscreens = [] } = options;
   const imports = subscreens
     .map((screen) => {
@@ -125,7 +124,7 @@ function replaceSubscreenMenus(source, options) {
       return block`
       <Menu.Item
         name="${sInflections.pluralUpper}"
-        to={\`/${pluralKebab}/\${${kebab}.id}/${sInflections.pluralLower}\`}
+        to={\`/${pluralKebab}/\${item.id}/${sInflections.pluralLower}\`}
         as={NavLink}
         exact
       />

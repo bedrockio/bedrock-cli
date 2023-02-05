@@ -42,7 +42,7 @@ export async function secret(options, subcommand) {
     console.info(yellow(`=> Retrieving secret`));
     const secretInfo = await getSecretInfo(secretName);
     if (secretInfo) {
-      secretInfo.dataKeys = Object.keys(secretInfo.data);
+      secretInfo.dataKeys = Object.keys(secretInfo.data || {});
       secretInfo.data = `*** hidden to avoid sensitive information in your shell history ***`;
       console.info(secretInfo);
       console.info(yellow(`Note: Run 'bedrock cloud secret get' to retrieve decrypted data into local file`));

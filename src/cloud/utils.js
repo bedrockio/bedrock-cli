@@ -85,7 +85,14 @@ export async function updateServiceYamlEnv(environment, service, envName, envVal
 
 export async function checkPlatformName(options) {
   if (!options.platformName) {
-    options.platformName = path.basename(await getConfig('remote.origin.url'), '.git');
+    const platformName = path.basename(await getConfig('remote.origin.url'), '.git');
+    if (!platformName) {
+      console.info(yellow('Could not derive a platform name from the git config.'));
+      console.info(yellow('A stable name needs to be derived before project can be deployed.'));
+      console.info(yellow('Please initialize a git repo before proceeding.'));
+      process.exit(1);
+    }
+    options.platformName = platformName;
   }
 }
 

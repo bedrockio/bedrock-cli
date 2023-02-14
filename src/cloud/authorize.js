@@ -8,28 +8,43 @@ import { getSecretInfo, setSecret } from './secret';
 import { checkEnvironment, readConfig } from './utils';
 
 export async function setGCloudConfig(config = {}) {
-  const { project, computeZone, kubernetes } = config;
+  const { project, computeZone, computeRegion, kubernetes } = config;
   if (!kubernetes) exit('Missing kubernetes settings in config');
   try {
     // gcloud returns output on stderr
     if (!project) exit('Missing project');
     await execSyncInherit(`gcloud config set project ${project}`);
 
-    if (!computeZone) exit('Missing computeZone');
-    await execSyncInherit(`gcloud config set compute/zone ${computeZone}`);
+    if (computeRegion) {
+      await execSyncInherit(`gcloud config set compute/region ${computeRegion}`);
+    }
+
+    if (computeZone) {
+      await execSyncInherit(`gcloud config set compute/zone ${computeZone}`);
+    }
+
+    if (!computeRegion && !computeZone) {
+      exit(
+        `You must provide either a computeRegion or a computeZone. Use computeRegion for Regional clusters, and computeZone for Zonal clusters.`
+      );
+    }
 
     const { clusterName } = kubernetes;
     if (!clusterName) exit('Missing kubernetes.clusterName');
 
     try {
-      await execSyncInherit(`gcloud container clusters get-credentials ${clusterName}`);
+      await execSyncInherit(
+        `gcloud container clusters get-credentials --zone ${computeRegion || computeZone} ${clusterName}`
+      );
     } catch (e) {
       exit(e.message);
     }
 
     await execSyncInherit(`gcloud config set container/cluster ${clusterName}`);
     console.info(
-      green(`Successfully authorized (project=${project}, compute/zone=${computeZone}, cluster=${clusterName})`)
+      green(
+        `Successfully authorized (project=${project}, compute/region=${computeRegion} compute/zone=${computeZone}, cluster=${clusterName})`
+      )
     );
   } catch (e) {
     exit(e.message);

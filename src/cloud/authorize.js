@@ -15,6 +15,9 @@ export async function setGCloudConfig(config = {}) {
     if (!project) exit('Missing project');
     await execSyncInherit(`gcloud config set project ${project}`);
 
+    await execSyncInherit(`gcloud config unset compute/region`);
+    await execSyncInherit(`gcloud config unset compute/zone`);
+
     if (computeRegion) {
       await execSyncInherit(`gcloud config set compute/region ${computeRegion}`);
     }

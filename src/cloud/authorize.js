@@ -107,7 +107,7 @@ async function checkGCloudConfig(environment, config = {}, quiet) {
       console.info(yellow(`Invalid Google Cloud config: container/cluster = ${currentClusterName}`));
     }
 
-    const kubectlContext = getKubectlContext(project, computeZone, clusterName);
+    const kubectlContext = getKubectlContext(project, computeRegion || computeZone, clusterName);
     const currentkubectlContext = await getCurrentKubectlContext();
     if (kubectlContext != currentkubectlContext) {
       valid = false;
@@ -118,7 +118,7 @@ async function checkGCloudConfig(environment, config = {}, quiet) {
       console.info(green(`Using Google Cloud environment "${environment}"`));
       console.info('project=' + green(project));
       console.info('compute/zone=' + green(computeZone));
-      console.info('compute/zone=' + green(computeRegion));
+      console.info('compute/region=' + green(computeRegion));
       console.info('cluster=' + green(clusterName));
       console.info('kubectl/context=' + green(currentkubectlContext));
     }

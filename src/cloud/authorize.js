@@ -76,16 +76,27 @@ async function getCurrentKubectlContext() {
 }
 
 async function checkGCloudConfig(environment, config = {}, quiet) {
-  const { project, computeZone, kubernetes } = config;
+  const { project, computeZone, computeRegion, kubernetes } = config;
   if (!kubernetes) exit('Missing kubernetes settings in config');
   try {
     let valid = await checkGCloudProject(config);
 
-    if (!computeZone) exit('Missing computeZone');
+    if (!computeRegion && !computeZone) {
+      exit(
+        `You must provide either a computeRegion or a computeZone. Use computeRegion for Regional clusters, and computeZone for Zonal clusters.`
+      );
+    }
+
     const currentComputeZone = await exec('gcloud config get-value compute/zone');
-    if (computeZone != currentComputeZone) {
+    if (computeZone && computeZone != currentComputeZone) {
       valid = false;
       console.info(yellow(`Invalid Google Cloud config: compute/zone = ${currentComputeZone}`));
+    }
+
+    const currentComputeRegion = await exec('gcloud config get-value compute/region');
+    if (computeRegion && computeRegion != currentComputeRegion) {
+      valid = false;
+      console.info(yellow(`Invalid Google Cloud config: compute/region = ${currentComputeRegion}`));
     }
 
     const { clusterName } = kubernetes;
@@ -107,6 +118,7 @@ async function checkGCloudConfig(environment, config = {}, quiet) {
       console.info(green(`Using Google Cloud environment "${environment}"`));
       console.info('project=' + green(project));
       console.info('compute/zone=' + green(computeZone));
+      console.info('compute/zone=' + green(computeRegion));
       console.info('cluster=' + green(clusterName));
       console.info('kubectl/context=' + green(currentkubectlContext));
     }

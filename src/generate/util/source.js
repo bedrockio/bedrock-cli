@@ -4,13 +4,28 @@ import fetch from 'node-fetch';
 import { promises as fs } from 'fs';
 import { indent } from './template';
 import { getInflections } from './inflections';
+import { exec } from '../../util/shell';
 
 // Set to true to test locally
 const USE_LOCAL = false;
 
-const GITHUB_RAW_BASE = 'https://raw.githubusercontent.com/bedrockio/bedrock-core/master';
+const GITHUB_RAW_BASE = 'https://raw.githubusercontent.com/bedrockio/bedrock-core';
+
+let ref = 'master';
 
 const GENERATOR_REG = /^([^\n]*)(\/\/|\{\/\*) --- Generator: BLOCK[\s\S]+?--- Generator: end(?: \*\/\})?$/gm;
+
+export async function setRemoteBase(options) {
+  if (options.ref) {
+    ref = options.ref;
+  } else {
+    try {
+      ref = await exec('git rev-list -1 bedrock-cut');
+    } catch {
+      // Fall back to master.
+    }
+  }
+}
 
 export function replaceBlock(source, inject, block) {
   const src = GENERATOR_REG.source.replace(/BLOCK/, block);
@@ -62,7 +77,7 @@ export async function writeLocalFile(source, ...args) {
 
 export async function readRemoteFile(...args) {
   const file = args.join('/');
-  const url = `${GITHUB_RAW_BASE}/${file}`;
+  const url = `${GITHUB_RAW_BASE}/${ref}/${file}`;
   const response = await fetch(url);
   if (response.status === 404) {
     throw new Error(`${url} was not found`);

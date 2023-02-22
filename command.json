@@ -108,6 +108,13 @@
             }
           ]
         }
+      ],
+      "options": [
+        {
+          "name": "ref",
+          "type": "string",
+          "description": "A ref to pull code against. May be a tag. Will default to master."
+        }
       ]
     },
     {

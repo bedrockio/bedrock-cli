@@ -1,6 +1,7 @@
 import { assertBedrockRoot } from '../util/dir';
 import { queueTask, runTasks } from '../util/tasks';
 import { setResourceOptions } from './util/options';
+import { setRemoteBase } from './util/source';
 
 import { generateModel, assertModelsDir } from './model';
 import { generateRoutes, assertRoutesDir } from './routes';
@@ -9,6 +10,7 @@ import { generateDocs, assertApiDocsDir, assertWebDocsDir } from './docs';
 import { generateScreens, generateSubscreens, promptScreensDir } from './screens';
 
 export default async function generate(options, command) {
+  setRemoteBase(options);
   await assertBedrockRoot();
 
   await setResourceOptions(options, command);

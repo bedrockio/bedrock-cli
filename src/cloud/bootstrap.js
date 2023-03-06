@@ -69,24 +69,6 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
   console.info(yellow('=> Get Kubernetes cluster nodes'));
   await execSyncInherit('kubectl get nodes');
 
-  // console.info(yellow('=> Get disks'));
-  // const disks = await getDisks({ computeZone });
-  // const diskNames = disks.map((disk) => {
-  //   return disk.name;
-  // });
-  // for (const diskName of diskNames) {
-  //   console.info(green(diskName));
-  // }
-  // if (!diskNames.includes('mongo-disk')) {
-  //   console.info(yellow('=> Creating mongo-disk'));
-  //   await createDisk({ computeZone, name: 'mongo-disk' });
-  // }
-
-  // if (!diskNames.includes('elasticsearch-disk')) {
-  //   console.info(yellow('=> Creating elasticsearch-disk'));
-  //   await createDisk({ computeZone, name: 'elasticsearch-disk' });
-  // }
-
   const { computeZone, bootstrapDeploy = true, recreateIngress = true } = gcloud;
   // computeZone example: us-east1-c
   const region = computeZone.slice(0, -2); // e.g. us-east1
@@ -102,7 +84,9 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
   for (let service of services) {
     console.info(yellow(`=> Configure ${service} loadbalancer`));
     let ip = await configureServiceLoadBalancer(environment, service, region);
-    ips.push([service, ip]);
+    if (ip) {
+      ips.push([service, ip]);
+    }
     console.info(yellow(`=> Creating ${service} service`));
     await execSyncInherit(`kubectl delete -f ${envPath}/services/${service}-service.yml --ignore-not-found`);
     await execSyncInherit(`kubectl create -f ${envPath}/services/${service}-service.yml`);
@@ -150,6 +134,14 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
 }
 
 async function configureServiceLoadBalancer(environment, service, region) {
+  const fileName = `${service}-service.yml`;
+  const serviceYaml = readServiceYaml(environment, fileName);
+
+  if (serviceYaml.spec.type != 'LoadBalancer') {
+    console.info(yellow(`=> Skipping: Service ${service} with type ${serviceYaml.spec.type} is no loadBalancer`));
+    return;
+  }
+
   let addressIP;
   try {
     const addressJSON = await exec(`gcloud compute addresses describe --region ${region} ${service} --format json`);
@@ -161,8 +153,6 @@ async function configureServiceLoadBalancer(environment, service, region) {
     addressIP = JSON.parse(addressJSON).address;
 
     // Update service yml file
-    const fileName = `${service}-service.yml`;
-    const serviceYaml = readServiceYaml(environment, fileName);
     console.info(yellow(`=> Updating ${fileName}`));
     serviceYaml.spec.loadBalancerIP = addressIP;
     writeServiceYaml(environment, fileName, serviceYaml);
@@ -203,34 +193,6 @@ function configureDeploymentGCRPath(environment, service, project) {
     writeServiceYaml(environment, fileName, serviceYaml);
   }
 }
-
-// async function createDisk(options = {}) {
-//   const { computeZone } = options;
-//   if (!computeZone) return console.info(red('Missing computeZone to create disk'));
-//   const name =
-//     options.name ||
-//     (await prompt({
-//       type: 'text',
-//       message: 'Enter disk name:',
-//     }));
-
-//   const size =
-//     options.size ||
-//     (await prompt({
-//       type: 'text',
-//       message: 'Enter disk size:',
-//       initial: '200GB',
-//     }));
-
-//   await execSyncInherit(`gcloud compute disks create ${name} --size=${size} --zone=${computeZone}`);
-// }
-
-// async function getDisks(options = {}) {
-//   const { computeZone } = options;
-//   if (!computeZone) return console.info(red('Missing computeZone to get disks'));
-//   const disks = await exec(`gcloud compute disks list --zones=${computeZone} --format json`);
-//   return JSON.parse(disks);
-// }
 
 function getAppUrl(environment) {
   const fileName = 'api-deployment.yml';

@@ -9,7 +9,7 @@ export default async function update() {
     await exec(`git pull`);
     await exec(`${manager} install`);
     const gitSha = await exec(`git rev-parse --short HEAD`);
-    console.log(kleur.green(`Updated to SHA: ${gitSha}`));
+    console.log(kleur.green(`Successfully updated to SHA: `) + kleur.yellow(gitSha));
   });
 }
 

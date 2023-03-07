@@ -8,8 +8,9 @@ export default async function update() {
     const manager = await getPackageManager();
     await exec(`git pull`);
     await exec(`${manager} install`);
+    const gitSha = await exec(`git rev-parse --short HEAD`);
+    console.log(kleur.green(`Updated to SHA: ${gitSha}`));
   });
-  console.log(kleur.green('Updated!'));
 }
 
 async function getPackageManager() {

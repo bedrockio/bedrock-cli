@@ -5,6 +5,7 @@ import { exec, execSyncInherit } from '../util/shell';
 import { writeConfig, readServiceYaml, writeServiceYaml } from './utils';
 import { checkTerraformCommand, terraformInit, terraformApply } from './provision/index';
 import { authorize, deploy, status } from './index';
+import fs from 'fs';
 
 export async function bootstrapProjectEnvironment(project, environment, config) {
   await checkTerraformCommand();
@@ -76,6 +77,11 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
   const services = gcloud.services || ['api', 'web'];
   const ingresses = gcloud.ingresses || [];
 
+  if (fs.existsSync(`${envPath}/namespaces`)) {
+    console.info(yellow('=> Creating namespaces'));
+    await execSyncInherit(`kubectl apply -f ${envPath}/namespaces`);
+  }
+
   console.info(yellow('=> Creating data pods'));
   await execSyncInherit(`kubectl delete -f ${envPath}/data --ignore-not-found`);
   await execSyncInherit(`kubectl create -f ${envPath}/data`);
@@ -101,6 +107,11 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
       await execSyncInherit(`kubectl delete -f ${envPath}/services/${ingress}-ingress.yml --ignore-not-found`);
       await execSyncInherit(`kubectl create -f ${envPath}/services/${ingress}-ingress.yml`);
     }
+  }
+
+  if (fs.existsSync(`${envPath}/gateways`)) {
+    console.info(yellow('=> Creating gateways'));
+    await execSyncInherit(`kubectl apply -f ${envPath}/gateways`);
   }
 
   if (bootstrapDeploy) {

@@ -696,7 +696,7 @@
     },
     {
       "name": "sha",
-      "description": "Shows current commit hash (SHA) of your bedrock CLI installation"
+      "description": "Shows current commit hash (SHA)"
     }
   ]
 }

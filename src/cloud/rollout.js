@@ -51,7 +51,7 @@ export async function rolloutDeployment(options) {
   let namespace;
   if (fs.existsSync(deploymentFile)) {
     const serviceYaml = readServiceYaml(environment,`${deployment}.yml`);
-    namespace = serviceYaml?.metadata?.namespace;
+    namespace = serviceYaml && serviceYaml.metadata && serviceYaml.metadata.namespace;
     try {
       await execSyncInherit(`kubectl apply -f ${deploymentFile}`);
     } catch (e) {
@@ -113,7 +113,7 @@ export async function checkDeployment(options) {
     }
   }
   const serviceYaml = readServiceYaml(options.environment,`${deployment}.yml`);
-  const namespace = serviceYaml?.metadata?.namespace;
+  const namespace = serviceYaml && serviceYaml.metadata && serviceYaml.metadata.namespace;
   let getDeploymentCommand = `kubectl get deployment ${deploymentName} -o json --ignore-not-found`;
   if (namespace) {
     getDeploymentCommand += ` -n ${namespace}`;

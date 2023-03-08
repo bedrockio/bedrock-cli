@@ -2,7 +2,7 @@ import kleur from 'kleur';
 import { exit } from '../util/exit';
 import { getConfig } from '../util/git';
 import { exec, execSyncInherit } from '../util/shell';
-import { getArchitecture, getDeployment } from './utils';
+import { getArchitecture, getDeployment, readServiceYaml } from './utils';
 import fs from 'fs';
 import path from 'path';
 
@@ -48,7 +48,10 @@ export async function rolloutDeployment(options) {
 
   // Check for config file as it might not exist if the
   // deployment was dynamically created for a feature branch.
+  let namespace;
   if (fs.existsSync(deploymentFile)) {
+    const serviceYaml = readServiceYaml(environment,`${deployment}.yml`);
+    namespace = serviceYaml?.metadata?.namespace;
     try {
       await execSyncInherit(`kubectl apply -f ${deploymentFile}`);
     } catch (e) {
@@ -68,10 +71,13 @@ export async function rolloutDeployment(options) {
         deploymentName = deployment.slice(0, -11);
       }
     }
-    if (options.config && options.config.gcloud && options.config.gcloud.gcrPrefix) {
-       deploymentName = options.config.gcloud.gcrPrefix + deploymentName;
+
+    let patchCommand = `kubectl patch deployment ${deploymentName} -p "${metaData}"`;
+    if (namespace) {
+      patchCommand += ` -n ${namespace}`;
     }
-    await execSyncInherit(`kubectl patch deployment ${deploymentName} -p "${metaData}"`);
+
+    await execSyncInherit(patchCommand);
   } catch (e) {
     exit(e.message);
   }
@@ -100,16 +106,19 @@ export async function checkDeployment(options) {
 
   let deploymentName = deployment;
   if (options.config && options.config.gcloud) {
-    const { dropDeploymentPostfix, gcrPrefix} = options.config.gcloud;
+    const { dropDeploymentPostfix} = options.config.gcloud;
     if (dropDeploymentPostfix && '-deployment' == deploymentName.slice(-11)) {
       // drop -deployment from deployment name
       deploymentName = deployment.slice(0, -11);
     }
-    if (gcrPrefix) {
-      deploymentName = gcrPrefix + deploymentName;
-    }
   }
-  const deploymentInfoJSON = await exec(`kubectl get deployment ${deploymentName} -o json --ignore-not-found`);
+  const serviceYaml = readServiceYaml(options.environment,`${deployment}.yml`);
+  const namespace = serviceYaml?.metadata?.namespace;
+  let getDeploymentCommand = `kubectl get deployment ${deploymentName} -o json --ignore-not-found`;
+  if (namespace) {
+    getDeploymentCommand += ` -n ${namespace}`;
+  }
+  const deploymentInfoJSON = await exec(getDeploymentCommand);
   if (!deploymentInfoJSON) {
     console.info(kleur.yellow(`Deployment "${deploymentName}" could not be found`));
     return false;

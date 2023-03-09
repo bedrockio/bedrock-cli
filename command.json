@@ -163,7 +163,7 @@
         },
         {
           "name": "login-application",
-          "functionName": "applicationLogin",
+          "functionName": "loginApplication",
           "description": "Login application-default to Google Cloud"
         },
         {

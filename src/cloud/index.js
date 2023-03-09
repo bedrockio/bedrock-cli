@@ -67,7 +67,7 @@ export async function account(options) {
 export async function login() {
   console.info(
     yellow(
-      'This will open a gcloud login URL in your browser twice. First for your account auth, and a second time for your application default.'
+      'This will open a gcloud login URL in your browser for your account auth.'
     )
   );
   let confirmed = await prompt({
@@ -79,6 +79,21 @@ export async function login() {
   if (!confirmed) return;
   console.info(yellow('=> Opening browser to auth login'));
   await execSyncInherit('gcloud auth login');
+}
+
+export async function loginApplication() {
+  console.info(
+    yellow(
+      'This will open a gcloud login URL in your browser for your application default.'
+    )
+  );
+  let confirmed = await prompt({
+    type: 'confirm',
+    name: 'open',
+    message: 'Would you like to proceeed?',
+    initial: true,
+  });
+  if (!confirmed) return;
   console.info(yellow('=> Opening browser to auth application-default login'));
   await execSyncInherit('gcloud auth application-default login');
 }

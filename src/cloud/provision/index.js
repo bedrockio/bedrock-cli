@@ -52,6 +52,8 @@ async function terraform(options, command) {
   await checkGCloudProject(config.gcloud);
   await checkTerraformCommand();
 
+  // config.info("Note: Terrafrom requires gcloud application-default authentication. Run 'bedrock cloud login-application' at least once.");
+
   try {
     await provisionTerraform(environment, command, config.gcloud);
   } catch (e) {

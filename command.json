@@ -162,6 +162,11 @@
           "description": "Login to Google Cloud"
         },
         {
+          "name": "login-application",
+          "functionName": "applicationLogin",
+          "description": "Login application-default to Google Cloud"
+        },
+        {
           "name": "account",
           "description": "Set Google Cloud account",
           "arguments": [

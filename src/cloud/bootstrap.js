@@ -60,6 +60,17 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
     configureDeploymentGCRPath(environment, service, project);
   }
 
+  let loginConfirmed = await prompt({
+    type: 'confirm',
+    name: 'open',
+    message: `Terraform requires you run 'gcloud auth application-default login' for this project. Did you already login?`,
+    initial: true,
+  });
+  if (!loginConfirmed) {
+    console.info(yellow('=> Opening browser to auth application-default login'));
+    await execSyncInherit('gcloud auth application-default login');
+  }
+
   console.info(yellow('=> Terraform init'));
   await terraformInit({ environment });
   console.info(yellow('=> Terraform apply'));

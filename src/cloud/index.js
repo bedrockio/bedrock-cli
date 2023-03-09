@@ -115,7 +115,7 @@ export async function status(options) {
   if (podInfo.includes('CreateContainerConfigError')) {
     console.info(
       yellow(
-        `CreateContainerConfigError: Check if you created the required secrets, e.g., "bedrock cloud secret ${environment} set credentials"`
+        `CreateContainerConfigError: Check if you created the required secrets, e.g., "bedrock cloud secret set ${environment} secrets"`
       )
     );
   }

@@ -54,13 +54,13 @@ export async function prompt(arg) {
 }
 
 function getPromptOptions(option) {
-  const { type: optionType, description, required, choices } = option;
-  const lower = lowerFirst(description);
+  const { type: optionType, description, required, choices, downcase } = option;
+  const msg = downcase ? lowerFirst(description) : description;
   if (optionType === 'multiple') {
     return {
       type: 'multiselect',
       instructions: kleur.grey('(select multiple)'),
-      message: `Select ${lower}:`,
+      message: `Select ${msg}:`,
       choices: choices.map((choice) => {
         const { title, value, selected, description } = choice;
         return {
@@ -80,12 +80,12 @@ function getPromptOptions(option) {
   } else if (optionType === 'password') {
     return {
       type: 'password',
-      message: `Enter ${lower}${required ? '' : ' (optional)'}:`,
+      message: `Enter ${msg}${required ? '' : ' (optional)'}:`,
     };
   } else {
     return {
       type: 'text',
-      message: `Enter ${lower}${required ? '' : ' (optional)'}:`,
+      message: `Enter ${msg}${required ? '' : ' (optional)'}:`,
     };
   }
 }

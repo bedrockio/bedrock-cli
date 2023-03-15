@@ -136,42 +136,6 @@
       ]
     },
     {
-      "name": "plugins",
-      "description": "Manage Bedrock plugins.",
-      "commands": [
-        {
-          "name": "list",
-          "description": "List all available plugins"
-        },
-        {
-          "name": "info",
-          "description": "Get information on plugin",
-          "arguments": [
-            {
-              "name": "name",
-              "type": "string",
-              "description": "Plugin name (e.g. @bedrockio/analytics)",
-              "required": true,
-              "prompt": false
-            }
-          ]
-        },
-        {
-          "name": "apply",
-          "description": "Install plugin into current codebase",
-          "arguments": [
-            {
-              "name": "name",
-              "type": "string",
-              "description": "Plugin name (e.g. @bedrockio/analytics)",
-              "required": true,
-              "prompt": false
-            }
-          ]
-        }
-      ]
-    },
-    {
       "name": "cloud",
       "description": "Cloud Controls for deployment and provisioning",
       "commands": [

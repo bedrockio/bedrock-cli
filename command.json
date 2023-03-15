@@ -10,6 +10,7 @@
           "name": "project",
           "type": "string",
           "description": "Project name",
+          "downcase": true,
           "required": true,
           "prompt": true
         }
@@ -19,6 +20,7 @@
           "name": "domain",
           "type": "domain",
           "description": "Domain",
+          "downcase": true,
           "required": true,
           "prompt": true
         },
@@ -30,10 +32,25 @@
           "prompt": true
         },
         {
+          "name": "productionProjectId",
+          "type": "string",
+          "description": "Google Cloud Production Project ID",
+          "required": false,
+          "prompt": true
+        },
+        {
+          "name": "stagingProjectId",
+          "type": "string",
+          "description": "Google Cloud Staging Project ID",
+          "required": false,
+          "prompt": true
+        },
+        {
           "name": "address",
           "type": "string",
           "description": "Company address",
           "required": false,
+          "downcase": true,
           "prompt": true
         },
         {
@@ -41,6 +58,7 @@
           "type": "string",
           "description": "Admin password",
           "required": false,
+          "downcase": true,
           "prompt": true
         }
       ]

@@ -8,13 +8,15 @@ export async function exec(commands, std = 'stdout') {
     }
     let output = '';
     for (let command of commands) {
-      const [first, ...rest] = command.match(/".+"|\S+/g);
+      const [first, ...rest] = command.match(/".+"|\S+/g).map((part) => {
+        return part.replace(/^"(.+)"$/, '$1');
+      });
       const execResult = await execa(first, rest);
       output = std == 'stderr' ? execResult.stderr : execResult.stdout;
     }
     return output;
   } catch (err) {
-    const { stderr, stdout } = err;
+    const { stderr = '', stdout = '' } = err;
     const message = (stderr || stdout).split('\n').join(' ') || err.message;
     const error = new Error(message);
     error.original = err.message;

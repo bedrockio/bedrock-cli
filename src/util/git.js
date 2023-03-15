@@ -5,7 +5,7 @@ export async function cloneRepository(dir, repo) {
 }
 
 export async function initializeRepository(dir, repo) {
-  const commands = ['git init', 'git add .', 'git commit -m "Initial Commit"'];
+  const commands = ['git tag bedrock-cut', 'git add .', 'git commit -m "Bedrock Create"'];
   if (repo) {
     commands.push(`git remote add origin git@github.com:${repo}.git`);
   }

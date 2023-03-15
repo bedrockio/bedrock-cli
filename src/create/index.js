@@ -11,8 +11,7 @@ import { getEnvironments, updateServiceYamlEnv } from '../cloud/utils';
 const BEDROCK_REPO = 'bedrockio/bedrock-core';
 
 export default async function create(options) {
-  const { project, domain = '', repository = '', address = '', 'admin-password': adminPassword = '' } = options;
-
+  const { project } = options;
   if (!project) {
     throw new Error('Project name required');
   }
@@ -20,6 +19,15 @@ export default async function create(options) {
   // "project" will accept any casing
   const kebab = kebabCase(project);
   const under = snakeCase(project);
+
+  const {
+    domain = '',
+    repository = '',
+    address = '',
+    stagingProjectId = `${kebab}-staging`,
+    productionProjectId = `${kebab}-production`,
+    'admin-password': adminPassword = '',
+  } = options;
 
   queueTask('Clone Repository', async () => {
     await cloneRepository(kebab, BEDROCK_REPO);
@@ -35,6 +43,8 @@ export default async function create(options) {
       str = str.replace(/APP_COMPANY_ADDRESS=(.+)/g, `APP_COMPANY_ADDRESS=${address}`);
       str = str.replace(/JWT_SECRET=(.+)/g, `JWT_SECRET=${JWT_SECRET}`);
       str = str.replace(/ADMIN_PASSWORD=(.+)/g, `ADMIN_PASSWORD=${ADMIN_PASSWORD}`);
+      str = str.replace(/bedrock-foundation-production/g, productionProjectId);
+      str = str.replace(/bedrock-foundation-staging/g, stagingProjectId);
       str = str.replace(/bedrockio\/bedrock-core/g, repository);
       str = str.replace(/bedrock-foundation/g, kebab);
       str = str.replace(/bedrock\.foundation/g, domain);
@@ -56,7 +66,6 @@ export default async function create(options) {
 
     await removeFiles('CONTRIBUTING.md');
     await removeFiles('LICENSE');
-    await removeFiles('.git');
   });
 
   queueTask('Install Dependencies', async () => {
@@ -82,15 +91,19 @@ export default async function create(options) {
   console.log(
     kleur.yellow(`
   Installation Completed!
-  New Bedrock project has been created. To run the stack with Docker:
+  New Bedrock project has been created:
 
   cd ./${kebab}
+
+  To run the stack with Docker:
+
   docker-compose up
 
   To prepare for deployment:
 
   - Create a new project in Google Cloud named ${kebab}
-  - Install Terraform (https://www.terraform.io/)
+  - Install Terraform (https://developer.hashicorp.com/terraform/downloads)
+  - Install Google Cloud SDK (https://cloud.google.com/sdk/docs/install)
   - Run \`bedrock cloud bootstrap\`
   `)
   );

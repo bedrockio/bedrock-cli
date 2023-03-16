@@ -50,7 +50,7 @@ export async function rolloutDeployment(options) {
   // deployment was dynamically created for a feature branch.
   let namespace;
   if (fs.existsSync(deploymentFile)) {
-    const serviceYaml = readServiceYaml(environment,`${deployment}.yml`);
+    const serviceYaml = readServiceYaml(environment, `${deployment}.yml`);
     namespace = serviceYaml && serviceYaml.metadata && serviceYaml.metadata.namespace;
     try {
       await execSyncInherit(`kubectl apply -f ${deploymentFile}`);
@@ -106,13 +106,13 @@ export async function checkDeployment(options) {
 
   let deploymentName = deployment;
   if (options.config && options.config.gcloud) {
-    const { dropDeploymentPostfix} = options.config.gcloud;
+    const { dropDeploymentPostfix } = options.config.gcloud;
     if (dropDeploymentPostfix && '-deployment' == deploymentName.slice(-11)) {
       // drop -deployment from deployment name
       deploymentName = deployment.slice(0, -11);
     }
   }
-  const serviceYaml = readServiceYaml(options.environment,`${deployment}.yml`);
+  const serviceYaml = readServiceYaml(options.environment, `${deployment}.yml`);
   const namespace = serviceYaml && serviceYaml.metadata && serviceYaml.metadata.namespace;
   let getDeploymentCommand = `kubectl get deployment ${deploymentName} -o json --ignore-not-found`;
   if (namespace) {

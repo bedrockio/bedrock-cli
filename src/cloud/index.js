@@ -65,11 +65,7 @@ export async function account(options) {
 }
 
 export async function login() {
-  console.info(
-    yellow(
-      'This will open a gcloud login URL in your browser for your account auth.'
-    )
-  );
+  console.info(yellow('This will open a gcloud login URL in your browser for your account auth.'));
   let confirmed = await prompt({
     type: 'confirm',
     name: 'open',
@@ -82,11 +78,7 @@ export async function login() {
 }
 
 export async function loginApplication() {
-  console.info(
-    yellow(
-      'This will open a gcloud login URL in your browser for your application default.'
-    )
-  );
+  console.info(yellow('This will open a gcloud login URL in your browser for your application default.'));
   let confirmed = await prompt({
     type: 'confirm',
     name: 'open',
@@ -294,7 +286,7 @@ export async function shell(options) {
   }
 
   if (options.config && options.config.gcloud) {
-    const { dropDeploymentPostfix} = options.config.gcloud;
+    const { dropDeploymentPostfix } = options.config.gcloud;
     if (dropDeploymentPostfix && '-deployment' == deployment.slice(-11)) {
       // drop -deployment from deployment name
       deployment = deployment.slice(0, -11);

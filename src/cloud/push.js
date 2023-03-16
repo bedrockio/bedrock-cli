@@ -3,7 +3,7 @@ import kleur from 'kleur';
 import { exec, execSyncInherit } from '../util/shell';
 
 async function pushImage(project, image, tag, gcrPrefix = '') {
-  const gcrTag = `gcr.io/${project}/${gcrPrefix+image}:${tag}`;
+  const gcrTag = `gcr.io/${project}/${gcrPrefix + image}:${tag}`;
   console.info(kleur.green(`Pushing ${gcrTag}`));
   await exec(`docker tag ${image}:${tag} ${gcrTag}`);
   try {

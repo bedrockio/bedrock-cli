@@ -231,14 +231,14 @@ export async function undeploy(options) {
   await warn(options.environment);
 
   for (const [service, subservice] of options.services) {
-    const options = {
+    const opt = {
       ...options,
       service,
       subservice,
     };
-    const exists = await checkDeployment(options);
+    const exists = await checkDeployment(opt);
     if (exists) {
-      await deleteDeployment(options);
+      await deleteDeployment(opt);
     }
   }
 }

@@ -66,10 +66,25 @@ async function plan(options, planFile, refresh = false) {
   // computeZone example: us-east1-c
   const region = computeZone.slice(0, -2); // e.g. us-east1
   const zone = computeZone.slice(-1); // e.g. c
-  const { clusterName, nodePoolCount, minNodeCount, maxNodeCount, machineType, preemptible } = kubernetes;
+  const { clusterName, minNodeCount, maxNodeCount, machineType, diskType, diskSize, preemptible } = kubernetes;
   console.info(kleur.yellow(`=> Planning with planFile: "${planFile}"`));
   const refreshOnly = refresh ? '-refresh-only' : '';
-  const command = `terraform plan ${refreshOnly} -var "project=${project}" -var "environment=${envName}" -var "cluster_name=${clusterName}" -var "bucket_prefix=${bucketPrefix}" -var "region=${region}" -var "zone=${zone}" -var "node_pool_count=${nodePoolCount}" -var "min_node_count=${minNodeCount}" -var "max_node_count=${maxNodeCount}" -var "machine_type=${machineType}" -var "preemptible=${preemptible}" -out="${planFile}"`;
+  const args = [
+    `-var "project=${project}"`,
+    `-var "environment=${envName}"`,
+    `-var "cluster_name=${clusterName}"`,
+    `-var "bucket_prefix=${bucketPrefix}"`,
+    `-var "region=${region}"`,
+    `-var "zone=${zone}"`,
+    `-var "min_node_count=${minNodeCount}"`,
+    `-var "max_node_count=${maxNodeCount}"`,
+    `-var "machine_type=${machineType}"`,
+    `-var "disk_type=${diskType}"`,
+    `-var "disk_size=${diskSize}"`,
+    `-var "preemptible=${preemptible}"`,
+    `-out="${planFile}"`,
+  ];
+  const command = `terraform plan ${refreshOnly} ${args.join(' ')}`;
   console.info(command);
   await execSyncInherit(command);
 }

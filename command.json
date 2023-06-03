@@ -192,6 +192,11 @@
             {
               "name": "native",
               "description": "Build using native CPU architecture."
+            },
+            {
+              "name": "environment",
+              "type": "string",
+              "description": "Environment for build. Only applies if builds are per-environment."
             }
           ],
           "arguments": [

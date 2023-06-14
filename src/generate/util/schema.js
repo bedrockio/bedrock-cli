@@ -41,7 +41,7 @@ const SCHEMA_TYPES = [
   },
   {
     title: 'Mixed',
-    value: 'Mixed',
+    value: 'Object',
     description: 'Mixed content (POJO).',
   },
   {
@@ -173,8 +173,7 @@ const SCHEMA_OPTIONS = [
     value: 'time',
     selected: true,
     types: ['Date'],
-    description:
-      'Will not display the time if false. Applies to screens and modals only.',
+    description: 'Will not display the time if false. Applies to screens and modals only.',
   },
   {
     title: 'currency',
@@ -255,7 +254,7 @@ export function definitionToSchema(definition) {
   return Object.entries(definition.attributes).map(([name, obj]) => {
     const isArray = Array.isArray(obj);
     const def = isArray ? obj[0] : obj;
-    const schemaType = def.type || 'Mixed';
+    const schemaType = def.type || 'Object';
     let type;
     if (def.ref === 'Upload') {
       type = 'Upload';

@@ -83,17 +83,6 @@
           ]
         },
         {
-          "name": "docs",
-          "description": "Generate documentation",
-          "options": [
-            {
-              "name": "models",
-              "type": "array",
-              "description": "List of models (comma separated string)."
-            }
-          ]
-        },
-        {
           "name": "screens",
           "description": "Generate top level screens",
           "options": [
@@ -118,6 +107,17 @@
         {
           "name": "modal",
           "description": "Generate create/update modal",
+          "options": [
+            {
+              "name": "models",
+              "type": "array",
+              "description": "List of models (comma separated string)."
+            }
+          ]
+        },
+        {
+          "name": "docs",
+          "description": "Generate documentation (LEGACY).\nNewer versions of Bedrock generate docmentation from within the app.",
           "options": [
             {
               "name": "models",

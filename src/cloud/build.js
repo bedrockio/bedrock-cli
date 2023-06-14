@@ -43,6 +43,7 @@ async function buildImageRemote(options) {
   console.info(kleur.gray(command));
 
   try {
+    await runPreDeployHook(options);
     await execSyncInherit(command);
   } catch (e) {
     exit(e.message);
@@ -71,6 +72,7 @@ async function buildImageLocal(options) {
   console.info(kleur.gray(command));
 
   try {
+    await runPreDeployHook(options);
     await execSyncInherit(command);
   } catch (e) {
     exit(e.message);
@@ -100,4 +102,12 @@ function getDockerfile(options) {
     exit(`Service does not exist. ${filename} is missing`);
   }
   return filename;
+}
+
+async function runPreDeployHook(options) {
+  if (fs.existsSync('docker-hooks/pre-build')) {
+    const { environment, service } = options;
+    console.info(kleur.gray('Running pre build hook...'));
+    await execSyncInherit(`docker-hooks/pre-build ${environment} ${service}`);
+  }
 }

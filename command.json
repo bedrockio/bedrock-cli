@@ -117,6 +117,7 @@
         },
         {
           "name": "docs",
+          "isLegacy": true,
           "description": "Generate documentation (LEGACY).\nNewer versions of Bedrock generate docmentation from within the app.",
           "options": [
             {

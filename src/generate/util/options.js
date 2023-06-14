@@ -59,9 +59,11 @@ async function promptComponents(options, command) {
         prompt: true,
         description: 'components',
         choices: command.commands.map((command) => {
+          const { name, isLegacy } = command;
+          const title = isLegacy ? `${name} (legacy)` : name;
           return {
-            title: command.name,
-            value: command.name,
+            title,
+            value: name,
             description: command.description,
             selected: false,
           };

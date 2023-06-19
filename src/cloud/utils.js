@@ -151,7 +151,7 @@ export async function checkEnvironment(options) {
   }
 }
 
-const KNOWN_BRANCHES = ['master', 'main', 'development', 'staging', 'production'];
+const KNOWN_BRANCHES = ['master', 'main', 'develop', 'development', 'staging', 'production'];
 
 export async function checkSubdeployment(options) {
   if (!options.subdeployment) {

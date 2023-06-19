@@ -12,14 +12,18 @@ export function queueTask(title, task) {
       currentList = null;
       await task();
       return currentList;
-    }
+    },
   });
 }
 
 export async function runTasks() {
   try {
-    await currentList.run();
-  } catch(err) {
+    if (currentList) {
+      await currentList.run();
+    } else {
+      console.info('Nothing to do!');
+    }
+  } catch (err) {
     console.error(err);
     process.exit(1);
   }

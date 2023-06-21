@@ -8,6 +8,7 @@ import { generateRoutes, assertRoutesDir } from './routes';
 import { generateModal, assertModalsDir } from './modals';
 import { generateDocs, assertApiDocsDir, assertWebDocsDir } from './docs';
 import { generateScreens, generateSubscreens, promptScreensDir } from './screens';
+import { generateTests } from './tests';
 
 export default async function generate(options, command) {
   setRemoteBase(options);
@@ -77,44 +78,48 @@ export default async function generate(options, command) {
   await runTasks();
 }
 
-export function model(options) {
-  generate({
+export async function model(options) {
+  await generate({
     ...options,
     components: ['model'],
   });
 }
 
-export function routes(options) {
-  generate({
+export async function routes(options) {
+  await generate({
     ...options,
     components: ['routes'],
   });
 }
 
-export function docs(options) {
-  generate({
+export async function docs(options) {
+  await generate({
     ...options,
     components: ['docs'],
   });
 }
 
-export function screens(options) {
-  generate({
+export async function screens(options) {
+  await generate({
     ...options,
     components: ['screens'],
   });
 }
 
-export function subscreens(options) {
+export async function subscreens(options) {
   generate({
     ...options,
     components: ['subscreens'],
   });
 }
 
-export function modal(options) {
+export async function modal(options) {
   generate({
     ...options,
     components: ['modal'],
   });
+}
+
+export async function tests(options) {
+  await generateTests(options);
 }

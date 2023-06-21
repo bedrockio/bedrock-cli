@@ -83,6 +83,19 @@
           ]
         },
         {
+          "name": "tests",
+          "description": "Generate tests for a Koa router.",
+          "arguments": [
+            {
+              "name": "routerPath",
+              "type": "string",
+              "required": true,
+              "description": "Path to the router file."
+            }
+          ]
+        },
+
+        {
           "name": "screens",
           "description": "Generate top level screens",
           "options": [

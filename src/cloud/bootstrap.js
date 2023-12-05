@@ -203,7 +203,13 @@ async function configureIngress(ingress) {
 function configureDeploymentGCRPath(environment, service, project) {
   // Update deployment yml file
   const fileName = `${service}-deployment.yml`;
-  const serviceYaml = readServiceYaml(environment, fileName);
+
+  let serviceYaml;
+  try {
+    serviceYaml = readServiceYaml(environment, fileName);
+  } catch {
+    return;
+  }
 
   const image = serviceYaml.spec.template.spec.containers[0].image;
   const newImage = image.replace(/gcr\.io\/.*\//, `gcr.io/${project}/`);

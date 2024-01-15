@@ -179,7 +179,9 @@ export async function deploy(options) {
   await checkServices(options);
   await checkTag(options);
 
-  await warn(options.environment);
+  if (!options.config.gcloud.skipWarn) {
+    await warn(options.environment);
+  }
 
   const { project } = options.config.gcloud;
   const serviceNames = options.services.map(([service, subservice]) => {

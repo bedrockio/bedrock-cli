@@ -2,12 +2,7 @@ import { assertPath } from '../util/file';
 import { block } from './util/template';
 import { replaceInputs } from './util/inputs';
 import { getInflections } from './util/inflections';
-import {
-  readSourceFile,
-  writeLocalFile,
-  replaceSecondary,
-  replaceBlock,
-} from './util/source';
+import { readSourceFile, writeLocalFile, replaceSecondary, replaceBlock } from './util/source';
 
 const MODALS_DIR = 'services/web/src/modals';
 
@@ -44,15 +39,11 @@ function replaceImports(source, options) {
   }
 
   if (schema.some((field) => field.currency)) {
-    imports.push(
-      "import CurrencyField from 'components/form-fields/Currency';"
-    );
+    imports.push("import CurrencyField from 'components/form-fields/Currency';");
   }
 
   if (schema.some((field) => field.type.match(/ObjectId/))) {
-    imports.push(
-      "import ReferenceField from 'components/form-fields/Reference';"
-    );
+    imports.push("import SearchDropdown from 'components/form-fields/SearchDropdown';");
   }
 
   source = replaceBlock(source, imports.join('\n'), 'imports');
@@ -69,9 +60,9 @@ function replaceRefs(source, options) {
       return field.type === 'ObjectId';
     })
     .map((field) => {
-      const { camelLower: rCamelLower } = getInflections(field.ref);
+      const { name } = field;
       return block`
-        ${rCamelLower}: this.props.${rCamelLower}?.id || ${camelLower}.${rCamelLower}?.id,
+        ${name}: this.props.${name}?.id || ${camelLower}.${name}?.id,
       `;
     });
 

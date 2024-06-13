@@ -62,8 +62,8 @@ function getStringInput(field, options) {
           .map((val) => {
             return `
           {
-            text: "${val}",
-            value: "${val}",
+            text: '${val}',
+            value: '${val}',
           }`;
           })
           .join(',\n')}
@@ -172,12 +172,12 @@ function getReferenceInput(field, options) {
   const isArray = type.match(/Array/);
   return block`
       {!this.props.${name} && (
-        <ReferenceField
+        <SearchDropdown
           ${required ? 'required' : ''}
           name="${name}"
           label="${startCase(name)}"
           value={${camelLower}.${name} || ${isArray ? '[]' : "''"}}
-          path="/1/${rInflections.pluralKebab}/search"
+          searchPath="/1/${rInflections.pluralKebab}/search"
           placeholder="Search ${startCase(rInflections.pluralUpper)}"
           onChange={this.setField}
         />

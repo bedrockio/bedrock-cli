@@ -8,15 +8,7 @@ import { getInflections } from './util/inflections';
 import { readSourceFile, writeLocalFile, replaceBlock, replacePrimary, replaceSecondary } from './util/source';
 import { prompt } from '../util/prompt';
 
-const FILES = [
-  'index.js',
-  'Actions.js',
-  'List/index.js',
-  'Detail/index.js',
-  'Detail/Context.js',
-  'Detail/Overview.js',
-  'Detail/Menu.js',
-];
+const FILES = ['index.js', 'Actions.js', 'List/index.js', 'Detail/index.js', 'Detail/Overview.js', 'Detail/Menu.js'];
 
 const SCREENS_DIR = 'services/web/src/screens';
 

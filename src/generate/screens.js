@@ -14,7 +14,8 @@ const SCREENS_DIR = 'services/web/src/screens';
 
 export async function generateScreens(options, globalOptions) {
   const { screensDir } = globalOptions;
-  const { pluralUpper } = getInflections(options.name);
+  const { pluralUpper } = options;
+  options.mode = 'screens';
   options.overviewImports = {};
 
   // Do this sequentially to ensure order
@@ -90,7 +91,7 @@ function replaceExcluded(source) {
 }
 
 function replaceSubscreenRoutes(source, options) {
-  const { pluralLower } = getInflections(options.name);
+  const { pluralLower } = options;
   const { subscreens = [] } = options;
   const imports = subscreens
     .map((screen) => {
@@ -108,7 +109,7 @@ function replaceSubscreenRoutes(source, options) {
 }
 
 function replaceSubscreenMenus(source, options) {
-  const { pluralKebab } = getInflections(options.name);
+  const { pluralKebab, camelLower: item } = options;
   const { subscreens = [] } = options;
   const imports = subscreens
     .map((screen) => {
@@ -116,7 +117,7 @@ function replaceSubscreenMenus(source, options) {
       return block`
       <Menu.Item
         name="${sInflections.pluralUpper}"
-        to={\`/${pluralKebab}/\${item.id}/${sInflections.pluralLower}\`}
+        to={\`/${pluralKebab}/\${${item}.id}/${sInflections.pluralLower}\`}
         as={NavLink}
         exact
       />
@@ -140,6 +141,9 @@ function replaceDetailImports(source, options) {
 
 function replaceOverviewFields(source, options) {
   const summaryFields = getSummaryFields(options);
+
+  const { camelLower: item } = options;
+
   const jsx = summaryFields
     .filter((field) => field.name !== 'name')
     .map((field) => {
@@ -147,22 +151,23 @@ function replaceOverviewFields(source, options) {
       if (name === 'image') {
         options.overviewImports.image = true;
         return block`
-        {item.image && (
-          <Image key={item.image.id} src={urlForUpload(item.image)} />
+        {${item}.image && (
+          <Image key={${item}.image.id} src={urlForUpload(${item}.image)} />
         )}
       `;
       } else if (name === 'images') {
         options.overviewImports.image = true;
         return block`
         <Image.Group size="small">
-          {item.images.map((image) => (
+          {${item}.images.map((image) => (
             <Image key={image.id} src={urlForUpload(image)} />
           ))}
         </Image.Group>
       `;
-      } else {
+      } else if (name !== 'id') {
+        options.overviewImports.header = true;
         return block`
-        <Header as="h3">{item.${name}}</Header>
+        <Header as="h3">{${item}.${name}}</Header>
       `;
       }
     })
@@ -177,6 +182,8 @@ function replaceOverviewRows(source, options) {
     return !summaryFields.includes(field);
   });
 
+  const { camelLower: item } = options;
+
   const rows = otherFields
     .map((field) => {
       const { name, type } = field;
@@ -185,7 +192,7 @@ function replaceOverviewRows(source, options) {
         <Table.Row>
           <Table.Cell>${startCase(name)}</Table.Cell>
           <Table.Cell>
-            {${getOverviewCellValue(`item.${name}`, field, options)}}
+            {${getOverviewCellValue(`${item}.${name}`, field, options)}}
           </Table.Cell>
         </Table.Row>
       `;
@@ -200,10 +207,12 @@ function replaceOverviewRows(source, options) {
 
 function getOverviewCellValue(token, field, options) {
   switch (field.type) {
+    case 'ObjectArray':
     case 'UploadArray':
     case 'StringArray':
     case 'ObjectIdArray':
-      return `${token}.join(', ') || 'None'`;
+      options.overviewImports.list = true;
+      return `arrayToList(${token})`;
     case 'Boolean':
       return `${token} ? 'Yes' : 'No'`;
     case 'Date':
@@ -234,6 +243,14 @@ function replaceOverviewImports(source, options) {
   if (options.overviewImports.image) {
     semantic.push('Image');
     imports.push("import { urlForUpload } from 'utils/uploads';");
+  }
+
+  if (options.overviewImports.header) {
+    semantic.push('Header');
+  }
+
+  if (options.overviewImports.list) {
+    imports.push("import { arrayToList } from 'utils/formatting';");
   }
 
   if (semantic.length) {
@@ -280,7 +297,7 @@ function replaceListBodyCells(source, options, resource) {
     type: isSubscreen ? 'subscreen-imports' : 'list-imports',
   };
 
-  const { pluralKebab } = getInflections(resource.name);
+  const { pluralKebab, camelLower: item } = getInflections(resource.name);
 
   const summaryFields = getSummaryFields(options);
   const jsx = summaryFields
@@ -291,18 +308,18 @@ function replaceListBodyCells(source, options, resource) {
         const idx = name === 'images' ? '[0]' : '';
         resource.listImports.image = true;
         inner = `
-        {item.${name}${idx} && (
-          <Image size="tiny" src={urlForUpload(item.${name}${idx}, true)} />
+        {${item}.${name}${idx} && (
+          <Image size="tiny" src={urlForUpload(${item}.${name}${idx}, true)} />
         )}
       `;
       } else {
-        inner = `{item.${name}}`;
+        inner = `{${item}.${name}}`;
       }
 
       if (i === 0 && !isSubscreen) {
         resource.listImports.link = true;
         inner = `
-          <Link to={\`/${pluralKebab}/\${item.id}\`}>
+          <Link to={\`/${pluralKebab}/\${${item}.id}\`}>
             ${inner}
           </Link>
       `;
@@ -319,7 +336,7 @@ function replaceListBodyCells(source, options, resource) {
 }
 
 function replaceListImports(source, options) {
-  const imports = [];
+  let imports = [];
   const { listImports } = options;
 
   if (listImports.image) {
@@ -330,6 +347,10 @@ function replaceListImports(source, options) {
   if (listImports.link) {
     imports.push("import { Link } from 'react-router-dom';");
   }
+
+  imports = imports.filter((line) => {
+    return !source.includes(line);
+  });
 
   source = replaceBlock(source, imports.join('\n'), listImports.type);
 

@@ -33,24 +33,37 @@ export function replaceBlock(source, inject, block) {
   source = source.replace(reg, (match, tabs) => {
     return inject ? indent(inject, tabs) : '';
   });
+  source = source.replace(/^.+eslint-disable-next-line.+\n/gm, '');
   source = source.replace(/\n{3,}/gim, '\n\n');
   return source;
 }
 
-export function replacePrimary(source, resource) {
-  const { kebab, camelLower, camelUpper, pluralLower, pluralUpper, pluralKebab } = getInflections(resource.name);
+export function replacePrimary(source, options) {
+  const inflections = getInflections(options.name);
+  const { kebab, natural, camelLower, camelUpper, pluralLower, pluralUpper, pluralKebab, pluralNatural } = inflections;
   source = replaceToken(source, /require\((.*)shops/g, `require($1${pluralKebab})`);
   source = replaceToken(source, /require\((.*?)shop\b/g, `require($1${kebab}`);
   source = replaceToken(source, /\/shops/g, `/${pluralKebab}`);
+
+  if (options.mode === 'screens') {
+    // If generating screens, assume that a standalone
+    // Shop should be replaced with the natural name
+    // which would include spaces if multiple words.
+    source = replaceToken(source, /([">])([\w\s]*)Shop([\w\s]*)(["<])/g, `$1$2${natural}$3$4`);
+    source = replaceToken(source, /([">])([\w\s]*)Shops([\w\s]*)(["<])/g, `$1$2${pluralNatural}$3$4`);
+  }
+
   source = replaceToken(source, /Shops/g, pluralUpper);
   source = replaceToken(source, /shops/g, pluralLower);
-  source = replaceToken(source, /Shop/g, camelUpper);
   source = replaceToken(source, /shop/g, camelLower);
+  source = replaceToken(source, /Shop/g, camelUpper);
+
   return source;
 }
 
 export function replaceSecondary(source, resource) {
-  const { kebab, camelLower, camelUpper, pluralLower, pluralUpper, pluralKebab } = getInflections(resource.name);
+  const inflections = getInflections(resource.name);
+  const { kebab, camelLower, camelUpper, pluralLower, pluralUpper, pluralKebab } = inflections;
   source = replaceToken(source, /require\((.*)products/g, `require($1${pluralKebab})`);
   source = replaceToken(source, /require\((.*?)product\b/g, `require($1${kebab}`);
   source = replaceToken(source, /\/products/g, `/${pluralKebab}`);

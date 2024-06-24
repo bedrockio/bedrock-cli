@@ -199,12 +199,6 @@ const SCHEMA_OPTIONS = [
     },
   },
   {
-    title: 'autopopulate',
-    value: 'autopopulate',
-    selected: true,
-    types: ['ObjectId', 'ObjectIdArray', 'Upload', 'UploadArray'],
-  },
-  {
     title: 'unique',
     value: 'unique',
     selected: false,
@@ -531,7 +525,6 @@ function outputFieldOptions(field, hints) {
       ${field.private ? "access: 'private'," : ''}
       ${field.unique ? 'unique: true,' : ''}
       ${field.index ? 'index: true,' : ''}
-      ${field.autopopulate ? 'autopopulate: true,' : ''}
   `;
 }
 

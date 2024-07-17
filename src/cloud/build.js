@@ -65,9 +65,9 @@ async function buildImageLocal(options) {
   }
   const image = await getImage(options);
   const dockerfile = getDockerfile(options);
-  const sha = await sha();
+  const gitHash = await sha();
 
-  const flags = [`--build-arg GIT_HASH=${sha}`,`-t ${image}`, `-f ${dockerfile}`, ...(platform ? [`--platform=${platform}`] : [])].join(' ');
+  const flags = [`--build-arg GIT_HASH=${gitHash}`,`-t ${image}`, `-f ${dockerfile}`, ...(platform ? [`--platform=${platform}`] : [])].join(' ');
 
   const command = `DOCKER_BUILDKIT=1 DOCKER_SCAN_SUGGEST=false docker build ${flags} .`;
   console.info(kleur.yellow(`\n=> Building "${image}"`));

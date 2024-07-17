@@ -3,7 +3,7 @@ import path from 'path';
 import kleur from 'kleur';
 import { getArchitecture, checkSubdeployment, checkPlatformName, checkTag } from './utils';
 import { checkConfig } from './authorize';
-import { execSyncInherit, withDir } from '../util/shell';
+import { execSyncInherit, withDir, exec } from '../util/shell';
 import { exit } from '../util/exit';
 
 export async function buildImage(options) {
@@ -64,8 +64,9 @@ async function buildImageLocal(options) {
   }
   const image = await getImage(options);
   const dockerfile = getDockerfile(options);
+  const gitHash = await exec(`git rev-parse --short HEAD`);
 
-  const flags = [`-t ${image}`, `-f ${dockerfile}`, ...(platform ? [`--platform=${platform}`] : [])].join(' ');
+  const flags = [`--build-arg GIT_HASH=${gitHash}`,`-t ${image}`, `-f ${dockerfile}`, ...(platform ? [`--platform=${platform}`] : [])].join(' ');
 
   const command = `DOCKER_BUILDKIT=1 DOCKER_SCAN_SUGGEST=false docker build ${flags} .`;
   console.info(kleur.yellow(`\n=> Building "${image}"`));

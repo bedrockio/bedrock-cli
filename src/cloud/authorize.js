@@ -44,11 +44,15 @@ export async function setGCloudConfig(config = {}) {
     }
 
     await execSyncInherit(`gcloud config set container/cluster ${clusterName}`);
-    console.info(
-      green(
-        `Successfully authorized (project=${project}, compute/region=${computeRegion} compute/zone=${computeZone}, cluster=${clusterName})`
-      )
-    );
+
+    const messages = [
+      `project=${project}`,
+      computeRegion ? `compute/region=${computeRegion}` : null,
+      computeZone ? `compute/zone=${computeZone}` : null,
+      clusterName ? `cluster=${clusterName}` : null,
+    ].filter(Boolean);
+
+    console.info(green(`Successfully authorized (${messages.join(', ')})`));
   } catch (e) {
     exit(e.message);
   }

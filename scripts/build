@@ -1,0 +1,5 @@
+#!/bin/bash
+rm -rf dist
+mkdir -p dist/cjs
+echo "{ \"type\": \"commonjs\" }" > dist/cjs/package.json
+babel src -d dist/cjs $@

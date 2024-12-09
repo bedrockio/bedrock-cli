@@ -1,14 +1,11 @@
 #!/usr/bin/env node
 
-/* eslint-disable-next-line no-global-assign */
-require = require('esm')(module);
-
 const path = require('path');
 const kleur = require('kleur');
 const { program } = require('commander');
 const { camelCase } = require('lodash');
-const { promptFill } = require('../src/util/prompt');
-const { restoreSnapshot } = require('../src/util/snapshot');
+const { promptFill } = require('../dist/cjs/util/prompt');
+const { restoreSnapshot } = require('../dist/cjs/util/snapshot');
 const { version } = require('../package.json');
 const descriptor = require('../command.json');
 
@@ -100,7 +97,7 @@ function getHandler(descriptor) {
   const name = descriptor.functionName || camelCase(descriptor.name);
   try {
     // Prefer named functions in entrypoints to helper files that may share the same name.
-    const mod = require(path.resolve(__dirname, '../src', ...dirs.slice(0, -1)));
+    const mod = requireCompiled(dirs.slice(0, -1));
     const handler = mod[name] || mod.default;
     if (!handler) {
       const err = new Error();
@@ -110,7 +107,7 @@ function getHandler(descriptor) {
     return handler;
   } catch (err) {
     if (err.code === 'MODULE_NOT_FOUND') {
-      return require(path.resolve(__dirname, '../src', ...dirs)).default;
+      return requireCompiled(dirs).default;
     } else {
       throw err;
     }
@@ -128,6 +125,11 @@ function getHandlerPath(descriptor) {
 
 function getDescription(arg) {
   return Array.isArray(arg) ? arg.join('\n') : arg;
+}
+
+function requireCompiled(dirs) {
+  const file = path.resolve(__dirname, '../dist/cjs', ...dirs);
+  return require(file);
 }
 
 program.parse(process.argv);

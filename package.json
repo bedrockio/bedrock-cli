@@ -6,13 +6,14 @@
   "license": "MIT",
   "scripts": {
     "test": "jest",
-    "lint": "eslint"
+    "lint": "eslint",
+    "build": "scripts/build",
+    "postinstall": "scripts/build"
   },
   "dependencies": {
     "@yeongjet/joi-to-json-schema": "^1.0.4",
     "commander": "^6.1.0",
     "compare-versions": "^3.6.0",
-    "esm": "^3.2.25",
     "execa": "^4.0.3",
     "glob": "^7.1.6",
     "js-yaml": "^4.1.0",
@@ -29,7 +30,8 @@
     "tmp": "^0.2.1"
   },
   "devDependencies": {
-    "@babel/core": "^7.13.10",
+    "@babel/cli": "^7.26.4",
+    "@babel/core": "^7.26.0",
     "@babel/plugin-transform-runtime": "^7.13.10",
     "@babel/preset-env": "^7.13.12",
     "@bedrockio/prettier-config": "^1.0.0",

@@ -69,6 +69,7 @@ async function plan(options, planFile, refresh = false) {
   const { clusterName, minNodeCount, maxNodeCount, machineType, diskType, diskSize, preemptible } = kubernetes;
   console.info(kleur.yellow(`=> Planning with planFile: "${planFile}"`));
   const refreshOnly = refresh ? '-refresh-only' : '';
+
   const args = [
     `-var "project=${project}"`,
     `-var "environment=${envName}"`,
@@ -79,11 +80,19 @@ async function plan(options, planFile, refresh = false) {
     `-var "min_node_count=${minNodeCount}"`,
     `-var "max_node_count=${maxNodeCount}"`,
     `-var "machine_type=${machineType}"`,
-    `-var "disk_type=${diskType}"`,
-    `-var "disk_size=${diskSize}"`,
     `-var "preemptible=${preemptible}"`,
-    `-out="${planFile}"`,
   ];
+
+  if (diskType) {
+    args.push(`-var "disk_type=${diskType}"`);
+  }
+
+  if (diskSize) {
+    args.push(`-var "disk_size=${diskSize}"`);
+  }
+
+  args.push(`-out="${planFile}"`);
+
   const command = `terraform plan ${refreshOnly} ${args.join(' ')}`;
   console.info(command);
   await execSyncInherit(command);

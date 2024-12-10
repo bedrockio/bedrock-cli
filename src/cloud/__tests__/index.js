@@ -22,7 +22,7 @@ spec:
         app: api
     spec:
       containers:
-        - image: gcr.io/bedrock-foundation/bedrock-cli-services-api
+        - image: gcr.io/bedrock-foundation-production/bedrock-cli-services-api
           imagePullPolicy: Always
           name: main
           env:
@@ -92,7 +92,7 @@ spec:
         app: api
     spec:
       containers:
-        - image: gcr.io/bedrock-foundation/bedrock-cli-services-api
+        - image: gcr.io/bedrock-foundation-production/bedrock-cli-services-api
           imagePullPolicy: Always
           name: main
           env:

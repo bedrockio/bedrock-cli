@@ -54,8 +54,8 @@ The `bedrock cloud deploy` command supports posting message on a Slack channel w
 {
   "gcloud": {
     "envName": "staging",
-    "bucketPrefix": "bedrock-foundation",
-    "project": "bedrock-foundation",
+    "bucketPrefix": "bedrock-foundation-staging",
+    "project": "bedrock-foundation-staging",
     "computeZone": "us-east1-c",
     "kubernetes": {
       "clusterName": "cluster-2",

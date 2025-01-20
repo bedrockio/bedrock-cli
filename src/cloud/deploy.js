@@ -1,5 +1,5 @@
 import kleur from 'kleur';
-import { prompt } from '../util/prompt';
+import { prompt } from '../util/prompt.js';
 
 export async function warn(environment) {
   if (environment == 'production') {

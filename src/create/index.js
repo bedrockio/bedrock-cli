@@ -1,12 +1,14 @@
-import kleur from 'kleur';
-import { kebabCase, snakeCase, startCase } from 'lodash';
-import { cloneRepository, initializeRepository } from '../util/git';
-import { queueTask, runTasks } from '../util/tasks';
-import { removeFiles } from '../util/file';
-import { replaceAll } from '../util/replace';
-import { exec, withDir } from '../util/shell';
 import { randomBytes } from 'crypto';
-import { getEnvironments, updateServiceYamlEnv } from '../cloud/utils';
+
+import kleur from 'kleur';
+import { kebabCase, snakeCase, startCase } from 'lodash-es';
+
+import { cloneRepository, initializeRepository } from '../util/git.js';
+import { queueTask, runTasks } from '../util/tasks.js';
+import { removeFiles } from '../util/file.js';
+import { replaceAll } from '../util/replace.js';
+import { exec, withDir } from '../util/shell.js';
+import { getEnvironments, updateServiceYamlEnv } from '../cloud/utils.js';
 
 const BEDROCK_REPO = 'bedrockio/bedrock-core';
 
@@ -105,6 +107,6 @@ export default async function create(options) {
   - Install Terraform (https://developer.hashicorp.com/terraform/downloads)
   - Install Google Cloud SDK (https://cloud.google.com/sdk/docs/install)
   - Run \`bedrock cloud bootstrap\`
-  `)
+  `),
   );
 }

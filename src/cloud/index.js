@@ -1,13 +1,13 @@
 import open from 'open';
-import { reset, gray, green, yellow, red } from 'kleur';
-import { assertBedrockRoot, assertBedrockServicesRoot } from '../util/dir';
-import { exec, execSyncInherit } from '../util/shell';
-import { prompt } from '../util/prompt';
-import { checkConfig, setGCloudConfig } from './authorize';
-import { buildImage } from './build';
-import { dockerPush } from './push';
-import { warn } from './deploy';
-import { rolloutDeployment, deleteDeployment, checkDeployment } from './rollout';
+import { reset, gray, green, yellow, red } from 'kleur/colors';
+import { assertBedrockRoot, assertBedrockServicesRoot } from '../util/dir.js';
+import { exec, execSyncInherit } from '../util/shell.js';
+import { prompt } from '../util/prompt.js';
+import { checkConfig, setGCloudConfig } from './authorize.js';
+import { buildImage } from './build.js';
+import { dockerPush } from './push.js';
+import { warn } from './deploy.js';
+import { rolloutDeployment, deleteDeployment, checkDeployment } from './rollout.js';
 import {
   checkKubectlVersion,
   checkTag,
@@ -18,9 +18,9 @@ import {
   getDeployment,
   readConfig,
   checkEnvironment,
-} from './utils';
-import { bootstrapProjectEnvironment } from './bootstrap';
-import { slackStartedDeploy, slackFinishedDeploy } from './slack';
+} from './utils.js';
+import { bootstrapProjectEnvironment } from './bootstrap.js';
+import { slackStartedDeploy, slackFinishedDeploy } from './slack.js';
 
 export async function authorize(options) {
   await assertBedrockRoot();

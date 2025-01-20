@@ -1,13 +1,13 @@
 import path from 'path';
 import { existsSync, unlinkSync, mkdirSync, writeFileSync } from 'fs';
-import { red, green, yellow } from 'kleur';
-import { exit } from '../../util/exit';
-import { exec, execSyncInherit } from '../../util/shell';
-import { prompt } from '../../util/prompt';
-import { assertBedrockRoot } from '../../util/dir';
-import { getSecretsDirectory } from '../utils';
-import { checkConfig } from '../authorize';
-import { getSecretNamePrompt, getAllSecretsPrompt } from '../utils';
+import { red, green, yellow } from 'kleur/colors';
+import { exit } from '../../util/exit.js';
+import { prompt } from '../../util/prompt.js';
+import { getSecretsDirectory } from '../utils.js';
+import { assertBedrockRoot } from '../../util/dir.js';
+import { exec, execSyncInherit } from '../../util/shell.js';
+import { getSecretNamePrompt, getAllSecretsPrompt } from '../utils.js';
+import { checkConfig } from '../authorize.js';
 
 export async function secretGet(options) {
   await secret(options, 'get');
@@ -25,7 +25,7 @@ export async function secretDelete(options) {
   await secret(options, 'delete');
 }
 
-export async function secret(options, subcommand) {
+export default async function secret(options, subcommand) {
   await assertBedrockRoot();
   await checkConfig(options);
   const { environment } = options;

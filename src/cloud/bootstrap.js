@@ -1,11 +1,11 @@
-import { green, yellow } from 'kleur';
-import { exit } from '../util/exit';
-import { prompt } from '../util/prompt';
-import { exec, execSyncInherit } from '../util/shell';
-import { writeConfig, readServiceYaml, writeServiceYaml } from './utils';
-import { checkTerraformCommand, terraformInit, terraformApply } from './provision/index';
-import { authorize, deploy, status } from './index';
 import fs from 'fs';
+import { green, yellow } from 'kleur/colors';
+import { exit } from '../util/exit.js';
+import { prompt } from '../util/prompt.js';
+import { exec, execSyncInherit } from '../util/shell.js';
+import { writeConfig, readServiceYaml, writeServiceYaml } from './utils.js';
+import { checkTerraformCommand, terraformInit, terraformApply } from './provision/index.js';
+import { authorize, deploy, status } from './index.js';
 
 export async function bootstrapProjectEnvironment(project, environment, config) {
   await checkTerraformCommand();

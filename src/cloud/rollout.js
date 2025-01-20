@@ -1,10 +1,10 @@
-import kleur from 'kleur';
-import { exit } from '../util/exit';
-import { getConfig } from '../util/git';
-import { exec, execSyncInherit } from '../util/shell';
-import { getArchitecture, getDeployment, readServiceYaml } from './utils';
 import fs from 'fs';
 import path from 'path';
+import kleur from 'kleur';
+import { exit } from '../util/exit.js';
+import { getConfig } from '../util/git.js';
+import { exec, execSyncInherit } from '../util/shell.js';
+import { getArchitecture, getDeployment, readServiceYaml } from './utils.js';
 
 export async function getRef() {
   let ref = await exec('git tag --points-at HEAD');

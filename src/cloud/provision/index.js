@@ -1,11 +1,11 @@
 import path from 'path';
 import kleur from 'kleur';
-import { prompt } from '../../util/prompt';
-import { exec, execSyncInherit, withDir } from '../../util/shell';
-import { exit } from '../../util/exit';
-import { assertBedrockRoot } from '../../util/dir';
-import { checkGCloudProject } from '../authorize';
-import { readConfig, checkEnvironment } from '../utils';
+import { prompt } from '../../util/prompt.js';
+import { exec, execSyncInherit, withDir } from '../../util/shell.js';
+import { exit } from '../../util/exit.js';
+import { assertBedrockRoot } from '../../util/dir.js';
+import { checkGCloudProject } from '../authorize.js';
+import { readConfig, checkEnvironment } from '../utils.js';
 
 export async function terraformPlan(options) {
   await terraform(options, 'plan');

@@ -1,4 +1,4 @@
-import { exec } from './shell';
+import { exec } from './shell.js';
 
 export async function cloneRepository(dir, repo) {
   await exec(`git clone --single-branch --depth 1 https://github.com/${repo}.git ${dir}`);

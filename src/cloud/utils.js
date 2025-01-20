@@ -3,11 +3,11 @@ import os from 'os';
 import path from 'path';
 import yaml from 'js-yaml';
 import compareVersions from 'compare-versions';
-import { red, yellow, dim } from 'kleur';
-import { prompt } from '../util/prompt';
-import { exit } from '../util/exit';
-import { exec } from '../util/shell';
-import { getConfig } from '../util/git';
+import { red, yellow, dim } from 'kleur/colors';
+import { prompt } from '../util/prompt.js';
+import { exit } from '../util/exit.js';
+import { exec } from '../util/shell.js';
+import { getConfig } from '../util/git.js';
 
 export function getDeployment(options) {
   const { service, subservice, subdeployment } = options;

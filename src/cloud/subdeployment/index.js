@@ -1,15 +1,15 @@
 import fs from 'fs';
 import path from 'path';
 import yaml from 'js-yaml';
-import { get } from 'lodash';
-import { green, gray, yellow } from 'kleur';
-import { exit } from '../../util/exit';
-import { prompt } from '../../util/prompt';
-import { assertBedrockRoot } from '../../util/dir';
-import { validateSimpleName } from '../../util/validation';
-import { readServiceYaml, writeServiceYaml, getServiceFilePath, getDeployment, checkService } from '../utils';
-import { exec, execSyncInherit } from '../../util/shell';
-import { checkConfig } from '../authorize';
+import { get } from 'lodash-es';
+import { green, gray, yellow } from 'kleur/colors';
+import { exit } from '../../util/exit.js';
+import { prompt } from '../../util/prompt.js';
+import { assertBedrockRoot } from '../../util/dir.js';
+import { validateSimpleName } from '../../util/validation.js';
+import { readServiceYaml, writeServiceYaml, getServiceFilePath, getDeployment, checkService } from '../utils.js';
+import { exec, execSyncInherit } from '../../util/shell.js';
+import { checkConfig } from '../authorize.js';
 
 const TAG_REG = /(:\w+)?$/;
 const DOMAIN_REG = /^https?:\/\/([^/]+)/;

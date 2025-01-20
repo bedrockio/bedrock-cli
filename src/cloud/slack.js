@@ -1,7 +1,6 @@
-import { getRef } from './rollout';
-import { exec } from '../util/shell';
-import { getConfig } from '../util/git';
-import fetch from 'node-fetch';
+import { getRef } from './rollout.js';
+import { exec } from '../util/shell.js';
+import { getConfig } from '../util/git.js';
 
 export function getSlackWebhook(config) {
   if (config && config.slack && config.slack.webhook) return config.slack.webhook;

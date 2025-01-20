@@ -1,4 +1,4 @@
-import { camelCase, upperFirst } from 'lodash';
+import { camelCase, upperFirst } from 'lodash-es';
 
 const REPO_REG = /^[a-z-]+\/[a-z-]+/;
 

@@ -1,79 +1,45 @@
-import path from 'path';
-import { indent } from './util/template';
-import { promises as fs } from 'fs';
+import { loadModels } from './utils/model.js';
+import { assertPath } from '../util/file.js';
+import { assertBedrockApi } from '../util/dir.js';
+import { generateLocalFiles } from './utils/ai.js';
+import { kebabPlural } from './utils/inflections.js';
+import { queueTask, runTasks } from '../util/tasks.js';
+import { getExample, readLocalFile } from './utils/files.js';
 
-// Generate tests from a Koa router.
-export async function generateTests(options) {
-  const { routerPath } = options;
-  const { name: routerName, dir: routerDir, base: apiBase } = parseRouterPath(routerPath);
-  const router = require(path.join(process.cwd(), routerPath));
+const TESTS_DIR = 'src/routes/__tests__';
+const ROUTES_DIR = 'src/routes';
 
-  const describes = [];
+export async function tests(options) {
+  await assertBedrockApi();
 
-  for (let layer of router.stack) {
-    const method = layer.methods[layer.methods.length - 1];
-    if (method) {
-      const { path: urlPath } = layer;
-      const url = `${apiBase}${urlPath === '/' ? '' : urlPath}`;
+  const testsDir = await assertPath(TESTS_DIR);
+  const routesDir = await assertPath(ROUTES_DIR);
 
-      let test;
-      if (method === 'GET' || method === 'DELETE') {
-        test = `
-it('should be able to ...', async () => {
-  const response = await request('${method}', \`${url}\`, {}, {});
-  expect(response.status).toBe(200);
-});
-        `.trim();
-      } else if (method === 'POST' || method === 'PATCH') {
-        test = `
-it('should be able to ...', async () => {
-  const response = await request('${method}', \`${url}\`, {
-    // ...fields
-  }, {});
-  expect(response.status).toBe(200);
-});
-  `.trim();
-      }
-      if (test) {
-        const block = `
-describe('${method} ${url}', () => {
-  ${indent(test, 2)}
-});
-        `.trimEnd();
-        describes.push(indent(block, 1));
-      }
+  const testsExample = await getExample({
+    ...options,
+    reference: 'src/routes/__tests__/shops.js',
+  });
+
+  const models = await loadModels(options);
+
+  queueTask('Generating Route Tests', async () => {
+    for (let model of models) {
+      const plural = kebabPlural(model.name);
+      const expectedFilename = `${testsDir}/${plural}.js`;
+      const routesContent = await readLocalFile(`${routesDir}/${plural}.js`);
+
+      await generateLocalFiles({
+        file: options.template || 'tests',
+        eject: options.eject,
+        platform: options.platform,
+        params: {
+          expectedFilename,
+          routesContent,
+          testsExample,
+        },
+      });
     }
-  }
-  const source = `
-const { request } = require('../../utils/testing');
+  });
 
-describe('/1/${routerName}', () => {
-  ${describes.join('\n')}
-});
-  `;
-  await fs.writeFile(getOutputFile(routerDir, routerName), source, 'utf8');
-}
-
-function parseRouterPath(str) {
-  const parsed = path.parse(str);
-  if (parsed.name === 'index') {
-    return parseRouterPath(path.dirname(str));
-  }
-  return {
-    ...parsed,
-    base: getApiBase(parsed),
-  };
-}
-
-function getApiBase(parsed) {
-  const match = parsed.dir.match(/routes\/(.+)$/);
-  if (match) {
-    return `/1/${match[1]}/${parsed.name}`;
-  } else {
-    return `/1/${parsed.name}`;
-  }
-}
-
-function getOutputFile(dir, name) {
-  return path.join(process.cwd(), dir, '__tests__', `${name}.js`);
+  await runTasks();
 }

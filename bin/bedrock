@@ -1,55 +1,53 @@
 #!/usr/bin/env node
 
-const path = require('path');
-const kleur = require('kleur');
-const { program } = require('commander');
-const { camelCase } = require('lodash');
-const { promptFill } = require('../dist/cjs/util/prompt');
-const { restoreSnapshot } = require('../dist/cjs/util/snapshot');
-const { version } = require('../package.json');
-const descriptor = require('../command.json');
+import path from 'path';
+import fs from 'fs';
 
-program.version(version);
-addCommand(program, descriptor);
+import kleur from 'kleur';
+import { program, Option } from 'commander';
+import { camelCase } from 'lodash-es';
 
-function addCommand(command, descriptor) {
+import { promptFill } from '../src/util/prompt.js';
+import { restoreSnapshot } from '../src/util/snapshot.js';
+import { loadJson, getDirname } from '../src/util/file.js';
+
+import commands from '../commands.js';
+
+async function addCommand(command, descriptor) {
   const { description, options = [], arguments: args = [] } = descriptor;
   command.description(getDescription(description));
   command.on('--help', () => {
     console.log('');
   });
-  if (args.length) {
-    command.arguments(
-      args
-        .map((arg) => {
-          const { name, required, prompt } = arg;
-          return required && !prompt ? `<${name}>` : `[${name}]`;
-        })
-        .join(' ')
-    );
+
+  for (let arg of args) {
+    const { name, required, description } = arg;
+    const flag = required ? `<${name}>` : `[${name}]`;
+    command.argument(flag, description);
   }
-  for (let option of options) {
-    const { name, type, short, description, default: def } = option;
-    const opts = [];
-    if (short) {
-      opts.push(`-${short}`);
+
+  for (let obj of options) {
+    const { flags, description, choices, default: defaultValue } = obj;
+
+    let option = new Option(flags, description);
+
+    if (defaultValue) {
+      option = option.default(defaultValue);
     }
-    if (name) {
-      let l = `--${name}`;
-      if (type && type !== 'boolean') {
-        l += ` <${type}>`;
-      }
-      opts.push(l);
+
+    if (choices) {
+      option.choices(choices);
     }
-    command.option(opts.join(', '), getDescription(description), def);
+
+    command.addOption(option);
   }
   for (let sub of descriptor.commands || []) {
     sub.parent = descriptor;
     const { name } = sub;
     const subcommand = command.command(name);
     subcommand.storeOptionsAsProperties(false);
-    addCommand(subcommand, sub);
-    const handler = getHandler(sub);
+    await addCommand(subcommand, sub);
+    const handler = await getHandler(sub);
     if (handler) {
       subcommand.action(async () => {
         let { snapshot, ...options } = gatherOptions(subcommand);
@@ -92,26 +90,26 @@ function gatherOptions(command) {
   return options;
 }
 
-function getHandler(descriptor) {
+async function getHandler(descriptor) {
   const dirs = getHandlerPath(descriptor);
   const name = descriptor.functionName || camelCase(descriptor.name);
-  try {
-    // Prefer named functions in entrypoints to helper files that may share the same name.
-    const mod = requireCompiled(dirs.slice(0, -1));
-    const handler = mod[name] || mod.default;
-    if (!handler) {
-      const err = new Error();
-      err.code = 'MODULE_NOT_FOUND';
-      throw err;
-    }
-    return handler;
-  } catch (err) {
-    if (err.code === 'MODULE_NOT_FOUND') {
-      return requireCompiled(dirs).default;
-    } else {
-      throw err;
-    }
+
+  let handler;
+
+  handler ||= await importHandler(name, ...dirs, 'index.js');
+  handler ||= await importHandler(name, ...dirs.slice(0, -1), `${dirs.slice(-1)[0]}.js`);
+  handler ||= await importHandler(name, ...dirs.slice(0, -1), 'index.js');
+
+  return handler;
+}
+
+async function importHandler(name, ...args) {
+  const file = path.resolve(getDirname(import.meta.url), '../src', ...args);
+  if (!fs.existsSync(file)) {
+    return null;
   }
+  const mod = await import(file);
+  return mod[name] || mod.default;
 }
 
 function getHandlerPath(descriptor) {
@@ -127,9 +125,10 @@ function getDescription(arg) {
   return Array.isArray(arg) ? arg.join('\n') : arg;
 }
 
-function requireCompiled(dirs) {
-  const file = path.resolve(__dirname, '../dist/cjs', ...dirs);
-  return require(file);
-}
+(async () => {
+  const { version } = await loadJson(path.resolve(getDirname(import.meta.url), '../package.json'));
+  program.version(version, '-v, --version');
+  await addCommand(program, commands);
 
-program.parse(process.argv);
+  program.parse(process.argv);
+})();

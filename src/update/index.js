@@ -1,7 +1,8 @@
+import { homedir } from 'os';
+
 import path from 'path';
 import kleur from 'kleur';
-import { homedir } from 'os';
-import { exec, withDir } from '../util/shell';
+import { exec, withDir } from '../util/shell.js';
 
 export default async function update() {
   await withDir(path.resolve(homedir(), '.bedrock'), async () => {
@@ -14,7 +15,6 @@ export default async function update() {
 }
 
 async function getPackageManager() {
-
   let manager = await tryPackageManager('yarn');
   if (!manager) {
     manager = await tryPackageManager('npm');

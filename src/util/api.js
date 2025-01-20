@@ -1,6 +1,6 @@
 import path from 'path';
 import fetch from 'node-fetch';
-import { once } from 'lodash';
+import { once } from 'lodash-es';
 import { homedir } from 'os';
 import { readFile, writeFile } from './file';
 
@@ -12,18 +12,18 @@ export async function request(options) {
   const { path, method, body, token = await getCurrentToken() } = options;
   const url = `${API_URL}${path}`;
   const headers = {
-      'Content-Type': 'application/json',
-      ...token && {
-        'Authorization': `Bearer ${token}`,
-      }
+    'Content-Type': 'application/json',
+    ...(token && {
+      Authorization: `Bearer ${token}`,
+    }),
   };
   const response = await fetch(url, {
     headers,
     method,
     mode: 'cors',
-    ...body && {
+    ...(body && {
       body: JSON.stringify(body),
-    },
+    }),
   });
   const { data, error } = await response.json();
   if (error) {
@@ -35,7 +35,7 @@ export async function request(options) {
 export const loadCredentials = once(async () => {
   try {
     return await readFile(CREDENTIALS_FILE);
-  } catch(err) {
+  } catch (err) {
     return {};
   }
 });

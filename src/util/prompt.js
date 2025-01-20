@@ -1,8 +1,8 @@
 import prompts from 'prompts';
 import kleur from 'kleur';
-import { lowerFirst } from 'lodash';
+import { lowerFirst } from 'lodash-es';
 
-import { validateEnum, validateEmail, validateDomain, validateString, validateRepository } from './validation';
+import { validateEnum, validateEmail, validateDomain, validateString, validateRepository } from './validation.js';
 
 export async function promptFill(answers, options = []) {
   prompts.override(answers);

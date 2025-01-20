@@ -1,11 +1,11 @@
 import fs from 'fs';
 import path from 'path';
-import { yellow, green } from 'kleur';
-import { exit } from '../util/exit';
-import { exec, execSyncInherit } from '../util/shell';
-import { prompt } from '../util/prompt';
-import { getSecretInfo, setSecret } from './secret';
-import { checkEnvironment, readConfig } from './utils';
+import { yellow, green } from 'kleur/colors';
+import { exit } from '../util/exit.js';
+import { exec, execSyncInherit } from '../util/shell.js';
+import { prompt } from '../util/prompt.js';
+import { getSecretInfo, setSecret } from './secret/index.js';
+import { checkEnvironment, readConfig } from './utils.js';
 
 export async function setGCloudConfig(config = {}) {
   const { project, computeZone, computeRegion, kubernetes } = config;

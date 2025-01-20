@@ -1,13 +1,14 @@
 {
   "env": {
-    "node": true,
-    "browser": true
+    "node": true
   },
   "parserOptions": {
-    "sourceType": "module"
+    "sourceType": "module",
+    "ecmaVersion": "latest"
   },
   "extends": [
     "plugin:bedrock/recommended",
+    "plugin:bedrock/imports-node",
     "plugin:bedrock/jest"
   ],
   "rules": {

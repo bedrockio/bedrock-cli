@@ -1,6 +1,6 @@
-import { exit } from '../util/exit';
 import kleur from 'kleur';
-import { exec, execSyncInherit } from '../util/shell';
+import { exit } from '../util/exit.js';
+import { exec, execSyncInherit } from '../util/shell.js';
 
 async function pushImage(project, image, tag, gcrPrefix = '') {
   const gcrTag = `gcr.io/${project}/${gcrPrefix + image}:${tag}`;

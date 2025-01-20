@@ -1,40 +1,69 @@
-import { assertPath } from '../util/file';
-import { writeLocalFile } from './util/source';
-import { getInflections } from './util/inflections';
+import { assertPath } from '../util/file.js';
+import { assertBedrockApi } from '../util/dir.js';
+import { generateLocalFiles, ejectTemplate } from './utils/ai.js';
+import { kebabSingular } from './utils/inflections.js';
+import { queueTask, runTasks } from '../util/tasks.js';
+import { getExample } from './utils/files.js';
+import { prompt } from '../util/prompt.js';
 
-const DEFINITIONS_DIR = 'services/api/src/models/definitions';
+const MODELS_DIR = 'src/models/definitions';
 
-export async function generateModel(options) {
-  const definition = getDefinition(options);
-  const dir = await assertModelsDir();
-  const { kebab } = getInflections(options.name);
-  await writeLocalFile(JSON.stringify(definition, null, 2), dir, `${kebab}.json`);
-}
+export async function model(options) {
+  await assertBedrockApi();
 
-export async function assertModelsDir() {
-  return await assertPath(DEFINITIONS_DIR);
-}
+  const modelsDir = await assertPath(MODELS_DIR);
 
-function getDefinition(options) {
-  const { schema } = options;
-  const attributes = {};
+  const name = await prompt({
+    type: 'text',
+    name: 'name',
+    message: 'Name your model:',
+  });
 
-  for (let field of schema) {
-    const { name, type, schemaType, ...rest } = field;
-
-    let obj = {
-      type: schemaType,
-      ...rest,
-    };
-
-    if (type.match(/Array/)) {
-      obj = [obj];
-    }
-
-    attributes[name] = obj;
+  let modelDescription;
+  if (!options.template) {
+    modelDescription = await prompt({
+      type: 'text',
+      name: 'description',
+      message: 'Describe your model:',
+    });
   }
 
-  return {
-    attributes,
+  const exampleDefinition = await getExample({
+    ...options,
+    reference: 'src/models/definitions/shop.json',
+  });
+
+  const expectedFilename = `${modelsDir}/${kebabSingular(name)}.json`;
+
+  let templateFile;
+
+  const params = {
+    expectedFilename,
+    modelDescription,
+    exampleDefinition,
   };
+
+  queueTask('Generating Model', async () => {
+    await generateLocalFiles({
+      file: options.template || 'model',
+      eject: options.eject,
+      platform: options.platform,
+      params,
+    });
+  });
+
+  if (!options.template) {
+    queueTask('Exporting Template', async () => {
+      templateFile = await ejectTemplate({
+        file: 'model',
+        params,
+      });
+    });
+  }
+
+  await runTasks();
+
+  if (templateFile) {
+    console.info(`Template written to "${templateFile}". You can tweak this and pass it back in with --template.`);
+  }
 }

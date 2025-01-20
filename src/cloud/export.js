@@ -1,7 +1,7 @@
-import { yellow } from 'kleur';
-import { assertBedrockRoot } from '../util/dir';
-import { checkConfig } from './authorize';
-import { exec, execSyncInherit } from '../util/shell';
+import { yellow } from 'kleur/colors';
+import { checkConfig } from './authorize.js';
+import { assertBedrockRoot } from '../util/dir.js';
+import { exec, execSyncInherit } from '../util/shell.js';
 
 export default async function exportDocuments(options) {
   await assertBedrockRoot();

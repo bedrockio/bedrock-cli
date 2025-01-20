@@ -1,5 +1,7 @@
 import Listr from 'listr';
 
+import { exit } from './flow.js';
+
 let currentList;
 
 export function queueTask(title, task) {
@@ -23,9 +25,8 @@ export async function runTasks() {
     } else {
       console.info('Nothing to do!');
     }
-  } catch (err) {
-    console.error(err);
-    process.exit(1);
+  } catch (error) {
+    exit(error);
   }
 }
 

@@ -1,22 +1,49 @@
-import { assertPath } from '../util/file';
-import { getInflections } from './util/inflections';
-import { patchRoutesEntrypoint } from './util/patch';
-import { readSourceFile, writeLocalFile, replacePrimary } from './util/source';
+import { loadModels } from './utils/model.js';
+import { assertPath } from '../util/file.js';
+import { assertBedrockApi } from '../util/dir.js';
+import { kebabPlural } from './utils/inflections.js';
+import { queueTask, runTasks } from '../util/tasks.js';
+import { getExample, readLocalFile } from './utils/files.js';
+import { generateLocalFiles } from './utils/ai.js';
 
-const ROUTES_DIR = 'services/api/src/routes';
+const ROUTES_DIR = 'src/routes';
 
-export async function generateRoutes(options) {
-  const { pluralKebab } = getInflections(options.name);
+export async function routes(options) {
+  await assertBedrockApi();
 
-  const routesDir = await assertRoutesDir();
+  const routesDir = await assertPath(ROUTES_DIR);
 
-  let source = await readSourceFile(routesDir, 'shops.js');
-  source = replacePrimary(source, options);
+  const routesExample = await getExample({
+    ...options,
+    reference: 'src/routes/shops.js',
+  });
 
-  await writeLocalFile(source, routesDir, `${pluralKebab}.js`);
-  await patchRoutesEntrypoint(routesDir, options);
-}
+  const routesEntryFilename = `${routesDir}/index.js`;
+  const routesEntry = await readLocalFile(routesEntryFilename);
 
-export async function assertRoutesDir() {
-  return await assertPath(ROUTES_DIR);
+  const models = await loadModels(options);
+
+  queueTask('Generating Routes', async () => {
+    for (let model of models) {
+      const modelName = model.name;
+      const modelDefinition = model.definition;
+      const expectedRoutesFilename = `${routesDir}/${kebabPlural(model.name)}.js`;
+
+      await generateLocalFiles({
+        file: options.template || 'routes',
+        eject: options.eject,
+        platform: options.platform,
+        params: {
+          modelName,
+          modelDefinition,
+          expectedRoutesFilename,
+          routesExample,
+          routesEntry,
+          routesEntryFilename,
+        },
+      });
+    }
+  });
+
+  await runTasks();
 }

@@ -1,10 +1,10 @@
 import fs from 'fs';
 import path from 'path';
 import kleur from 'kleur';
-import { getArchitecture, checkSubdeployment, checkPlatformName, checkTag } from './utils';
-import { checkConfig } from './authorize';
-import { execSyncInherit, withDir, exec } from '../util/shell';
-import { exit } from '../util/exit';
+import { checkConfig } from './authorize.js';
+import { exit } from '../util/exit.js';
+import { execSyncInherit, withDir, exec } from '../util/shell.js';
+import { getArchitecture, checkSubdeployment, checkPlatformName, checkTag } from './utils.js';
 
 export async function buildImage(options) {
   const { service, remote } = options;
@@ -66,7 +66,12 @@ async function buildImageLocal(options) {
   const dockerfile = getDockerfile(options);
   const gitHash = await exec(`git rev-parse --short HEAD`);
 
-  const flags = [`--build-arg GIT_HASH=${gitHash}`,`-t ${image}`, `-f ${dockerfile}`, ...(platform ? [`--platform=${platform}`] : [])].join(' ');
+  const flags = [
+    `--build-arg GIT_HASH=${gitHash}`,
+    `-t ${image}`,
+    `-f ${dockerfile}`,
+    ...(platform ? [`--platform=${platform}`] : []),
+  ].join(' ');
 
   const command = `DOCKER_BUILDKIT=1 DOCKER_SCAN_SUGGEST=false docker build ${flags} .`;
   console.info(kleur.yellow(`\n=> Building "${image}"`));

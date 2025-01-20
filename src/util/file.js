@@ -1,12 +1,31 @@
 import path from 'path';
-import glob from 'glob';
+import { promises as fs } from 'fs';
+import { fileURLToPath } from 'url';
+
+import { glob } from 'glob';
 import rimraf from 'rimraf';
 import mkdir from 'mkdirp';
-import { promises as fs } from 'fs';
-import { prompt } from './prompt';
-import { promisify } from 'util';
 
-export const readDirectory = promisify(glob);
+import { prompt } from './prompt.js';
+
+export async function readDirectory(...args) {
+  const files = await glob(path.resolve(...args));
+  files.sort();
+  return files;
+}
+
+export async function loadJson(...dirs) {
+  const source = await fs.readFile(path.resolve(...dirs), 'utf8');
+  return JSON.parse(source);
+}
+
+export function getDirname(url) {
+  return path.dirname(fileURLToPath(url));
+}
+
+export function getRelativeFile(meta, ...args) {
+  return path.resolve(getDirname(meta.url), ...args);
+}
 
 export function removeFiles(path) {
   return new Promise((resolve, reject) => {
@@ -36,7 +55,7 @@ export async function assertPath(dir) {
     const newDir = await prompt({
       type: 'text',
       name: 'path',
-      message: `Create ${relDir}?`,
+      message: `Location of ${relDir}?`,
       initial: relDir,
     });
     await mkdir(newDir);
@@ -58,5 +77,6 @@ export async function readFile(file) {
 }
 
 export async function writeFile(file, data) {
+  await mkdir(path.dirname(file));
   await fs.writeFile(file, data, 'utf8');
 }

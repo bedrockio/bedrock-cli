@@ -1,5 +1,7 @@
 import path from 'path';
+
 import kleur from 'kleur';
+
 import { prompt } from '../../util/prompt.js';
 import { exec, execSyncInherit, withDir } from '../../util/shell.js';
 import { exit } from '../../util/exit.js';
@@ -47,7 +49,7 @@ async function terraform(options, command) {
   await assertBedrockRoot();
   await checkEnvironment(options);
   const { environment } = options;
-  const config = readConfig(environment);
+  const config = await readConfig(environment);
 
   await checkGCloudProject(config.gcloud);
   await checkTerraformCommand();

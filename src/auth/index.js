@@ -1,4 +1,5 @@
 import kleur from 'kleur';
+
 import { prompt } from '../util/prompt';
 import { request, loadCredentials, writeCredentials } from '../util/api';
 import { getOAuthToken } from '../util/authorize';
@@ -12,7 +13,7 @@ export async function login() {
     const token = await getOAuthToken(OAUTH_ENDPOINT, OAUTH_REDIRECT_PARAM);
     await setCredentialsWithToken(token);
     console.log(kleur.yellow('Successfully logged in!'));
-  } catch(err) {
+  } catch (err) {
     console.log(kleur.red(`Unable to login: ${err.message}`));
   }
 }
@@ -28,7 +29,7 @@ export async function loginWithPassword(options) {
     const token = await getToken(email, password);
     await setCredentialsWithToken(token);
     console.log(kleur.yellow('Successfully logged in!'));
-  } catch(err) {
+  } catch (err) {
     console.log(kleur.red(`Unable to login: ${err.message}`));
   }
 }
@@ -48,7 +49,7 @@ export async function setCredentialsWithToken(token) {
 export async function list() {
   let accounts = await getAccounts();
   accounts = accounts.map(({ name, email, current }) => {
-    return `${current ? kleur.cyan('❯') : ' ' } ${name} ${kleur.dim(`<${email}>`)}`;
+    return `${current ? kleur.cyan('❯') : ' '} ${name} ${kleur.dim(`<${email}>`)}`;
   });
   if (accounts.length) {
     console.log(kleur.white(accounts.join('\n')));
@@ -129,7 +130,7 @@ async function getToken(email, password) {
     body: {
       email,
       password,
-    }
+    },
   });
   return token;
 }

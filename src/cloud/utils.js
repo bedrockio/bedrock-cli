@@ -10,6 +10,7 @@ import { prompt } from '../util/prompt.js';
 import { exit } from '../util/exit.js';
 import { exec } from '../util/shell.js';
 import { getConfig } from '../util/git.js';
+import { loadJson } from '../util/file.js';
 
 export function getDeployment(options) {
   const { service, subservice, subdeployment } = options;
@@ -25,10 +26,10 @@ export function getDeployment(options) {
   return deployment;
 }
 
-export function readConfig(environment) {
+export async function readConfig(environment) {
   const configFilePath = getConfigFilePath(environment);
   try {
-    return require(configFilePath);
+    return await loadJson(configFilePath);
   } catch (e) {
     exit(`Could not find config.json for environment: "${environment}", file path: "${configFilePath}"`);
   }

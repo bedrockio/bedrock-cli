@@ -3,7 +3,6 @@ import { promises as fs } from 'fs';
 import { fileURLToPath } from 'url';
 
 import { glob } from 'glob';
-import rimraf from 'rimraf';
 
 import { prompt } from './prompt.js';
 
@@ -63,7 +62,7 @@ function getRelativePath(...args) {
 
 export async function readFile(file) {
   if (file.match(/\.json$/)) {
-    return require(file);
+    return await loadJson(file);
   } else {
     await fs.readFile(file, 'utf8');
   }

@@ -1,5 +1,8 @@
+import { spawn } from 'child_process';
+
 import open from 'open';
 import { reset, gray, green, yellow, red } from 'kleur/colors';
+
 import { assertBedrockRoot, assertBedrockServicesRoot } from '../util/dir.js';
 import { exec, execSyncInherit } from '../util/shell.js';
 import { prompt } from '../util/prompt.js';
@@ -26,7 +29,7 @@ export async function authorize(options) {
   await assertBedrockRoot();
   await checkEnvironment(options);
   const { environment } = options;
-  const config = readConfig(environment);
+  const config = await readConfig(environment);
 
   await setGCloudConfig(config.gcloud);
 }
@@ -107,8 +110,8 @@ export async function status(options) {
   if (podInfo.includes('CreateContainerConfigError')) {
     console.info(
       yellow(
-        `CreateContainerConfigError: Check if you created the required secrets, e.g., "bedrock cloud secret set ${environment} secrets"`
-      )
+        `CreateContainerConfigError: Check if you created the required secrets, e.g., "bedrock cloud secret set ${environment} secrets"`,
+      ),
     );
   }
 }
@@ -305,8 +308,6 @@ export async function shell(options) {
   const podName = filteredPods[0].metadata.name;
   console.info(yellow(`=> Starting bash for pod: "${podName}"`));
 
-  const { spawn } = require('child_process');
-
   const child = spawn('kubectl', ['exec', '-it', podName, '--', 'bash'], {
     stdio: 'inherit',
   });
@@ -386,7 +387,7 @@ export async function bootstrap(options) {
   await assertBedrockRoot();
   await checkEnvironment(options);
   const { environment } = options;
-  const config = readConfig(environment);
+  const config = await readConfig(environment);
 
   const project =
     options.project ||

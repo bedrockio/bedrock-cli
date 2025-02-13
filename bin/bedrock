@@ -8,7 +8,6 @@ import { program, Option } from 'commander';
 import { camelCase } from 'lodash-es';
 
 import { promptFill } from '../src/util/prompt.js';
-import { restoreSnapshot } from '../src/util/snapshot.js';
 import { loadJson, getDirname } from '../src/util/file.js';
 
 import commands from '../commands.js';
@@ -50,13 +49,7 @@ async function addCommand(command, descriptor) {
     const handler = await getHandler(sub);
     if (handler) {
       subcommand.action(async () => {
-        let { snapshot, ...options } = gatherOptions(subcommand);
-        if (snapshot) {
-          options = {
-            ...(await restoreSnapshot(snapshot)),
-            ...options,
-          };
-        }
+        const options = gatherOptions(subcommand);
         if (sub.arguments) {
           subcommand.args.forEach((arg, i) => {
             if (sub.arguments[i]) {

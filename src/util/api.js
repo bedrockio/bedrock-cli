@@ -1,7 +1,10 @@
 import path from 'path';
+
+import { homedir } from 'os';
+
 import fetch from 'node-fetch';
 import { once } from 'lodash-es';
-import { homedir } from 'os';
+
 import { readFile, writeFile } from './file';
 
 // TODO: change to bedrock.io

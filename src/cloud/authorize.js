@@ -1,9 +1,11 @@
 import fs from 'fs';
 import path from 'path';
+
 import { yellow, green } from 'kleur/colors';
+
 import { exit } from '../util/exit.js';
-import { exec, execSyncInherit } from '../util/shell.js';
 import { prompt } from '../util/prompt.js';
+import { exec, execSyncInherit } from '../util/shell.js';
 import { getSecretInfo, setSecret } from './secret/index.js';
 import { checkEnvironment, readConfig } from './utils.js';
 
@@ -28,7 +30,7 @@ export async function setGCloudConfig(config = {}) {
 
     if (!computeRegion && !computeZone) {
       exit(
-        `You must provide either a computeRegion or a computeZone. Use computeRegion for Regional clusters, and computeZone for Zonal clusters.`
+        `You must provide either a computeRegion or a computeZone. Use computeRegion for Regional clusters, and computeZone for Zonal clusters.`,
       );
     }
 
@@ -37,7 +39,7 @@ export async function setGCloudConfig(config = {}) {
 
     try {
       await execSyncInherit(
-        `gcloud container clusters get-credentials --zone ${computeRegion || computeZone} ${clusterName}`
+        `gcloud container clusters get-credentials --zone ${computeRegion || computeZone} ${clusterName}`,
       );
     } catch (e) {
       exit(e.message);
@@ -87,7 +89,7 @@ async function checkGCloudConfig(environment, config = {}, quiet) {
 
     if (!computeRegion && !computeZone) {
       exit(
-        `You must provide either a computeRegion or a computeZone. Use computeRegion for Regional clusters, and computeZone for Zonal clusters.`
+        `You must provide either a computeRegion or a computeZone. Use computeRegion for Regional clusters, and computeZone for Zonal clusters.`,
       );
     }
 
@@ -143,8 +145,8 @@ async function checkSecrets(environment) {
       if (!secretInfo) {
         console.info(
           yellow(
-            `Warning: Found secret file deployment/environments/${environment}/secrets/${secretFile} that has not been created on the cluster.`
-          )
+            `Warning: Found secret file deployment/environments/${environment}/secrets/${secretFile} that has not been created on the cluster.`,
+          ),
         );
         let confirmed = await prompt({
           type: 'confirm',
@@ -156,8 +158,8 @@ async function checkSecrets(environment) {
       } else {
         console.info(
           yellow(
-            `Warning: Found secret file deployment/environments/${environment}/secrets/${secretFile} - make sure to remove this file!`
-          )
+            `Warning: Found secret file deployment/environments/${environment}/secrets/${secretFile} - make sure to remove this file!`,
+          ),
         );
       }
     }
@@ -168,7 +170,7 @@ async function checkSecrets(environment) {
 export async function checkConfig(options) {
   await checkEnvironment(options);
 
-  options.config = readConfig(options.environment);
+  options.config = await readConfig(options.environment);
   const { config, environment, force, quiet } = options;
 
   if (!config) exit('Missing config.');

@@ -7,9 +7,7 @@
   "type": "module",
   "scripts": {
     "test": "jest",
-    "lint": "eslint",
-    "build": "scripts/build",
-    "postinstall": "scripts/build"
+    "lint": "eslint"
   },
   "dependencies": {
     "@bedrockio/ai": "^0.2.1",
@@ -27,13 +25,11 @@
     "server-destroy": "^1.0.1"
   },
   "devDependencies": {
-    "@babel/cli": "^7.26.4",
-    "@babel/core": "^7.26.0",
-    "@babel/plugin-transform-runtime": "^7.13.10",
-    "@babel/preset-env": "^7.13.12",
+    "@babel/core": "^7.26.8",
+    "@babel/preset-env": "^7.26.8",
     "@bedrockio/prettier-config": "^1.0.2",
     "@koa/router": "^10.0.0",
-    "babel-jest": "^26.6.3",
+    "babel-jest": "^29.7.0",
     "eslint": "^8.57.1",
     "eslint-plugin-bedrock": "^1.0.27",
     "eslint-plugin-import": "^2.31.0",

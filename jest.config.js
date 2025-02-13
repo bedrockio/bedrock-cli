@@ -1,5 +1,5 @@
-module.exports = {
-  moduleDirectories: ['node_modules', './src/'],
-  testPathIgnorePatterns: ['dist', 'node_modules', '\\w+.ignore.js'],
-  modulePathIgnorePatterns: ['dist'],
+export default {
+  transformIgnorePatterns: [
+    '/node_modules/(?!lodash-es/)', // Tell Jest to transform lodash-es
+  ],
 };

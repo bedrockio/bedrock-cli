@@ -1,17 +1,16 @@
 import kleur from 'kleur';
-import logger from '@bedrockio/logger';
 
 import { exit } from '../utils/exit.js';
 import { exec, execSyncInherit } from '../utils/shell.js';
 
 async function pushImage(project, image, tag, gcrPrefix = '') {
   const gcrTag = `gcr.io/${project}/${gcrPrefix + image}:${tag}`;
-  logger.info(kleur.green(`Pushing ${gcrTag}`));
+  console.info(kleur.green(`Pushing ${gcrTag}`));
   await exec(`docker tag ${image}:${tag} ${gcrTag}`);
   try {
     await execSyncInherit(`docker push ${gcrTag}`);
   } catch (e) {
-    logger.info(
+    console.info(
       kleur.yellow(
         "If You don't have the needed permissions to perform this operation, then run: 'gcloud auth configure-docker'",
       ),
@@ -40,8 +39,8 @@ export async function dockerPush(options) {
       images = repositories.filter((repo) => repo.startsWith(`${platformName}-services-`));
     }
 
-    images.length ? logger.info(kleur.yellow('\n=> Pushing images:')) : logger.info(kleur.yellow('No images found'));
-    images.forEach((image) => logger.info('-', image));
+    images.length ? console.info(kleur.yellow('\n=> Pushing images:')) : console.info(kleur.yellow('No images found'));
+    images.forEach((image) => console.info('-', image));
 
     for (const image of images) {
       await pushImage(project, image, tag, gcrPrefix);

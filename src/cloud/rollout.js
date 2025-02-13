@@ -2,7 +2,6 @@ import fs from 'fs';
 import path from 'path';
 
 import kleur from 'kleur';
-import logger from '@bedrockio/logger';
 
 import { exit } from '../utils/exit.js';
 import { getConfig } from '../utils/git.js';
@@ -38,7 +37,7 @@ async function getMetaData() {
 export async function rolloutDeployment(options) {
   const { environment } = options;
   const deployment = getDeployment(options);
-  logger.info(kleur.yellow(`\n=> Rolling out ${environment} ${deployment}`));
+  console.info(kleur.yellow(`\n=> Rolling out ${environment} ${deployment}`));
 
   const deploymentFile = path.resolve('deployment', 'environments', environment, 'services', `${deployment}.yml`);
 
@@ -82,7 +81,7 @@ export async function rolloutDeployment(options) {
 export async function deleteDeployment(options) {
   const { environment } = options;
   const deployment = getDeployment(options);
-  logger.info(kleur.yellow(`\n=> Deleting ${environment} ${deployment}`));
+  console.info(kleur.yellow(`\n=> Deleting ${environment} ${deployment}`));
 
   const deploymentFile = path.resolve('deployment', 'environments', environment, 'services', `${deployment}.yml`);
 
@@ -116,7 +115,7 @@ export async function checkDeployment(options) {
   }
   const deploymentInfoJSON = await exec(getDeploymentCommand);
   if (!deploymentInfoJSON) {
-    logger.info(kleur.yellow(`Deployment "${deploymentName}" could not be found`));
+    console.info(kleur.yellow(`Deployment "${deploymentName}" could not be found`));
     return false;
   }
   return JSON.parse(deploymentInfoJSON);

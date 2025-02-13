@@ -1,7 +1,6 @@
 import fs from 'fs';
 import path from 'path';
 
-import logger from '@bedrockio/logger';
 import { yellow, green } from 'kleur/colors';
 
 import { exit } from '../utils/exit.js';
@@ -55,7 +54,7 @@ export async function setGCloudConfig(config = {}) {
       clusterName ? `cluster=${clusterName}` : null,
     ].filter(Boolean);
 
-    logger.info(green(`Successfully authorized (${messages.join(', ')})`));
+    console.info(green(`Successfully authorized (${messages.join(', ')})`));
   } catch (e) {
     exit(e.message);
   }
@@ -66,7 +65,7 @@ export async function checkGCloudProject(config = {}) {
   if (!project) exit('Missing project');
   const currentProject = await exec('gcloud config get-value project');
   if (project != currentProject) {
-    logger.info(yellow(`Invalid Google Cloud config: project = ${currentProject}`));
+    console.info(yellow(`Invalid Google Cloud config: project = ${currentProject}`));
     return false;
   }
   return true;
@@ -97,13 +96,13 @@ async function checkGCloudConfig(environment, config = {}, quiet) {
     const currentComputeZone = await exec('gcloud config get-value compute/zone');
     if (computeZone && computeZone != currentComputeZone) {
       valid = false;
-      logger.info(yellow(`Invalid Google Cloud config: compute/zone = ${currentComputeZone}`));
+      console.info(yellow(`Invalid Google Cloud config: compute/zone = ${currentComputeZone}`));
     }
 
     const currentComputeRegion = await exec('gcloud config get-value compute/region');
     if (computeRegion && computeRegion != currentComputeRegion) {
       valid = false;
-      logger.info(yellow(`Invalid Google Cloud config: compute/region = ${currentComputeRegion}`));
+      console.info(yellow(`Invalid Google Cloud config: compute/region = ${currentComputeRegion}`));
     }
 
     const { clusterName } = kubernetes;
@@ -111,23 +110,23 @@ async function checkGCloudConfig(environment, config = {}, quiet) {
     const currentClusterName = await exec('gcloud config get-value container/cluster');
     if (clusterName != currentClusterName) {
       valid = false;
-      logger.info(yellow(`Invalid Google Cloud config: container/cluster = ${currentClusterName}`));
+      console.info(yellow(`Invalid Google Cloud config: container/cluster = ${currentClusterName}`));
     }
 
     const kubectlContext = getKubectlContext(project, computeRegion || computeZone, clusterName);
     const currentkubectlContext = await getCurrentKubectlContext();
     if (kubectlContext != currentkubectlContext) {
       valid = false;
-      logger.info(yellow(`Invalid Google Cloud config: kubectl context = ${currentkubectlContext}`));
+      console.info(yellow(`Invalid Google Cloud config: kubectl context = ${currentkubectlContext}`));
     }
 
     if (valid && !quiet) {
-      logger.info(green(`Using Google Cloud environment "${environment}"`));
-      logger.info('project=' + green(project));
-      logger.info('compute/zone=' + green(computeZone));
-      logger.info('compute/region=' + green(computeRegion));
-      logger.info('cluster=' + green(clusterName));
-      logger.info('kubectl/context=' + green(currentkubectlContext));
+      console.info(green(`Using Google Cloud environment "${environment}"`));
+      console.info('project=' + green(project));
+      console.info('compute/zone=' + green(computeZone));
+      console.info('compute/region=' + green(computeRegion));
+      console.info('cluster=' + green(clusterName));
+      console.info('kubectl/context=' + green(currentkubectlContext));
     }
     return valid;
   } catch (e) {
@@ -144,7 +143,7 @@ async function checkSecrets(environment) {
       const secretName = secretFile.slice(0, -5);
       const secretInfo = await getSecretInfo(secretName);
       if (!secretInfo) {
-        logger.info(
+        console.info(
           yellow(
             `Warning: Found secret file deployment/environments/${environment}/secrets/${secretFile} that has not been created on the cluster.`,
           ),
@@ -157,7 +156,7 @@ async function checkSecrets(environment) {
         });
         if (confirmed) await setSecret(environment, secretName);
       } else {
-        logger.info(
+        console.info(
           yellow(
             `Warning: Found secret file deployment/environments/${environment}/secrets/${secretFile} - make sure to remove this file!`,
           ),

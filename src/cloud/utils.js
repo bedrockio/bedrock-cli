@@ -4,7 +4,6 @@ import os from 'os';
 import path from 'path';
 
 import yaml from 'js-yaml';
-import logger from '@bedrockio/logger';
 import compareVersions from 'compare-versions';
 import { red, yellow, dim } from 'kleur/colors';
 
@@ -92,9 +91,9 @@ export async function checkPlatformName(options) {
   if (!options.platformName) {
     const platformName = path.basename(await getConfig('remote.origin.url'), '.git');
     if (!platformName) {
-      logger.info(yellow('Could not derive a platform name from the git config.'));
-      logger.info(yellow('A stable name needs to be derived before project can be deployed.'));
-      logger.info(yellow('Please initialize a git repo before proceeding.'));
+      console.info(yellow('Could not derive a platform name from the git config.'));
+      console.info(yellow('A stable name needs to be derived before project can be deployed.'));
+      console.info(yellow('Please initialize a git repo before proceeding.'));
       process.exit(1);
     }
     options.platformName = platformName;
@@ -107,7 +106,7 @@ export async function checkServices(options) {
   } else {
     options.services = options.all ? getServices() : await getServicesPrompt();
     if (!options.services.length) {
-      logger.info(yellow('There were no services selected'));
+      console.info(yellow('There were no services selected'));
       process.exit(1);
     }
   }
@@ -170,7 +169,7 @@ export async function checkSubdeployment(options) {
       ) {
         options.subdeployment = branch;
       } else {
-        logger.info(dim('Run "bedrock cloud subdeployment" for more about subdeployments.'));
+        console.info(dim('Run "bedrock cloud subdeployment" for more about subdeployments.'));
       }
     }
   }
@@ -268,7 +267,7 @@ async function getAllSecrets() {
     const secrets = JSON.parse(secretsJSON);
     return secrets.items;
   } catch {
-    logger.info(red('Could not parse secrets'));
+    console.info(red('Could not parse secrets'));
     return [];
   }
 }
@@ -298,7 +297,7 @@ export async function checkKubectlVersion(minVersion = 'v1.19.0') {
       );
     }
   } catch (e) {
-    logger.error(e);
+    console.error(e);
     exit('Error: failed to parse kubectl version');
   }
 }

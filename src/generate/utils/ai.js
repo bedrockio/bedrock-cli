@@ -1,4 +1,3 @@
-import logger from '@bedrockio/logger';
 import { MultiClient } from '@bedrockio/ai';
 
 import { getRelativeFile, writeFile } from '../../utils/file.js';
@@ -9,7 +8,7 @@ const client = new MultiClient({
     {
       name: 'openai',
       apiKey:
-        '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',
+        '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',
     },
     {
       name: 'claude',
@@ -34,7 +33,7 @@ export async function ejectTemplate(options) {
   await writeFile(filename, output);
 
   if (exit) {
-    logger.info(`Template written to "${filename}". Use --template to pass back in to this script.`);
+    console.info(`Template written to "${filename}". Use --template to pass back in to this script.`);
     process.exit(0);
   }
 }
@@ -54,8 +53,11 @@ export async function generateLocalFiles(options) {
     output: 'json',
   });
 
-  // Seems to like to output a `files` array.
-  const files = output.files || output;
+  // Sometimes likes to output a `files` array.
+  let files = output.files;
+  // Sometimes ignores me and outputs just an object.
+  files ||= Array.isArray(output) ? output : [output];
+
   for (let file of files) {
     let { filename, content } = file;
     if (typeof content !== 'string') {

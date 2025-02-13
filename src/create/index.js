@@ -1,7 +1,6 @@
 import { randomBytes } from 'crypto';
 
 import kleur from 'kleur';
-import logger from '@bedrockio/logger';
 import { kebabCase, snakeCase, startCase } from 'lodash-es';
 
 import { cloneRepository, initializeRepository } from '../utils/git.js';
@@ -88,7 +87,7 @@ export default async function create(options) {
 
   await runTasks();
 
-  logger.info(
+  console.info(
     kleur.yellow(`
   Installation Completed!
   New Bedrock project has been created:

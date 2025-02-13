@@ -2,7 +2,6 @@ import fs from 'fs';
 import path from 'path';
 
 import kleur from 'kleur';
-import logger from '@bedrockio/logger';
 
 import { getRef } from '../utils/git.js';
 import { exit } from '../utils/exit.js';
@@ -43,8 +42,8 @@ async function buildImageRemote(options) {
   ].join(' ');
 
   const command = `gcloud builds submit ${flags}`;
-  logger.info(kleur.yellow(`\n=> Remote build "${image}"`));
-  logger.info(kleur.gray(command));
+  console.info(kleur.yellow(`\n=> Remote build "${image}"`));
+  console.info(kleur.gray(command));
 
   try {
     await runPreDeployHook(options);
@@ -61,7 +60,7 @@ async function buildImageLocal(options) {
   // from a gcloud command if necessary.
   if (arch !== 'x64') {
     if (options.native) {
-      logger.info(kleur.yellow(`Building with native architecture ${arch}.`));
+      console.info(kleur.yellow(`Building with native architecture ${arch}.`));
     } else {
       platform = 'linux/amd64';
     }
@@ -78,8 +77,8 @@ async function buildImageLocal(options) {
   ].join(' ');
 
   const command = `DOCKER_BUILDKIT=1 DOCKER_SCAN_SUGGEST=false docker build ${flags} .`;
-  logger.info(kleur.yellow(`\n=> Building "${image}"`));
-  logger.info(kleur.gray(command));
+  console.info(kleur.yellow(`\n=> Building "${image}"`));
+  console.info(kleur.gray(command));
 
   try {
     await runPreDeployHook(options);
@@ -117,7 +116,7 @@ function getDockerfile(options) {
 async function runPreDeployHook(options) {
   if (fs.existsSync('docker-hooks/pre-build')) {
     const { environment, service } = options;
-    logger.info(kleur.gray('Running pre build hook...'));
+    console.info(kleur.gray('Running pre build hook...'));
     await execSyncInherit(`docker-hooks/pre-build ${environment} ${service}`);
   }
 }

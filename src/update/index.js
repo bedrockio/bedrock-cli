@@ -3,7 +3,6 @@ import { homedir } from 'os';
 import path from 'path';
 
 import kleur from 'kleur';
-import logger from '@bedrockio/logger';
 
 import { getRef } from '../utils/git.js';
 import { exec, withDir } from '../utils/shell.js';
@@ -14,7 +13,7 @@ export default async function update() {
     await exec(`git pull`);
     await exec(`${manager} install`);
     const ref = await getRef();
-    logger.info(kleur.green(`Successfully updated to SHA: `) + kleur.yellow(ref));
+    console.info(kleur.green(`Successfully updated to SHA: `) + kleur.yellow(ref));
   });
 }
 
@@ -34,8 +33,8 @@ async function tryPackageManager(name) {
     await exec(`which ${name}`);
     return name;
   } catch (error) {
-    logger.info(kleur.red(`Try package manager failed for ${name}`));
-    logger.error(error);
+    console.info(kleur.red(`Try package manager failed for ${name}`));
+    console.error(error);
     return null;
   }
 }

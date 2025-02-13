@@ -1,6 +1,5 @@
 import prompts from 'prompts';
 import kleur from 'kleur';
-import logger from '@bedrockio/logger';
 import { lowerFirst } from 'lodash-es';
 
 import { validateEnum, validateEmail, validateDomain, validateString, validateRepository } from './validation.js';
@@ -24,7 +23,7 @@ export async function promptFill(answers, options = []) {
           let { message } = promptOptions;
           message = message.replace(/\?$/, ':');
           const answerStr = Array.isArray(answer) ? answer.join(', ') : answer;
-          logger.info(kleur.grey(`? ${message} ${answerStr}`));
+          console.info(kleur.grey(`? ${message} ${answerStr}`));
         }
         return {
           name,

@@ -1,5 +1,4 @@
 import { Listr } from 'listr2';
-import logger from '@bedrockio/logger';
 
 import { exit } from './flow.js';
 
@@ -24,7 +23,7 @@ export async function runTasks() {
     if (currentList) {
       await currentList.run();
     } else {
-      logger.info('Nothing to do!');
+      console.info('Nothing to do!');
     }
   } catch (error) {
     exit(error);

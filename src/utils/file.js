@@ -6,8 +6,8 @@ import { glob } from 'glob';
 
 import { prompt } from './prompt.js';
 
-export async function readDirectory(...args) {
-  const files = await glob(path.resolve(...args));
+export async function readDirectory(dir, arg) {
+  const files = await glob(path.join(dir, arg));
   files.sort();
   return files;
 }

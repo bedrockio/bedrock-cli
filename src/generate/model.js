@@ -1,5 +1,3 @@
-import logger from '@bedrockio/logger';
-
 import { assertPath } from '../utils/file.js';
 import { assertBedrockApi } from '../utils/dir.js';
 import { generateLocalFiles, ejectTemplate } from './utils/ai.js';
@@ -66,6 +64,6 @@ export async function model(options) {
   await runTasks();
 
   if (templateFile) {
-    logger.info(`Template written to "${templateFile}". You can tweak this and pass it back in with --template.`);
+    console.info(`Template written to "${templateFile}". You can tweak this and pass it back in with --template.`);
   }
 }

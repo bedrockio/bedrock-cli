@@ -1,7 +1,6 @@
 import fs from 'fs';
 import path from 'path';
 
-import logger from '@bedrockio/logger';
 import yaml from 'js-yaml';
 import { get } from 'lodash-es';
 import { green, gray, yellow } from 'kleur/colors';
@@ -58,7 +57,7 @@ export async function create(options) {
     await patchIngress(options);
   }
 
-  logger.info(`
+  console.info(`
   ${green(`Subdeployment "${name}" created successfully.`)}
 
   This subdeployment can now be deployed with the command:
@@ -148,7 +147,7 @@ async function applyServiceFile(filename, options) {
 }
 
 async function runCommand(command) {
-  logger.info(gray(command));
+  console.info(gray(command));
   await execSyncInherit(command);
 }
 

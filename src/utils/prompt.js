@@ -3,23 +3,19 @@ import kleur from 'kleur';
 import logger from '@bedrockio/logger';
 import { lowerFirst } from 'lodash-es';
 
-import {
-  validateEnum,
-  validateEmail,
-  validateDomain,
-  validateString,
-  validateRepository,
-} from './validation.js';
+import { validateEnum, validateEmail, validateDomain, validateString, validateRepository } from './validation.js';
 
 export async function promptFill(answers, options = []) {
   prompts.override(answers);
   const filled = await prompts(
+    // @ts-ignore
     options
       .filter((option) => {
         return option.prompt;
       })
       .map((option) => {
-        const { name } = option;
+        let { name } = option;
+        name ||= option.flags?.match(/--(\w+)/)[1];
         const answer = answers[name];
         const validator = getWrappedValidator(option);
         const isValid = validator(answer) === true;

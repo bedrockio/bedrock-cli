@@ -15,9 +15,6 @@ const BEDROCK_REPO = 'bedrockio/bedrock-core';
 
 export default async function create(options) {
   const { project } = options;
-  if (!project) {
-    throw new Error('Project name required');
-  }
 
   // "project" will accept any casing
   const kebab = kebabCase(project);

@@ -36,7 +36,7 @@ export default {
       description: 'Create a new Bedrock project.',
       arguments: [
         {
-          flags: '--project',
+          name: 'project',
           description: 'Project name',
           required: true,
           prompt: true,
@@ -44,14 +44,14 @@ export default {
       ],
       options: [
         {
-          flags: '-d, --domain',
+          flags: '-d, --domain <domain>',
           description: 'Domain',
           required: true,
           downcase: true,
           prompt: true,
         },
         {
-          flags: '-r, --repository',
+          flags: '-r, --repository [repository]',
           description: 'Git repository',
           prompt: true,
         },
@@ -66,13 +66,13 @@ export default {
           prompt: true,
         },
         {
-          flags: '--address',
+          flags: '--address [address]',
           description: 'Company address',
           downcase: true,
           prompt: true,
         },
         {
-          flags: '--password',
+          flags: '--password [password]',
           description: 'Admin password',
           downcase: true,
           prompt: true,

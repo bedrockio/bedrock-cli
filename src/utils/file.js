@@ -64,7 +64,7 @@ export async function readFile(file) {
   if (file.match(/\.json$/)) {
     return await loadJson(file);
   } else {
-    await fs.readFile(file, 'utf8');
+    return await fs.readFile(file, 'utf8');
   }
 }
 

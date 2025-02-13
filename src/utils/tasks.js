@@ -1,4 +1,4 @@
-import Listr from 'listr';
+import { Listr } from 'listr2';
 import logger from '@bedrockio/logger';
 
 import { exit } from './flow.js';
@@ -7,7 +7,7 @@ let currentList;
 
 export function queueTask(title, task) {
   if (!currentList) {
-    currentList = getNewList();
+    currentList = new Listr([]);
   }
   currentList.add({
     title,
@@ -29,10 +29,4 @@ export async function runTasks() {
   } catch (error) {
     exit(error);
   }
-}
-
-function getNewList() {
-  return new Listr([], {
-    collapse: false,
-  });
 }

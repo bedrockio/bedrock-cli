@@ -5,7 +5,7 @@ import { readFile, writeFile } from './file.js';
 export async function replaceAll(pattern, fn) {
   const files = await glob(pattern, {
     dot: true,
-    matchbase: true,
+    absolute: true,
     ignore: '**/node_modules/**/*',
   });
   return Promise.all(

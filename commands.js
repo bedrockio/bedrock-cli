@@ -670,9 +670,5 @@ export default {
       name: 'update',
       description: 'Updates this script.',
     },
-    {
-      name: 'sha',
-      description: 'Shows current commit hash (SHA)',
-    },
   ],
 };

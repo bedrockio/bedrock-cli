@@ -959,10 +959,10 @@
     kleur "^4.1.5"
     stdout-stream "^2.0.0"
 
-"@bedrockio/prettier-config@^1.0.2":
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/@bedrockio/prettier-config/-/prettier-config-1.0.2.tgz#89878381d3059b810f97514ee6b69f946a6d1654"
-  integrity sha512-Ebcx/D9FcV6WEQH2gXA4SkN62fus/aVMW46MYFm1/y+S0GVYj+OCuBbRMM4F8YAq9ntJ+B/z9fLiOheNpEpRzA==
+"@bedrockio/prettier-config@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@bedrockio/prettier-config/-/prettier-config-1.1.0.tgz#1e9dd0f1df43c2203210612c0168a2193786cf64"
+  integrity sha512-bROiVFyaui+1THGuxy54utpebJSH2BxMmcWkIJJkn6uYFC60Bz4YXBPFBHZzvglTnQuk9HQAOQp5V4SoeKJCZA==
 
 "@eslint-community/eslint-utils@^4.2.0", "@eslint-community/eslint-utils@^4.4.0":
   version "4.4.1"

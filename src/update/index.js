@@ -5,6 +5,7 @@ import path from 'path';
 import kleur from 'kleur';
 import logger from '@bedrockio/logger';
 
+import { getRef } from '../util/git.js';
 import { exec, withDir } from '../util/shell.js';
 
 export default async function update() {
@@ -12,10 +13,8 @@ export default async function update() {
     const manager = await getPackageManager();
     await exec(`git pull`);
     await exec(`${manager} install`);
-    const gitSha = await exec(`git rev-parse --short HEAD`);
-    logger.info(
-      kleur.green(`Successfully updated to SHA: `) + kleur.yellow(gitSha),
-    );
+    const ref = await getRef();
+    logger.info(kleur.green(`Successfully updated to SHA: `) + kleur.yellow(ref));
   });
 }
 

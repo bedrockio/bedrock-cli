@@ -4,15 +4,11 @@ import path from 'path';
 import kleur from 'kleur';
 import logger from '@bedrockio/logger';
 
-import { checkConfig } from './authorize.js';
+import { getRef } from '../util/git.js';
 import { exit } from '../util/exit.js';
-import { execSyncInherit, withDir, exec } from '../util/shell.js';
-import {
-  getArchitecture,
-  checkSubdeployment,
-  checkPlatformName,
-  checkTag,
-} from './utils.js';
+import { execSyncInherit, withDir } from '../util/shell.js';
+import { checkConfig } from './authorize.js';
+import { checkPlatformName, checkSubdeployment, checkTag, getArchitecture } from './utils.js';
 
 export async function buildImage(options) {
   const { service, remote } = options;
@@ -72,10 +68,10 @@ async function buildImageLocal(options) {
   }
   const image = await getImage(options);
   const dockerfile = getDockerfile(options);
-  const gitHash = await exec(`git rev-parse --short HEAD`);
+  const ref = await getRef();
 
   const flags = [
-    `--build-arg GIT_HASH=${gitHash}`,
+    `--build-arg GIT_HASH=${ref}`,
     `-t ${image}`,
     `-f ${dockerfile}`,
     ...(platform ? [`--platform=${platform}`] : []),

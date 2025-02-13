@@ -100,7 +100,7 @@ export default async function create(options) {
 
   await runTasks();
 
-  logger.log(
+  logger.info(
     kleur.yellow(`
   Installation Completed!
   New Bedrock project has been created:

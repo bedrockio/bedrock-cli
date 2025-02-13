@@ -29,7 +29,7 @@
     "@babel/core": "^7.26.8",
     "@babel/preset-env": "^7.26.8",
     "@bedrockio/eslint-plugin": "^1.1.7",
-    "@bedrockio/prettier-config": "^1.0.2",
+    "@bedrockio/prettier-config": "^1.1.0",
     "@types/jest": "^29.5.14",
     "babel-jest": "^29.7.0",
     "eslint": "^9.20.1",
@@ -39,7 +39,6 @@
   "engines": {
     "node": ">=20.18.1"
   },
-  "prettier": "@bedrockio/prettier-config",
   "volta": {
     "node": "22.14.0",
     "yarn": "1.22.22"

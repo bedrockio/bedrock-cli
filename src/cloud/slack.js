@@ -1,6 +1,5 @@
-import { getRef } from './rollout.js';
+import { getConfig, getRef } from '../util/git.js';
 import { exec } from '../util/shell.js';
-import { getConfig } from '../util/git.js';
 
 export function getSlackWebhook(config) {
   if (config && config.slack && config.slack.webhook) {
@@ -64,11 +63,7 @@ export async function slackStartedDeploy(environment, config, services) {
   const hook = getSlackWebhook(config);
   if (hook) {
     const project = config.gcloud && config.gcloud.project;
-    const deployMessage = await createDeployMessage(
-      environment,
-      project,
-      services,
-    );
+    const deployMessage = await createDeployMessage(environment, project, services);
     postSlackMessage(hook, deployMessage);
   }
 }

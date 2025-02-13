@@ -43,7 +43,7 @@ export async function assertPath(dir) {
   try {
     await fs.stat(relDir);
     return relDir;
-  } catch (err) {
+  } catch {
     const newDir = await prompt({
       type: 'text',
       name: 'path',
@@ -56,8 +56,8 @@ export async function assertPath(dir) {
   }
 }
 
-function getRelativePath(...args) {
-  return path.relative(process.cwd(), ...args);
+function getRelativePath(dir) {
+  return path.relative(process.cwd(), dir);
 }
 
 export async function readFile(file) {

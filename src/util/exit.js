@@ -1,6 +1,7 @@
 import kleur from 'kleur';
+import logger from '@bedrockio/logger';
 
 export function exit(message) {
-  console.error(kleur.red(message));
+  logger.error(kleur.red(message));
   process.exit(1);
 }

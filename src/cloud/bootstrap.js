@@ -1,37 +1,61 @@
 import fs from 'fs';
+
 import { green, yellow } from 'kleur/colors';
+import logger from '@bedrockio/logger';
+
 import { exit } from '../util/exit.js';
 import { prompt } from '../util/prompt.js';
 import { exec, execSyncInherit } from '../util/shell.js';
 import { writeConfig, readServiceYaml, writeServiceYaml } from './utils.js';
-import { checkTerraformCommand, terraformInit, terraformApply } from './provision/index.js';
+import {
+  checkTerraformCommand,
+  terraformInit,
+  terraformApply,
+} from './provision/index.js';
+
 import { authorize, deploy, status } from './index.js';
 
-export async function bootstrapProjectEnvironment(project, environment, config) {
+export async function bootstrapProjectEnvironment(
+  project,
+  environment,
+  config,
+) {
   await checkTerraformCommand();
 
   let activeAccount = '';
   try {
     activeAccount = await exec('gcloud config get-value account');
     if (!activeAccount) throw new Error('No activeAccount');
-  } catch (e) {
-    exit('There is no active gcloud account. Please login to gcloud first. Run: "bedrock cloud login"');
+  } catch {
+    exit(
+      'There is no active gcloud account. Please login to gcloud first. Run: "bedrock cloud login"',
+    );
   }
 
   try {
     await exec(`gcloud projects describe ${project} --format json`);
-  } catch (e) {
+  } catch {
     exit(
       `Error: No access for user [${activeAccount}] or unknown project [${project}]
-       (Perhaps you need to login first: "bedrock cloud login")`
+       (Perhaps you need to login first: "bedrock cloud login")`,
     );
   }
 
-  console.info(green(`Verified Google Cloud project [${project}] for environment [${environment}]`));
+  logger.info(
+    green(
+      `Verified Google Cloud project [${project}] for environment [${environment}]`,
+    ),
+  );
 
   const { gcloud } = config;
-  if (!gcloud) exit(`Missing gcloud in config.json for environment [${environment}]`);
-  if (!gcloud.project) exit(`Missing gcloud.project in config.json for environment [${environment}]`);
+  if (!gcloud) {
+    exit(`Missing gcloud in config.json for environment [${environment}]`);
+  }
+  if (!gcloud.project) {
+    exit(
+      `Missing gcloud.project in config.json for environment [${environment}]`,
+    );
+  }
   if (project != gcloud.project) {
     let confirmed = await prompt({
       type: 'confirm',
@@ -48,14 +72,16 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
     writeConfig(environment, updatedConfig);
   }
 
-  console.info(yellow('=> Updating gcloud config project'));
+  logger.info(yellow('=> Updating gcloud config project'));
   await execSyncInherit(`gcloud config set project ${project}`);
-  console.info(yellow('=> Enabling Compute services (This can take a couple of minutes)'));
+  logger.info(
+    yellow('=> Enabling Compute services (This can take a couple of minutes)'),
+  );
   await execSyncInherit('gcloud services enable compute.googleapis.com');
-  console.info(yellow('=> Enabling Kubernetes services'));
+  logger.info(yellow('=> Enabling Kubernetes services'));
   await execSyncInherit('gcloud services enable container.googleapis.com');
 
-  console.info(yellow('=> Configure deployment GCR paths'));
+  logger.info(yellow('=> Configure deployment GCR paths'));
   for (const service of ['api', 'api-cli', 'api-jobs', 'web']) {
     configureDeploymentGCRPath(environment, service, project);
   }
@@ -67,21 +93,25 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
     initial: true,
   });
   if (!loginConfirmed) {
-    console.info(yellow('=> Opening browser to auth application-default login'));
+    logger.info(yellow('=> Opening browser to auth application-default login'));
     await execSyncInherit('gcloud auth application-default login');
   }
 
-  console.info(yellow('=> Terraform init'));
+  logger.info(yellow('=> Terraform init'));
   await terraformInit({ environment });
-  console.info(yellow('=> Terraform apply'));
+  logger.info(yellow('=> Terraform apply'));
   await terraformApply({ environment });
 
-  console.info(yellow('=> Authorizing into Kubernetes cluster'));
+  logger.info(yellow('=> Authorizing into Kubernetes cluster'));
   await authorize({ environment });
-  console.info(yellow('=> Get Kubernetes cluster nodes'));
+  logger.info(yellow('=> Get Kubernetes cluster nodes'));
   await execSyncInherit('kubectl get nodes');
 
-  const { computeZone, bootstrapDeploy = true, recreateIngress = true } = gcloud;
+  const {
+    computeZone,
+    bootstrapDeploy = true,
+    recreateIngress = true,
+  } = gcloud;
   // computeZone example: us-east1-c
   const region = computeZone.slice(0, -2); // e.g. us-east1
   const envPath = `deployment/environments/${environment}`;
@@ -89,39 +119,47 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
   const ingresses = gcloud.ingresses || [];
 
   if (fs.existsSync(`${envPath}/namespaces`)) {
-    console.info(yellow('=> Creating namespaces'));
+    logger.info(yellow('=> Creating namespaces'));
     await execSyncInherit(`kubectl apply -f ${envPath}/namespaces`);
   }
 
-  console.info(yellow('=> Creating data pods'));
+  logger.info(yellow('=> Creating data pods'));
   await execSyncInherit(`kubectl delete -f ${envPath}/data --ignore-not-found`);
   await execSyncInherit(`kubectl create -f ${envPath}/data`);
 
   const ips = [];
   for (let service of services) {
-    console.info(yellow(`=> Configure ${service} loadbalancer`));
+    logger.info(yellow(`=> Configure ${service} loadbalancer`));
     let ip = await configureServiceLoadBalancer(environment, service, region);
     if (ip) {
       ips.push([service, ip]);
     }
-    console.info(yellow(`=> Creating ${service} service`));
-    await execSyncInherit(`kubectl delete -f ${envPath}/services/${service}-service.yml --ignore-not-found`);
-    await execSyncInherit(`kubectl create -f ${envPath}/services/${service}-service.yml`);
+    logger.info(yellow(`=> Creating ${service} service`));
+    await execSyncInherit(
+      `kubectl delete -f ${envPath}/services/${service}-service.yml --ignore-not-found`,
+    );
+    await execSyncInherit(
+      `kubectl create -f ${envPath}/services/${service}-service.yml`,
+    );
   }
 
   for (let ingress of ingresses) {
-    console.info(yellow(`=> Configure ${ingress} ingress`));
+    logger.info(yellow(`=> Configure ${ingress} ingress`));
     let ip = await configureIngress(ingress);
     ips.push([ingress + '-ingress', ip]);
     if (recreateIngress) {
-      console.info(yellow(`=> Creating ${ingress} ingress`));
-      await execSyncInherit(`kubectl delete -f ${envPath}/services/${ingress}-ingress.yml --ignore-not-found`);
-      await execSyncInherit(`kubectl create -f ${envPath}/services/${ingress}-ingress.yml`);
+      logger.info(yellow(`=> Creating ${ingress} ingress`));
+      await execSyncInherit(
+        `kubectl delete -f ${envPath}/services/${ingress}-ingress.yml --ignore-not-found`,
+      );
+      await execSyncInherit(
+        `kubectl create -f ${envPath}/services/${ingress}-ingress.yml`,
+      );
     }
   }
 
   if (fs.existsSync(`${envPath}/gateways`)) {
-    console.info(yellow('=> Creating gateways'));
+    logger.info(yellow('=> Creating gateways'));
     await execSyncInherit(`kubectl apply -f ${envPath}/gateways`);
   }
 
@@ -133,26 +171,32 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
     await status({ environment });
   }
 
-  console.info(yellow('=> Finishing up'));
-  console.info(green('Make sure to configure your DNS records (Cloudflare recommended)\n'));
+  logger.info(yellow('=> Finishing up'));
+  logger.info(
+    green('Make sure to configure your DNS records (Cloudflare recommended)\n'),
+  );
   for (const [serviceName, serviceIP] of ips) {
-    console.info(green(` ${serviceName}:`));
-    console.info(green(` - address: ${serviceIP}`));
+    logger.info(green(` ${serviceName}:`));
+    logger.info(green(` - address: ${serviceIP}`));
     if (serviceName == 'api' || serviceName.match(/api-ingress$/)) {
       const apiUrl = await getApiUrl(environment);
       if (apiUrl) {
-        console.info(green(` - configuration of API_URL in web deployment: ${apiUrl}\n`));
+        logger.info(
+          green(` - configuration of API_URL in web deployment: ${apiUrl}\n`),
+        );
       }
     }
     if (serviceName == 'web' || serviceName.match(/web-ingress$/)) {
       const appUrl = await getAppUrl(environment);
       if (appUrl) {
-        console.info(green(` - configuration of APP_URL in api deployment: ${appUrl}\n`));
+        logger.info(
+          green(` - configuration of APP_URL in api deployment: ${appUrl}\n`),
+        );
       }
     }
   }
 
-  console.info(green('Done!'));
+  logger.info(green('Done!'));
 }
 
 async function configureServiceLoadBalancer(environment, service, region) {
@@ -160,27 +204,39 @@ async function configureServiceLoadBalancer(environment, service, region) {
   const serviceYaml = readServiceYaml(environment, fileName);
 
   if (serviceYaml.spec.type != 'LoadBalancer') {
-    console.info(yellow(`=> Skipping: Service ${service} with type ${serviceYaml.spec.type} is no loadBalancer`));
+    logger.info(
+      yellow(
+        `=> Skipping: Service ${service} with type ${serviceYaml.spec.type} is no loadBalancer`,
+      ),
+    );
     return;
   }
 
   let addressIP;
   try {
-    const addressJSON = await exec(`gcloud compute addresses describe --region ${region} ${service} --format json`);
+    const addressJSON = await exec(
+      `gcloud compute addresses describe --region ${region} ${service} --format json`,
+    );
     addressIP = JSON.parse(addressJSON).address;
-  } catch (e) {
-    console.info(yellow(`Creating ${service.toUpperCase()} address`));
-    await execSyncInherit(`gcloud compute addresses create ${service} --region ${region}`);
-    const addressJSON = await exec(`gcloud compute addresses describe --region ${region} ${service} --format json`);
+  } catch {
+    logger.info(yellow(`Creating ${service.toUpperCase()} address`));
+    await execSyncInherit(
+      `gcloud compute addresses create ${service} --region ${region}`,
+    );
+    const addressJSON = await exec(
+      `gcloud compute addresses describe --region ${region} ${service} --format json`,
+    );
     addressIP = JSON.parse(addressJSON).address;
 
     // Update service yml file
-    console.info(yellow(`=> Updating ${fileName}`));
+    logger.info(yellow(`=> Updating ${fileName}`));
     serviceYaml.spec.loadBalancerIP = addressIP;
     writeServiceYaml(environment, fileName, serviceYaml);
-    console.info(serviceYaml);
+    logger.info(serviceYaml);
   }
-  console.info(green(`${service.toUpperCase()} service loadBalancerIP: ${addressIP}`));
+  logger.info(
+    green(`${service.toUpperCase()} service loadBalancerIP: ${addressIP}`),
+  );
   return addressIP;
 }
 
@@ -188,15 +244,23 @@ async function configureIngress(ingress) {
   let addressIP;
   const ingressName = ingress + '-ingress';
   try {
-    const addressJSON = await exec(`gcloud compute addresses describe --global ${ingressName} --format json`);
+    const addressJSON = await exec(
+      `gcloud compute addresses describe --global ${ingressName} --format json`,
+    );
     addressIP = JSON.parse(addressJSON).address;
-  } catch (e) {
-    console.info(yellow(`Creating ${ingressName.toUpperCase()} address`));
-    await execSyncInherit(`gcloud compute addresses create ${ingressName} --global`);
-    const addressJSON = await exec(`gcloud compute addresses describe --global ${ingressName} --format json`);
+  } catch {
+    logger.info(yellow(`Creating ${ingressName.toUpperCase()} address`));
+    await execSyncInherit(
+      `gcloud compute addresses create ${ingressName} --global`,
+    );
+    const addressJSON = await exec(
+      `gcloud compute addresses describe --global ${ingressName} --format json`,
+    );
     addressIP = JSON.parse(addressJSON).address;
   }
-  console.info(green(`${ingressName.toUpperCase()} ingress addressIP: ${addressIP}`));
+  logger.info(
+    green(`${ingressName.toUpperCase()} ingress addressIP: ${addressIP}`),
+  );
   return addressIP;
 }
 
@@ -213,10 +277,10 @@ function configureDeploymentGCRPath(environment, service, project) {
 
   const image = serviceYaml.spec.template.spec.containers[0].image;
   const newImage = image.replace(/gcr\.io\/.*\//, `gcr.io/${project}/`);
-  console.info(green(newImage));
+  logger.info(green(newImage));
 
   if (image != newImage) {
-    console.info(yellow(`=> Updating ${fileName}`));
+    logger.info(yellow(`=> Updating ${fileName}`));
     serviceYaml.spec.template.spec.containers[0].image = newImage;
     writeServiceYaml(environment, fileName, serviceYaml);
   }

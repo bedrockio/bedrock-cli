@@ -1,6 +1,7 @@
 import { randomBytes } from 'crypto';
 
 import kleur from 'kleur';
+import logger from '@bedrockio/logger';
 import { kebabCase, snakeCase, startCase } from 'lodash-es';
 
 import { cloneRepository, initializeRepository } from '../util/git.js';
@@ -42,9 +43,15 @@ export default async function create(options) {
     const ADMIN_PASSWORD = adminPassword || randomBytes(8).toString('hex');
 
     await replaceAll('*.{js,md,yml,tf,conf,json,env}', (str) => {
-      str = str.replace(/APP_COMPANY_ADDRESS=(.+)/g, `APP_COMPANY_ADDRESS=${address}`);
+      str = str.replace(
+        /APP_COMPANY_ADDRESS=(.+)/g,
+        `APP_COMPANY_ADDRESS=${address}`,
+      );
       str = str.replace(/JWT_SECRET=(.+)/g, `JWT_SECRET=${JWT_SECRET}`);
-      str = str.replace(/ADMIN_PASSWORD=(.+)/g, `ADMIN_PASSWORD=${ADMIN_PASSWORD}`);
+      str = str.replace(
+        /ADMIN_PASSWORD=(.+)/g,
+        `ADMIN_PASSWORD=${ADMIN_PASSWORD}`,
+      );
       str = str.replace(/bedrock-foundation-production/g, productionProjectId);
       str = str.replace(/bedrock-foundation-staging/g, stagingProjectId);
       str = str.replace(/bedrockio\/bedrock-core/g, repository);
@@ -53,7 +60,10 @@ export default async function create(options) {
       str = str.replace(/bedrock-core-services/g, `${kebab}-services`);
       str = str.replace(/Bedrock (Staging|Production)/g, `${appName} $1`);
       str = str.replace(/bedrock_(dev|staging|production)/g, `${under}_$1`);
-      str = str.replace(/bedrock-(web|api|dev|staging|production)/g, `${kebab}-$1`);
+      str = str.replace(
+        /bedrock-(web|api|dev|staging|production)/g,
+        `${kebab}-$1`,
+      );
       str = str.replace(/\bBedrock\b/g, appName);
       return str;
     });
@@ -90,7 +100,7 @@ export default async function create(options) {
 
   await runTasks();
 
-  console.log(
+  logger.log(
     kleur.yellow(`
   Installation Completed!
   New Bedrock project has been created:

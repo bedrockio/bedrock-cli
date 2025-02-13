@@ -1,18 +1,19 @@
 import kleur from 'kleur';
+import logger from '@bedrockio/logger';
 
 export function warn(...args) {
-  console.log(kleur.yellow(...args));
+  logger.info(kleur.yellow(...args));
 }
 
 export function error(...args) {
-  console.log(kleur.red(...args));
+  logger.info(kleur.red(...args));
 }
 
 export function info(...args) {
-  console.log(kleur.cyan(...args));
+  logger.info(kleur.cyan(...args));
 }
 
 export function exit(...args) {
-  console.log(kleur.red(...args));
+  logger.info(kleur.red(...args));
   process.exit(1);
 }

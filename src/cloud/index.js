@@ -1,6 +1,7 @@
 import { spawn } from 'child_process';
 
 import open from 'open';
+import logger from '@bedrockio/logger';
 import { reset, gray, green, yellow, red } from 'kleur/colors';
 
 import { assertBedrockRoot, assertBedrockServicesRoot } from '../util/dir.js';
@@ -10,7 +11,11 @@ import { checkConfig, setGCloudConfig } from './authorize.js';
 import { buildImage } from './build.js';
 import { dockerPush } from './push.js';
 import { warn } from './deploy.js';
-import { rolloutDeployment, deleteDeployment, checkDeployment } from './rollout.js';
+import {
+  rolloutDeployment,
+  deleteDeployment,
+  checkDeployment,
+} from './rollout.js';
 import {
   checkKubectlVersion,
   checkTag,
@@ -57,18 +62,24 @@ export async function account(options) {
     });
     if (!active || active.account !== name) {
       await execSyncInherit(`gcloud config set account ${name}`);
-      console.info(yellow(`=> Activate account "${name}"`));
+      logger.info(yellow(`=> Activate account "${name}"`));
     } else {
-      console.info(yellow('No changes'));
+      logger.info(yellow('No changes'));
     }
-  } catch (e) {
-    console.info(red('Could not get accounts from "gcloud config configuration list"'));
+  } catch {
+    logger.info(
+      red('Could not get accounts from "gcloud config configuration list"'),
+    );
     return;
   }
 }
 
 export async function login() {
-  console.info(yellow('This will open a gcloud login URL in your browser for your account auth.'));
+  logger.info(
+    yellow(
+      'This will open a gcloud login URL in your browser for your account auth.',
+    ),
+  );
   let confirmed = await prompt({
     type: 'confirm',
     name: 'open',
@@ -76,12 +87,16 @@ export async function login() {
     initial: true,
   });
   if (!confirmed) return;
-  console.info(yellow('=> Opening browser to auth login'));
+  logger.info(yellow('=> Opening browser to auth login'));
   await execSyncInherit('gcloud auth login');
 }
 
 export async function loginApplication() {
-  console.info(yellow('This will open a gcloud login URL in your browser for your application default.'));
+  logger.info(
+    yellow(
+      'This will open a gcloud login URL in your browser for your application default.',
+    ),
+  );
   let confirmed = await prompt({
     type: 'confirm',
     name: 'open',
@@ -89,7 +104,7 @@ export async function loginApplication() {
     initial: true,
   });
   if (!confirmed) return;
-  console.info(yellow('=> Opening browser to auth application-default login'));
+  logger.info(yellow('=> Opening browser to auth application-default login'));
   await execSyncInherit('gcloud auth application-default login');
 }
 
@@ -100,15 +115,15 @@ export async function status(options) {
 
   const { environment } = options;
   await execSyncInherit('kubectl get ingress');
-  console.info('');
+  logger.info('');
   await execSyncInherit('kubectl get services');
-  console.info('');
+  logger.info('');
   await execSyncInherit('kubectl get nodes');
-  console.info('');
+  logger.info('');
   const podInfo = await exec('kubectl get pods');
-  console.info(podInfo, '\n');
+  logger.info(podInfo, '\n');
   if (podInfo.includes('CreateContainerConfigError')) {
-    console.info(
+    logger.info(
       yellow(
         `CreateContainerConfigError: Check if you created the required secrets, e.g., "bedrock cloud secret set ${environment} secrets"`,
       ),
@@ -194,8 +209,8 @@ export async function deploy(options) {
   });
   try {
     slackStartedDeploy(options.environment, options.config, serviceNames);
-  } catch (e) {
-    console.error(red('Failed to post to Slack'));
+  } catch {
+    logger.error(red('Failed to post to Slack'));
   }
   for (const [service, subservice] of options.services) {
     await buildImage({
@@ -223,8 +238,8 @@ export async function deploy(options) {
 
   try {
     slackFinishedDeploy(options.config);
-  } catch (e) {
-    console.error(red('Failed to post to Slack'));
+  } catch {
+    logger.error(red('Failed to post to Slack'));
   }
 }
 
@@ -253,8 +268,8 @@ async function showDeploymentInfo(options) {
   const deploymentInfo = await checkDeployment(options);
   if (deploymentInfo) {
     const { annotations } = deploymentInfo.spec.template.metadata;
-    console.info(green(`Deployment "${deployment}" annotations:`));
-    console.info(annotations);
+    logger.info(green(`Deployment "${deployment}" annotations:`));
+    logger.info(annotations);
   }
 }
 
@@ -280,7 +295,7 @@ export async function shell(options) {
 
   const podsJSON = await exec(`kubectl get pods -o json --ignore-not-found`);
   if (!podsJSON) {
-    console.info(yellow(`No running pods`));
+    logger.info(yellow(`No running pods`));
     process.exit(0);
   }
   const pods = JSON.parse(podsJSON).items;
@@ -298,22 +313,26 @@ export async function shell(options) {
     }
   }
 
-  const filteredPods = pods.filter((pod) => pod.metadata.name.startsWith(deployment));
+  const filteredPods = pods.filter((pod) =>
+    pod.metadata.name.startsWith(deployment),
+  );
 
   if (!filteredPods.length) {
-    console.info(yellow(`No running pods for deployment "${deployment}"`));
+    logger.info(yellow(`No running pods for deployment "${deployment}"`));
     process.exit(0);
   }
 
   const podName = filteredPods[0].metadata.name;
-  console.info(yellow(`=> Starting bash for pod: "${podName}"`));
+  logger.info(yellow(`=> Starting bash for pod: "${podName}"`));
 
   const child = spawn('kubectl', ['exec', '-it', podName, '--', 'bash'], {
     stdio: 'inherit',
   });
 
   child.on('exit', function (code) {
-    console.info(green(`Finished bash for pod: "${podName}" (exit code: ${code})`));
+    logger.info(
+      green(`Finished bash for pod: "${podName}" (exit code: ${code})`),
+    );
   });
 }
 
@@ -337,7 +356,8 @@ export async function portForward(options) {
       type: 'text',
       message: 'Enter Local Port number',
       initial: '5602',
-      validate: (value) => (!value.match(/^[0-9]+$/gim) ? `Port may contain only numbers.` : true),
+      validate: (value) =>
+        !value.match(/^[0-9]+$/gim) ? `Port may contain only numbers.` : true,
     }));
 
   const remotePort =
@@ -346,12 +366,19 @@ export async function portForward(options) {
       type: 'text',
       message: 'Enter Remote Port number',
       initial: '5601',
-      validate: (value) => (!value.match(/^[0-9]+$/gim) ? `Port may contain only numbers.` : true),
+      validate: (value) =>
+        !value.match(/^[0-9]+$/gim) ? `Port may contain only numbers.` : true,
     }));
 
-  console.info(yellow(`=> Starting portFoward for "${deployment}" ${localPort}:${remotePort}`));
+  logger.info(
+    yellow(
+      `=> Starting portFoward for "${deployment}" ${localPort}:${remotePort}`,
+    ),
+  );
 
-  await execSyncInherit(`kubectl port-forward ${deployment} ${localPort}:${remotePort}`);
+  await execSyncInherit(
+    `kubectl port-forward ${deployment} ${localPort}:${remotePort}`,
+  );
 }
 
 export async function logs(options) {
@@ -371,8 +398,8 @@ export async function logs(options) {
   const params = new URLSearchParams({ query });
 
   const url = `https://console.cloud.google.com/logs/query;${params.toString()}?project=${project}`;
-  console.info(yellow('=> Opening Logs in GCloud UI'));
-  console.info(url);
+  logger.info(yellow('=> Opening Logs in GCloud UI'));
+  logger.info(url);
   let confirmed = await prompt({
     type: 'confirm',
     name: 'open',
@@ -396,7 +423,11 @@ export async function bootstrap(options) {
       message: 'Enter Google Cloud project ID:',
       initial: config.gcloud && config.gcloud.project,
     }));
-  console.info(green(`bedrock cloud ${environment} ${project}`));
-  console.info(yellow(`=> Bootstrap GKE cluster and services (environment: [${environment}], project: [${project}])`));
+  logger.info(green(`bedrock cloud ${environment} ${project}`));
+  logger.info(
+    yellow(
+      `=> Bootstrap GKE cluster and services (environment: [${environment}], project: [${project}])`,
+    ),
+  );
   await bootstrapProjectEnvironment(project, environment, config);
 }

@@ -1,6 +1,6 @@
 import fs from 'fs';
 
-import * as utils from '../utils';
+import * as utils from '../utils.js';
 
 jest.mock('fs');
 
@@ -125,10 +125,12 @@ spec:
       volumes:
         - name: cache
           emptyDir: {}
-`.trim()
+`.trim(),
     );
 
     const updatedDeployment = utils.readServiceYaml(environment, filename);
-    expect(updatedDeployment.spec.template.spec.containers[0].env.length).toBe(10);
+    expect(updatedDeployment.spec.template.spec.containers[0].env.length).toBe(
+      10,
+    );
   });
 });

@@ -1,10 +1,18 @@
 import fs from 'fs';
 import path from 'path';
+
 import kleur from 'kleur';
+import logger from '@bedrockio/logger';
+
 import { checkConfig } from './authorize.js';
 import { exit } from '../util/exit.js';
 import { execSyncInherit, withDir, exec } from '../util/shell.js';
-import { getArchitecture, checkSubdeployment, checkPlatformName, checkTag } from './utils.js';
+import {
+  getArchitecture,
+  checkSubdeployment,
+  checkPlatformName,
+  checkTag,
+} from './utils.js';
 
 export async function buildImage(options) {
   const { service, remote } = options;
@@ -39,8 +47,8 @@ async function buildImageRemote(options) {
   ].join(' ');
 
   const command = `gcloud builds submit ${flags}`;
-  console.info(kleur.yellow(`\n=> Remote build "${image}"`));
-  console.info(kleur.gray(command));
+  logger.info(kleur.yellow(`\n=> Remote build "${image}"`));
+  logger.info(kleur.gray(command));
 
   try {
     await runPreDeployHook(options);
@@ -57,7 +65,7 @@ async function buildImageLocal(options) {
   // from a gcloud command if necessary.
   if (arch !== 'x64') {
     if (options.native) {
-      console.info(kleur.yellow(`Building with native architecture ${arch}.`));
+      logger.info(kleur.yellow(`Building with native architecture ${arch}.`));
     } else {
       platform = 'linux/amd64';
     }
@@ -74,8 +82,8 @@ async function buildImageLocal(options) {
   ].join(' ');
 
   const command = `DOCKER_BUILDKIT=1 DOCKER_SCAN_SUGGEST=false docker build ${flags} .`;
-  console.info(kleur.yellow(`\n=> Building "${image}"`));
-  console.info(kleur.gray(command));
+  logger.info(kleur.yellow(`\n=> Building "${image}"`));
+  logger.info(kleur.gray(command));
 
   try {
     await runPreDeployHook(options);
@@ -113,7 +121,7 @@ function getDockerfile(options) {
 async function runPreDeployHook(options) {
   if (fs.existsSync('docker-hooks/pre-build')) {
     const { environment, service } = options;
-    console.info(kleur.gray('Running pre build hook...'));
+    logger.info(kleur.gray('Running pre build hook...'));
     await execSyncInherit(`docker-hooks/pre-build ${environment} ${service}`);
   }
 }

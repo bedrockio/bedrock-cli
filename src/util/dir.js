@@ -1,6 +1,7 @@
 import path from 'path';
-
 import { promises as fs, constants } from 'fs';
+
+import logger from '@bedrockio/logger';
 
 import kleur from 'kleur';
 
@@ -14,12 +15,15 @@ export async function assertBedrockRoot() {
 
   while (dir !== ROOT_DIR) {
     try {
-      await fs.access(path.resolve(dir, 'deployment', 'environments'), constants.W_OK);
+      await fs.access(
+        path.resolve(dir, 'deployment', 'environments'),
+        constants.W_OK,
+      );
       break;
-    } catch (err) {
+    } catch {
       dir = path.resolve(dir, '..');
       if (dir === '/') {
-        console.info(kleur.red('Could not find Bedrock root directory!'));
+        logger.info(kleur.red('Could not find Bedrock root directory!'));
         process.exit(1);
       }
     }
@@ -61,10 +65,12 @@ export async function assertBedrockServicesRoot() {
     try {
       await fs.access(path.resolve(dir, 'services'), constants.W_OK);
       break;
-    } catch (err) {
+    } catch {
       dir = path.resolve(dir, '..');
       if (dir === '/') {
-        console.info(kleur.red('Could not find Bedrock Services root directory!'));
+        logger.info(
+          kleur.red('Could not find Bedrock Services root directory!'),
+        );
         process.exit(1);
       }
     }

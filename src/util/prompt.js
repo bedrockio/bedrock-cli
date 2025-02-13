@@ -1,8 +1,15 @@
 import prompts from 'prompts';
 import kleur from 'kleur';
+import logger from '@bedrockio/logger';
 import { lowerFirst } from 'lodash-es';
 
-import { validateEnum, validateEmail, validateDomain, validateString, validateRepository } from './validation.js';
+import {
+  validateEnum,
+  validateEmail,
+  validateDomain,
+  validateString,
+  validateRepository,
+} from './validation.js';
 
 export async function promptFill(answers, options = []) {
   prompts.override(answers);
@@ -21,7 +28,7 @@ export async function promptFill(answers, options = []) {
           let { message } = promptOptions;
           message = message.replace(/\?$/, ':');
           const answerStr = Array.isArray(answer) ? answer.join(', ') : answer;
-          console.log(kleur.grey(`? ${message} ${answerStr}`));
+          logger.info(kleur.grey(`? ${message} ${answerStr}`));
         }
         return {
           name,
@@ -34,7 +41,7 @@ export async function promptFill(answers, options = []) {
       onCancel: () => {
         process.exit(1);
       },
-    }
+    },
   );
   prompts.override(null);
   Object.assign(answers, filled);

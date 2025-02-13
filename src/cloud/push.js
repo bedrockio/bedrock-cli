@@ -1,8 +1,8 @@
 import kleur from 'kleur';
 import logger from '@bedrockio/logger';
 
-import { exit } from '../util/exit.js';
-import { exec, execSyncInherit } from '../util/shell.js';
+import { exit } from '../utils/exit.js';
+import { exec, execSyncInherit } from '../utils/shell.js';
 
 async function pushImage(project, image, tag, gcrPrefix = '') {
   const gcrTag = `gcr.io/${project}/${gcrPrefix + image}:${tag}`;
@@ -21,14 +21,7 @@ async function pushImage(project, image, tag, gcrPrefix = '') {
 }
 
 export async function dockerPush(options) {
-  const {
-    project,
-    service,
-    subservice,
-    platformName,
-    config,
-    tag = 'latest',
-  } = options;
+  const { project, service, subservice, platformName, config, tag = 'latest' } = options;
   const gcrPrefix = (config && config.gcloud && config.gcloud.gcrPrefix) || '';
 
   try {
@@ -36,28 +29,18 @@ export async function dockerPush(options) {
     const dockerImagesJSON = dockerImages.split('\n').map((image) => {
       return JSON.parse(image.slice(1, -1));
     });
-    const repositories = dockerImagesJSON
-      .filter((image) => image.Tag == tag)
-      .map((image) => image.Repository);
+    const repositories = dockerImagesJSON.filter((image) => image.Tag == tag).map((image) => image.Repository);
 
     let images = [];
     if (subservice) {
-      images = repositories.filter(
-        (repo) => repo == `${platformName}-services-${service}-${subservice}`,
-      );
+      images = repositories.filter((repo) => repo == `${platformName}-services-${service}-${subservice}`);
     } else if (service) {
-      images = repositories.filter(
-        (repo) => repo == `${platformName}-services-${service}`,
-      );
+      images = repositories.filter((repo) => repo == `${platformName}-services-${service}`);
     } else {
-      images = repositories.filter((repo) =>
-        repo.startsWith(`${platformName}-services-`),
-      );
+      images = repositories.filter((repo) => repo.startsWith(`${platformName}-services-`));
     }
 
-    images.length
-      ? logger.info(kleur.yellow('\n=> Pushing images:'))
-      : logger.info(kleur.yellow('No images found'));
+    images.length ? logger.info(kleur.yellow('\n=> Pushing images:')) : logger.info(kleur.yellow('No images found'));
     images.forEach((image) => logger.info('-', image));
 
     for (const image of images) {

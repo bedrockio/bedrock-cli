@@ -1,7 +1,7 @@
 import { loadModels } from './utils/model.js';
-import { assertPath } from '../util/file.js';
-import { assertBedrockWeb } from '../util/dir.js';
-import { queueTask, runTasks } from '../util/tasks.js';
+import { assertPath } from '../utils/file.js';
+import { assertBedrockWeb } from '../utils/dir.js';
+import { queueTask, runTasks } from '../utils/tasks.js';
 import { getExample } from './utils/files.js';
 import { generateLocalFiles } from './utils/ai.js';
 

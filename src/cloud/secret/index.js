@@ -4,11 +4,11 @@ import { existsSync, unlinkSync, mkdirSync, writeFileSync } from 'fs';
 import { red, green, yellow } from 'kleur/colors';
 import logger from '@bedrockio/logger';
 
-import { exit } from '../../util/exit.js';
-import { prompt } from '../../util/prompt.js';
+import { exit } from '../../utils/exit.js';
+import { prompt } from '../../utils/prompt.js';
 import { getSecretsDirectory } from '../utils.js';
-import { assertBedrockRoot } from '../../util/dir.js';
-import { exec, execSyncInherit } from '../../util/shell.js';
+import { assertBedrockRoot } from '../../utils/dir.js';
+import { exec, execSyncInherit } from '../../utils/shell.js';
 import { getSecretNamePrompt, getAllSecretsPrompt } from '../utils.js';
 import { checkConfig } from '../authorize.js';
 
@@ -48,11 +48,7 @@ export default async function secret(options, subcommand) {
       secretInfo.dataKeys = Object.keys(secretInfo.data || {});
       secretInfo.data = `*** hidden to avoid sensitive information in your shell history ***`;
       logger.info(secretInfo);
-      logger.info(
-        yellow(
-          `Note: Run 'bedrock cloud secret get' to retrieve decrypted data into local file`,
-        ),
-      );
+      logger.info(yellow(`Note: Run 'bedrock cloud secret get' to retrieve decrypted data into local file`));
     } else {
       logger.info(yellow(`Could not find secret "${secretName}"`));
     }
@@ -73,9 +69,7 @@ export function decryptSecretData(secret) {
 }
 
 export async function getSecretInfo(secretName) {
-  const secretJSON = await exec(
-    `kubectl get secret ${secretName} -o json --ignore-not-found`,
-  );
+  const secretJSON = await exec(`kubectl get secret ${secretName} -o json --ignore-not-found`);
   if (!secretJSON) return;
   try {
     return JSON.parse(secretJSON);
@@ -116,31 +110,17 @@ export async function getSecret(environment, secretName) {
   }
 
   writeFileSync(filePath, data);
-  logger.info(
-    green(
-      `Saved secret to "${filePath}" - make sure to REMOVE THE FILE once you've made your changes`,
-    ),
-  );
+  logger.info(green(`Saved secret to "${filePath}" - make sure to REMOVE THE FILE once you've made your changes`));
 }
 
 export async function setSecret(environment, secretName, confirmPrompt = true) {
-  const secretJoinedPath = path.join(
-    'deployment',
-    'environments',
-    environment,
-    'secrets',
-    `${secretName}.conf`,
-  );
+  const secretJoinedPath = path.join('deployment', 'environments', environment, 'secrets', `${secretName}.conf`);
   const secretFilePath = path.resolve(secretJoinedPath);
 
   if (existsSync(secretFilePath)) {
     logger.info(yellow(`=> Creating secret`));
-    await execSyncInherit(
-      `kubectl delete secret ${secretName} --ignore-not-found`,
-    );
-    await execSyncInherit(
-      `kubectl create secret generic ${secretName} --from-env-file=${secretFilePath}`,
-    );
+    await execSyncInherit(`kubectl delete secret ${secretName} --ignore-not-found`);
+    await execSyncInherit(`kubectl create secret generic ${secretName} --from-env-file=${secretFilePath}`);
     logger.info(green(`Uploaded secrets from ${secretJoinedPath}`));
     if (confirmPrompt) {
       let confirmed = await prompt({
@@ -169,7 +149,5 @@ export async function deleteSecret(secretName) {
     return logger.info(yellow(`Could not find secret "${secretName}"`));
   }
   logger.info(yellow(`=> Deleting secret`));
-  await execSyncInherit(
-    `kubectl delete secret ${secretName} --ignore-not-found`,
-  );
+  await execSyncInherit(`kubectl delete secret ${secretName} --ignore-not-found`);
 }

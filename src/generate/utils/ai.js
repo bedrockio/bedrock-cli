@@ -1,7 +1,7 @@
 import logger from '@bedrockio/logger';
 import { MultiClient } from '@bedrockio/ai';
 
-import { getRelativeFile, writeFile } from '../../util/file.js';
+import { getRelativeFile, writeFile } from '../../utils/file.js';
 
 const client = new MultiClient({
   templates: getRelativeFile(import.meta, '../templates'),
@@ -22,8 +22,7 @@ const client = new MultiClient({
     },
     {
       name: 'grok',
-      apiKey:
-        'xai-AWVUcOFxEufIa28aehQEGKtJh0FsCh8HaowyjWtQU00zWkYyyBfMi4MLAmW7BdfuxC1OKpgBtgfvefGD',
+      apiKey: 'xai-AWVUcOFxEufIa28aehQEGKtJh0FsCh8HaowyjWtQU00zWkYyyBfMi4MLAmW7BdfuxC1OKpgBtgfvefGD',
     },
   ],
 });
@@ -35,9 +34,7 @@ export async function ejectTemplate(options) {
   await writeFile(filename, output);
 
   if (exit) {
-    logger.info(
-      `Template written to "${filename}". Use --template to pass back in to this script.`,
-    );
+    logger.info(`Template written to "${filename}". Use --template to pass back in to this script.`);
     process.exit(0);
   }
 }

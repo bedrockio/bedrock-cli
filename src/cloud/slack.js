@@ -1,5 +1,5 @@
-import { getConfig, getRef } from '../util/git.js';
-import { exec } from '../util/shell.js';
+import { getConfig, getRef } from '../utils/git.js';
+import { exec } from '../utils/shell.js';
 
 export function getSlackWebhook(config) {
   if (config && config.slack && config.slack.webhook) {

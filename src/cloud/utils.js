@@ -8,11 +8,11 @@ import logger from '@bedrockio/logger';
 import compareVersions from 'compare-versions';
 import { red, yellow, dim } from 'kleur/colors';
 
-import { prompt } from '../util/prompt.js';
-import { exit } from '../util/exit.js';
-import { exec } from '../util/shell.js';
-import { getConfig } from '../util/git.js';
-import { loadJson } from '../util/file.js';
+import { prompt } from '../utils/prompt.js';
+import { exit } from '../utils/exit.js';
+import { exec } from '../utils/shell.js';
+import { getConfig } from '../utils/git.js';
+import { loadJson } from '../utils/file.js';
 
 export function getDeployment(options) {
   const { service, subservice, subdeployment } = options;
@@ -33,9 +33,7 @@ export async function readConfig(environment) {
   try {
     return await loadJson(configFilePath);
   } catch {
-    exit(
-      `Could not find config.json for environment: "${environment}", file path: "${configFilePath}"`,
-    );
+    exit(`Could not find config.json for environment: "${environment}", file path: "${configFilePath}"`);
   }
 }
 
@@ -44,20 +42,12 @@ export function writeConfig(environment, config) {
   try {
     fs.writeFileSync(configFilePath, JSON.stringify(config, null, 2), 'utf8');
   } catch {
-    exit(
-      `Could not write to config.json for environment: "${environment}", file path: "${configFilePath}"`,
-    );
+    exit(`Could not write to config.json for environment: "${environment}", file path: "${configFilePath}"`);
   }
 }
 
 export function getServiceFilePath(environment, filename) {
-  return path.resolve(
-    'deployment',
-    'environments',
-    environment,
-    'services',
-    filename,
-  );
+  return path.resolve('deployment', 'environments', environment, 'services', filename);
 }
 
 export function readServiceYaml(environment, filename) {
@@ -88,37 +78,22 @@ export function writeServiceYaml(environment, filename, docs) {
   return fs.writeFileSync(filePath, output, 'utf8');
 }
 
-export async function updateServiceYamlEnv(
-  environment,
-  service,
-  envName,
-  envValue,
-) {
+export async function updateServiceYamlEnv(environment, service, envName, envValue) {
   const filename = `${service}-deployment.yml`;
   const deployment = readServiceYaml(environment, filename);
   const { env } = deployment.spec.template.spec.containers[0];
-  deployment.spec.template.spec.containers[0].env = env.map(
-    ({ name, value = '' }) =>
-      name == envName ? { name, value: envValue || '' } : { name, value },
+  deployment.spec.template.spec.containers[0].env = env.map(({ name, value = '' }) =>
+    name == envName ? { name, value: envValue || '' } : { name, value },
   );
   writeServiceYaml(environment, filename, deployment);
 }
 
 export async function checkPlatformName(options) {
   if (!options.platformName) {
-    const platformName = path.basename(
-      await getConfig('remote.origin.url'),
-      '.git',
-    );
+    const platformName = path.basename(await getConfig('remote.origin.url'), '.git');
     if (!platformName) {
-      logger.info(
-        yellow('Could not derive a platform name from the git config.'),
-      );
-      logger.info(
-        yellow(
-          'A stable name needs to be derived before project can be deployed.',
-        ),
-      );
+      logger.info(yellow('Could not derive a platform name from the git config.'));
+      logger.info(yellow('A stable name needs to be derived before project can be deployed.'));
       logger.info(yellow('Please initialize a git repo before proceeding.'));
       process.exit(1);
     }
@@ -181,14 +156,7 @@ export async function checkEnvironment(options) {
   }
 }
 
-const KNOWN_BRANCHES = [
-  'master',
-  'main',
-  'develop',
-  'development',
-  'staging',
-  'production',
-];
+const KNOWN_BRANCHES = ['master', 'main', 'develop', 'development', 'staging', 'production'];
 
 export async function checkSubdeployment(options) {
   if (!options.subdeployment) {
@@ -202,11 +170,7 @@ export async function checkSubdeployment(options) {
       ) {
         options.subdeployment = branch;
       } else {
-        logger.info(
-          dim(
-            'Run "bedrock cloud subdeployment" for more about subdeployments.',
-          ),
-        );
+        logger.info(dim('Run "bedrock cloud subdeployment" for more about subdeployments.'));
       }
     }
   }
@@ -216,16 +180,11 @@ export function getServices() {
   const services = [];
   const servicesFolders = getDirectories('services');
   for (const serviceFolder of servicesFolders) {
-    for (const file of fs.readdirSync(
-      path.resolve('services', serviceFolder),
-    )) {
+    for (const file of fs.readdirSync(path.resolve('services', serviceFolder))) {
       if (file == 'Dockerfile') {
         services.push([serviceFolder.toString(), '']);
       } else if (file.startsWith('Dockerfile.') && !file.endsWith('.dev')) {
-        services.push([
-          serviceFolder.toString(),
-          file.toString().replace('Dockerfile.', ''),
-        ]);
+        services.push([serviceFolder.toString(), file.toString().replace('Dockerfile.', '')]);
       }
     }
   }
@@ -303,9 +262,7 @@ export async function getSecretNamePrompt() {
 }
 
 async function getAllSecrets() {
-  const secretsJSON = await exec(
-    'kubectl get secret -o json --ignore-not-found',
-  );
+  const secretsJSON = await exec('kubectl get secret -o json --ignore-not-found');
   if (!secretsJSON) return [];
   try {
     const secrets = JSON.parse(secretsJSON);

@@ -2,12 +2,12 @@ import path from 'path';
 
 import { kebabCase } from 'lodash-es';
 
-import { exit } from '../../util/flow.js';
+import { exit } from '../../utils/flow.js';
 import { camelUpper } from './inflections.js';
 import { readLocalFile } from './files.js';
-import { prompt } from '../../util/prompt.js';
-import { getCurrentRoot } from '../../util/dir.js';
-import { assertPath, loadJson, readDirectory } from '../../util/file.js';
+import { prompt } from '../../utils/prompt.js';
+import { getCurrentRoot } from '../../utils/dir.js';
+import { assertPath, loadJson, readDirectory } from '../../utils/file.js';
 
 const MODELS_DIR = 'services/api/src/models/definitions';
 

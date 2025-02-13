@@ -4,9 +4,9 @@ import path from 'path';
 import kleur from 'kleur';
 import logger from '@bedrockio/logger';
 
-import { getRef } from '../util/git.js';
-import { exit } from '../util/exit.js';
-import { execSyncInherit, withDir } from '../util/shell.js';
+import { getRef } from '../utils/git.js';
+import { exit } from '../utils/exit.js';
+import { execSyncInherit, withDir } from '../utils/shell.js';
 import { checkConfig } from './authorize.js';
 import { checkPlatformName, checkSubdeployment, checkTag, getArchitecture } from './utils.js';
 

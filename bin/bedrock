@@ -7,8 +7,8 @@ import kleur from 'kleur';
 import { program, Option } from 'commander';
 import { camelCase } from 'lodash-es';
 
-import { promptFill } from '../src/util/prompt.js';
-import { loadJson, getDirname } from '../src/util/file.js';
+import { promptFill } from '../src/utils/prompt.js';
+import { loadJson, getDirname } from '../src/utils/file.js';
 
 import commands from '../commands.js';
 

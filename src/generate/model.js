@@ -1,12 +1,12 @@
 import logger from '@bedrockio/logger';
 
-import { assertPath } from '../util/file.js';
-import { assertBedrockApi } from '../util/dir.js';
+import { assertPath } from '../utils/file.js';
+import { assertBedrockApi } from '../utils/dir.js';
 import { generateLocalFiles, ejectTemplate } from './utils/ai.js';
 import { kebabSingular } from './utils/inflections.js';
-import { queueTask, runTasks } from '../util/tasks.js';
+import { queueTask, runTasks } from '../utils/tasks.js';
 import { getExample } from './utils/files.js';
-import { prompt } from '../util/prompt.js';
+import { prompt } from '../utils/prompt.js';
 
 const MODELS_DIR = 'src/models/definitions';
 
@@ -66,8 +66,6 @@ export async function model(options) {
   await runTasks();
 
   if (templateFile) {
-    logger.info(
-      `Template written to "${templateFile}". You can tweak this and pass it back in with --template.`,
-    );
+    logger.info(`Template written to "${templateFile}". You can tweak this and pass it back in with --template.`);
   }
 }

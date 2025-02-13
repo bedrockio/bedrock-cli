@@ -5,8 +5,8 @@ import path from 'path';
 import kleur from 'kleur';
 import logger from '@bedrockio/logger';
 
-import { getRef } from '../util/git.js';
-import { exec, withDir } from '../util/shell.js';
+import { getRef } from '../utils/git.js';
+import { exec, withDir } from '../utils/shell.js';
 
 export default async function update() {
   await withDir(path.resolve(homedir(), '.bedrock'), async () => {

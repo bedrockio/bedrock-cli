@@ -1,9 +1,9 @@
 import { loadModels } from './utils/model.js';
-import { assertBedrockWeb } from '../util/dir.js';
-import { queueTask, runTasks } from '../util/tasks.js';
+import { assertBedrockWeb } from '../utils/dir.js';
+import { queueTask, runTasks } from '../utils/tasks.js';
 import { readLocalFile } from './utils/files.js';
 import { generateLocalFiles } from './utils/ai.js';
-import { readDirectory } from '../util/file.js';
+import { readDirectory } from '../utils/file.js';
 
 export async function screens(options) {
   await assertBedrockWeb();

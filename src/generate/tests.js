@@ -1,9 +1,9 @@
 import { loadModels } from './utils/model.js';
-import { assertPath } from '../util/file.js';
-import { assertBedrockApi } from '../util/dir.js';
+import { assertPath } from '../utils/file.js';
+import { assertBedrockApi } from '../utils/dir.js';
 import { generateLocalFiles } from './utils/ai.js';
 import { kebabPlural } from './utils/inflections.js';
-import { queueTask, runTasks } from '../util/tasks.js';
+import { queueTask, runTasks } from '../utils/tasks.js';
 import { getExample, readLocalFile } from './utils/files.js';
 
 const TESTS_DIR = 'src/routes/__tests__';

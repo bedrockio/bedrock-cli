@@ -4,9 +4,9 @@ import open from 'open';
 import logger from '@bedrockio/logger';
 import { reset, gray, green, yellow, red } from 'kleur/colors';
 
-import { assertBedrockRoot, assertBedrockServicesRoot } from '../util/dir.js';
-import { exec, execSyncInherit } from '../util/shell.js';
-import { prompt } from '../util/prompt.js';
+import { assertBedrockRoot, assertBedrockServicesRoot } from '../utils/dir.js';
+import { exec, execSyncInherit } from '../utils/shell.js';
+import { prompt } from '../utils/prompt.js';
 import { checkConfig, setGCloudConfig } from './authorize.js';
 import { buildImage } from './build.js';
 import { dockerPush } from './push.js';

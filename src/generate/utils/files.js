@@ -1,8 +1,8 @@
 import path from 'path';
 import { readFile } from 'fs/promises';
 
-import { exit } from '../../util/flow.js';
-import { getCurrentRoot } from '../../util/dir.js';
+import { exit } from '../../utils/flow.js';
+import { getCurrentRoot } from '../../utils/dir.js';
 
 const GITHUB_RAW_BASE = 'https://raw.githubusercontent.com/bedrockio/bedrock-core';
 

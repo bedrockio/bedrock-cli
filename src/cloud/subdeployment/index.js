@@ -6,18 +6,12 @@ import yaml from 'js-yaml';
 import { get } from 'lodash-es';
 import { green, gray, yellow } from 'kleur/colors';
 
-import { exit } from '../../util/exit.js';
-import { prompt } from '../../util/prompt.js';
-import { assertBedrockRoot } from '../../util/dir.js';
-import { validateSimpleName } from '../../util/validation.js';
-import {
-  readServiceYaml,
-  writeServiceYaml,
-  getServiceFilePath,
-  getDeployment,
-  checkService,
-} from '../utils.js';
-import { exec, execSyncInherit } from '../../util/shell.js';
+import { exit } from '../../utils/exit.js';
+import { prompt } from '../../utils/prompt.js';
+import { assertBedrockRoot } from '../../utils/dir.js';
+import { validateSimpleName } from '../../utils/validation.js';
+import { readServiceYaml, writeServiceYaml, getServiceFilePath, getDeployment, checkService } from '../utils.js';
+import { exec, execSyncInherit } from '../../utils/shell.js';
 import { checkConfig } from '../authorize.js';
 
 const TAG_REG = /(:\w+)?$/;
@@ -111,9 +105,7 @@ function updateDeployment(deployment, options) {
             }
             options.domain = split.join('.');
           } catch {
-            exit(
-              `Could not derive domain for ${service}. Please pass as an option.`,
-            );
+            exit(`Could not derive domain for ${service}. Please pass as an option.`);
           }
         }
       }
@@ -174,16 +166,11 @@ async function patchIngress(options) {
     docs = [ingress];
   }
   if (!ingress) {
-    ingress = readYamlTemplate(
-      path.resolve(__dirname, './ingress.yml'),
-      options,
-    );
+    ingress = readYamlTemplate(path.resolve(__dirname, './ingress.yml'), options);
     docs.unshift(ingress);
   }
   if (ingress.apiVersion !== INGRESS_REQUIRED_VERSION) {
-    exit(
-      `Cannot patch ingress as required version is "${INGRESS_REQUIRED_VERSION}".`,
-    );
+    exit(`Cannot patch ingress as required version is "${INGRESS_REQUIRED_VERSION}".`);
   }
 
   addIngressRule(ingress, options);
@@ -199,10 +186,7 @@ function addIngressRule(ingress, options) {
     return rule.host === domain;
   });
   if (!exists) {
-    ingress.spec.rules = [
-      ...rules,
-      readYamlTemplate(path.resolve(__dirname, './rule.yml'), options),
-    ];
+    ingress.spec.rules = [...rules, readYamlTemplate(path.resolve(__dirname, './rule.yml'), options)];
   }
 }
 
@@ -212,9 +196,7 @@ function addNodePort(docs, options) {
     return doc.kind === 'Service' && doc.spec.selector.app === app;
   });
   if (!exists) {
-    docs.push(
-      readYamlTemplate(path.resolve(__dirname, './nodeport.yml'), options),
-    );
+    docs.push(readYamlTemplate(path.resolve(__dirname, './nodeport.yml'), options));
   }
 }
 
@@ -243,18 +225,11 @@ export async function destroy(options) {
   const { name, service, environment } = options;
   const deployment = `${name}-${service}-deployment`;
   const deploymentFile = `${deployment}.yml`;
-  const servicesPath = path.join(
-    'deployment',
-    'environments',
-    environment,
-    'services',
-  );
+  const servicesPath = path.join('deployment', 'environments', environment, 'services');
   try {
     fs.unlinkSync(path.resolve(servicesPath, deploymentFile));
   } catch {
-    exit(
-      `Could not find ${deploymentFile}. Check ${servicesPath} for ${deploymentFile}.`,
-    );
+    exit(`Could not find ${deploymentFile}. Check ${servicesPath} for ${deploymentFile}.`);
   }
   await runCommand(`kubectl delete deployments/${name}-${service}-deployment`);
 }

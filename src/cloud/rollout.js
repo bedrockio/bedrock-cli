@@ -4,10 +4,10 @@ import path from 'path';
 import kleur from 'kleur';
 import logger from '@bedrockio/logger';
 
-import { exit } from '../util/exit.js';
-import { getConfig } from '../util/git.js';
-import { getRef } from '../util/git.js';
-import { exec, execSyncInherit } from '../util/shell.js';
+import { exit } from '../utils/exit.js';
+import { getConfig } from '../utils/git.js';
+import { getRef } from '../utils/git.js';
+import { exec, execSyncInherit } from '../utils/shell.js';
 import { getArchitecture, getDeployment, readServiceYaml } from './utils.js';
 
 async function getMetaData() {

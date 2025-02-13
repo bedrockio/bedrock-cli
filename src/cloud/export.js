@@ -2,8 +2,8 @@ import { yellow } from 'kleur/colors';
 import logger from '@bedrockio/logger';
 
 import { checkConfig } from './authorize.js';
-import { assertBedrockRoot } from '../util/dir.js';
-import { exec, execSyncInherit } from '../util/shell.js';
+import { assertBedrockRoot } from '../utils/dir.js';
+import { exec, execSyncInherit } from '../utils/shell.js';
 
 export default async function exportDocuments(options) {
   await assertBedrockRoot();
@@ -37,9 +37,7 @@ async function getCliPodName() {
   }
   const pods = JSON.parse(podsJSON).items;
 
-  const pod = pods.find((pod) =>
-    pod.metadata.name.startsWith('api-cli-deployment'),
-  );
+  const pod = pods.find((pod) => pod.metadata.name.startsWith('api-cli-deployment'));
 
   if (!pod) {
     logger.info(yellow(`CLI pod is not running.`));

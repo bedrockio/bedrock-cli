@@ -1,5 +1,6 @@
-import execa from 'execa';
 import { execSync } from 'child_process';
+
+import execa from 'execa';
 
 export async function exec(commands, std = 'stdout') {
   try {

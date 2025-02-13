@@ -1,9 +1,11 @@
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+
 import yaml from 'js-yaml';
 import compareVersions from 'compare-versions';
 import { red, yellow, dim } from 'kleur/colors';
+
 import { prompt } from '../util/prompt.js';
 import { exit } from '../util/exit.js';
 import { exec } from '../util/shell.js';
@@ -78,7 +80,7 @@ export async function updateServiceYamlEnv(environment, service, envName, envVal
   const deployment = readServiceYaml(environment, filename);
   const { env } = deployment.spec.template.spec.containers[0];
   deployment.spec.template.spec.containers[0].env = env.map(({ name, value = '' }) =>
-    name == envName ? { name, value: envValue || '' } : { name, value }
+    name == envName ? { name, value: envValue || '' } : { name, value },
   );
   writeServiceYaml(environment, filename, deployment);
 }
@@ -272,9 +274,7 @@ export async function getAllSecretsPrompt() {
   return await prompt({
     type: 'select',
     message: 'Select secret:',
-    choices: (
-      await getAllSecrets()
-    )
+    choices: (await getAllSecrets())
       .map(({ metadata }) => {
         if (!metadata || !metadata.name) return false;
         const { name } = metadata;
@@ -291,7 +291,7 @@ export async function checkKubectlVersion(minVersion = 'v1.19.0') {
     const version = parsed.clientVersion.gitVersion;
     if (compareVersions.compare(minVersion, version, '>')) {
       exit(
-        `Error: Minimum required "kubectl" version is "${minVersion}", you have "${version}". On macos run "brew upgrade kubernetes-cli."`
+        `Error: Minimum required "kubectl" version is "${minVersion}", you have "${version}". On macos run "brew upgrade kubernetes-cli."`,
       );
     }
   } catch (e) {

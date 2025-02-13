@@ -4,7 +4,6 @@ import { fileURLToPath } from 'url';
 
 import { glob } from 'glob';
 import rimraf from 'rimraf';
-import mkdir from 'mkdirp';
 
 import { prompt } from './prompt.js';
 
@@ -27,14 +26,8 @@ export function getRelativeFile(meta, ...args) {
   return path.resolve(getDirname(meta.url), ...args);
 }
 
-export function removeFiles(path) {
-  return new Promise((resolve, reject) => {
-    try {
-      rimraf(path, resolve);
-    } catch (err) {
-      reject(err);
-    }
-  });
+export async function removeFiles(path) {
+  await fs.rm(path);
 }
 
 // Path resolution with caching. If a directory doesn't
@@ -58,7 +51,7 @@ export async function assertPath(dir) {
       message: `Location of ${relDir}?`,
       initial: relDir,
     });
-    await mkdir(newDir);
+    await mkdirp(newDir);
     cache.set(relDir, newDir);
     return newDir;
   }
@@ -77,6 +70,12 @@ export async function readFile(file) {
 }
 
 export async function writeFile(file, data) {
-  await mkdir(path.dirname(file));
+  await mkdirp(path.dirname(file));
   await fs.writeFile(file, data, 'utf8');
+}
+
+async function mkdirp(dir) {
+  await fs.mkdir(dir, {
+    recursive: true,
+  });
 }

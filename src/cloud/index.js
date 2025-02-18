@@ -3,13 +3,13 @@ import { spawn } from 'child_process';
 import open from 'open';
 import { reset, gray, green, yellow, red } from 'kleur/colors';
 
-import { assertBedrockRoot, assertBedrockServicesRoot } from '../utils/dir.js';
+import { assertBedrockRoot } from '../utils/dir.js';
 import { exec, execSyncInherit } from '../utils/shell.js';
 import { prompt } from '../utils/prompt.js';
 import { checkConfig, setGCloudConfig } from './authorize.js';
 import { buildImage } from './build.js';
 import { dockerPush } from './push.js';
-import { warn } from './deploy.js';
+import { confirmDeployment } from './deploy.js';
 import { rolloutDeployment, deleteDeployment, checkDeployment } from './rollout.js';
 import {
   checkKubectlVersion,
@@ -24,6 +24,7 @@ import {
 } from './utils.js';
 import { bootstrapProjectEnvironment } from './bootstrap.js';
 import { slackStartedDeploy, slackFinishedDeploy } from './slack.js';
+import { error } from '../utils/flow.js';
 
 export async function authorize(options) {
   await assertBedrockRoot();
@@ -117,7 +118,7 @@ export async function status(options) {
 }
 
 export async function build(options) {
-  await assertBedrockServicesRoot();
+  await assertBedrockRoot();
   await checkServices(options);
 
   for (const [service, subservice] of options.services) {
@@ -139,7 +140,7 @@ export async function push(options) {
   await checkServices(options);
   await checkTag(options);
 
-  await warn(options.environment);
+  await confirmDeployment(options.environment);
 
   const { project } = options.config.gcloud;
   for (const [service, subservice] of options.services) {
@@ -159,7 +160,7 @@ export async function rollout(options) {
   await checkSubdeployment(options);
   await checkServices(options);
 
-  await warn(options.environment);
+  await confirmDeployment(options.environment);
 
   for (const [service, subservice] of options.services) {
     await rolloutDeployment({
@@ -183,7 +184,7 @@ export async function deploy(options) {
   await checkTag(options);
 
   if (!options.config.gcloud.skipWarn) {
-    await warn(options.environment);
+    await confirmDeployment(options.environment);
   }
 
   const { project } = options.config.gcloud;
@@ -195,7 +196,7 @@ export async function deploy(options) {
   try {
     slackStartedDeploy(options.environment, options.config, serviceNames);
   } catch {
-    console.error(red('Failed to post to Slack'));
+    error('Failed to post to Slack');
   }
   for (const [service, subservice] of options.services) {
     await buildImage({
@@ -224,7 +225,7 @@ export async function deploy(options) {
   try {
     slackFinishedDeploy(options.config);
   } catch {
-    console.error(red('Failed to post to Slack'));
+    error('Failed to post to Slack');
   }
 }
 
@@ -233,7 +234,7 @@ export async function undeploy(options) {
   await checkConfig(options);
   await checkServices(options);
 
-  await warn(options.environment);
+  await confirmDeployment(options.environment);
 
   for (const [service, subservice] of options.services) {
     const opt = {

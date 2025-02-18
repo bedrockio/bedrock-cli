@@ -2,7 +2,7 @@ import fs from 'fs';
 
 import { green, yellow } from 'kleur/colors';
 
-import { exit } from '../utils/exit.js';
+import { exit } from '../utils/flow.js';
 import { prompt } from '../utils/prompt.js';
 import { exec, execSyncInherit } from '../utils/shell.js';
 import { writeConfig, readServiceYaml, writeServiceYaml } from './utils.js';
@@ -154,7 +154,7 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
     if (serviceName == 'web' || serviceName.match(/web-ingress$/)) {
       const appUrl = await getAppUrl(environment);
       if (appUrl) {
-        consolconsole.info(green(` - configuration of APP_URL in api deployment: ${appUrl}\n`));
+        console.info(green(` - configuration of APP_URL in api deployment: ${appUrl}\n`));
       }
     }
   }

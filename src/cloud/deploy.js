@@ -1,17 +1,25 @@
-import kleur from 'kleur';
+import { yellow } from 'kleur/colors';
 
 import { prompt } from '../utils/prompt.js';
 
-export async function warn(environment) {
+export async function confirmDeployment(environment) {
   if (environment == 'production') {
-    console.info(kleur.yellow('---------------------------------------------------------\n'));
-    console.info(kleur.yellow('                 Deploying to production!                \n'));
-    console.info(kleur.yellow('---------------------------------------------------------\n'));
+    console.info(
+      yellow(
+        `
+---------------------------------------------------------
+                  Deploying to production!                
+---------------------------------------------------------
+      `,
+      ),
+    );
     const confirmed = await prompt({
       type: 'confirm',
       name: 'deploy',
       message: 'Are you sure?',
     });
-    if (!confirmed) process.exit(0);
+    if (!confirmed) {
+      process.exit(0);
+    }
   }
 }

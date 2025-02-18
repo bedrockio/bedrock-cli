@@ -1,18 +1,18 @@
-import kleur from 'kleur';
+import { yellow, red, cyan } from 'kleur/colors';
 
-export function warn(...args) {
-  console.info(kleur.yellow(...args));
+export function warn(msg) {
+  console.warn(yellow(msg));
 }
 
-export function error(...args) {
-  console.info(kleur.red(...args));
+export function error(msg) {
+  console.error(red(msg));
 }
 
-export function info(...args) {
-  console.info(kleur.cyan(...args));
+export function info(msg) {
+  console.info(cyan(msg));
 }
 
-export function exit(...args) {
-  console.info(kleur.red(...args));
+export function exit(msg) {
+  console.error(red(msg));
   process.exit(1);
 }

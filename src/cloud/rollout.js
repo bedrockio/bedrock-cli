@@ -3,7 +3,7 @@ import path from 'path';
 
 import kleur from 'kleur';
 
-import { exit } from '../utils/exit.js';
+import { exit } from '../utils/flow.js';
 import { getConfig } from '../utils/git.js';
 import { getRef } from '../utils/git.js';
 import { exec, execSyncInherit } from '../utils/shell.js';

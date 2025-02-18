@@ -3,7 +3,7 @@ import { existsSync, unlinkSync, mkdirSync, writeFileSync } from 'fs';
 
 import { red, green, yellow } from 'kleur/colors';
 
-import { exit } from '../../utils/exit.js';
+import { exit } from '../../utils/flow.js';
 import { prompt } from '../../utils/prompt.js';
 import { getSecretsDirectory } from '../utils.js';
 import { assertBedrockRoot } from '../../utils/dir.js';

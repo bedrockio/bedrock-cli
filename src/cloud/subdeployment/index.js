@@ -5,7 +5,7 @@ import yaml from 'js-yaml';
 import { get } from 'lodash-es';
 import { green, gray, yellow } from 'kleur/colors';
 
-import { exit } from '../../utils/exit.js';
+import { exit } from '../../utils/flow.js';
 import { prompt } from '../../utils/prompt.js';
 import { assertBedrockRoot } from '../../utils/dir.js';
 import { validateSimpleName } from '../../utils/validation.js';

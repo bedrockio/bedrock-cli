@@ -4,7 +4,7 @@ import path from 'path';
 import kleur from 'kleur';
 
 import { getRef } from '../utils/git.js';
-import { exit } from '../utils/exit.js';
+import { exit } from '../utils/flow.js';
 import { execSyncInherit, withDir } from '../utils/shell.js';
 import { checkConfig } from './authorize.js';
 import { checkPlatformName, checkSubdeployment, checkTag, getArchitecture } from './utils.js';

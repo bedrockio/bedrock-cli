@@ -3,7 +3,7 @@ import path from 'path';
 
 import { yellow, green } from 'kleur/colors';
 
-import { exit } from '../utils/exit.js';
+import { exit } from '../utils/flow.js';
 import { prompt } from '../utils/prompt.js';
 import { exec, execSyncInherit } from '../utils/shell.js';
 import { getSecretInfo, setSecret } from './secret/index.js';

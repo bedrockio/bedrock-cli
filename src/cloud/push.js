@@ -1,6 +1,6 @@
 import kleur from 'kleur';
 
-import { exit } from '../utils/exit.js';
+import { exit } from '../utils/flow.js';
 import { exec, execSyncInherit } from '../utils/shell.js';
 
 async function pushImage(project, image, tag, gcrPrefix = '') {

@@ -1,7 +1,7 @@
 import path from 'path';
 import { promises as fs, constants } from 'fs';
 
-import kleur from 'kleur';
+import { exit } from './flow.js';
 
 const ROOT_DIR = '/';
 let currentRoot;
@@ -18,8 +18,7 @@ export async function assertBedrockRoot() {
     } catch {
       dir = path.resolve(dir, '..');
       if (dir === '/') {
-        console.info(kleur.red('Could not find Bedrock root directory!'));
-        process.exit(1);
+        exit('Could not find Bedrock root directory!');
       }
     }
   }
@@ -50,28 +49,4 @@ export function getCurrentRoot() {
 function setCurrentRoot(dir) {
   process.chdir(dir);
   currentRoot = dir;
-}
-
-// TODO remove?
-export async function assertBedrockServicesRoot() {
-  let dir = cwd;
-
-  while (dir !== ROOT_DIR) {
-    try {
-      await fs.access(path.resolve(dir, 'services'), constants.W_OK);
-      break;
-    } catch {
-      dir = path.resolve(dir, '..');
-      if (dir === '/') {
-        console.info(kleur.red('Could not find Bedrock Services root directory!'));
-        process.exit(1);
-      }
-    }
-  }
-
-  if (dir !== process.cwd()) {
-    process.chdir(dir);
-  }
-
-  return dir;
 }

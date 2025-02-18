@@ -1,10 +1,10 @@
+import path from 'path';
 import { homedir } from 'os';
 
-import path from 'path';
-
-import kleur from 'kleur';
+import { green, yellow } from 'kleur/colors';
 
 import { getRef } from '../utils/git.js';
+import { error } from '../utils/flow.js';
 import { exec, withDir } from '../utils/shell.js';
 
 export default async function update() {
@@ -13,7 +13,7 @@ export default async function update() {
     await exec(`git pull`);
     await exec(`${manager} install`);
     const ref = await getRef();
-    console.info(kleur.green(`Successfully updated to SHA: `) + kleur.yellow(ref));
+    console.info(green(`Successfully updated to SHA: `) + yellow(ref));
   });
 }
 
@@ -32,9 +32,9 @@ async function tryPackageManager(name) {
   try {
     await exec(`which ${name}`);
     return name;
-  } catch (error) {
-    console.info(kleur.red(`Try package manager failed for ${name}`));
-    console.error(error);
+  } catch (err) {
+    error(`Could not resolve package manager for ${name}.`);
+    error(err);
     return null;
   }
 }

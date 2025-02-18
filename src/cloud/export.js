@@ -1,5 +1,6 @@
 import { yellow } from 'kleur/colors';
 
+import { exit } from '../utils/flow.js';
 import { checkConfig } from './authorize.js';
 import { assertBedrockRoot } from '../utils/dir.js';
 import { exec, execSyncInherit } from '../utils/shell.js';
@@ -11,8 +12,7 @@ export default async function exportDocuments(options) {
   const { models = '', ids = '' } = options;
 
   if (!models) {
-    console.error(yellow('Model name is required.'));
-    process.exit(1);
+    exit('Model name is required.');
   }
 
   const cliPodName = await getCliPodName();
@@ -23,24 +23,21 @@ export default async function exportDocuments(options) {
   try {
     execSyncInherit(`kubectl exec ${cliPodName} -- ${script}`);
   } catch (error) {
-    console.error(error.original);
-    process.exit(1);
+    exit(error.original);
   }
 }
 
 async function getCliPodName() {
   const podsJSON = await exec(`kubectl get pods -o json --ignore-not-found`);
   if (!podsJSON) {
-    console.info(yellow(`No running pods`));
-    process.exit(0);
+    exit(`No running pods`);
   }
   const pods = JSON.parse(podsJSON).items;
 
   const pod = pods.find((pod) => pod.metadata.name.startsWith('api-cli-deployment'));
 
   if (!pod) {
-    console.info(yellow(`CLI pod is not running.`));
-    process.exit(1);
+    exit(`CLI pod is not running.`);
   }
   return pod.metadata.name;
 }

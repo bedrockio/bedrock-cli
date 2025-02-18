@@ -8,7 +8,7 @@ import compareVersions from 'compare-versions';
 import { red, yellow, dim } from 'kleur/colors';
 
 import { prompt } from '../utils/prompt.js';
-import { exit } from '../utils/exit.js';
+import { exit, error } from '../utils/flow.js';
 import { exec } from '../utils/shell.js';
 import { getConfig } from '../utils/git.js';
 import { loadJson } from '../utils/file.js';
@@ -49,6 +49,9 @@ export function getServiceFilePath(environment, filename) {
   return path.resolve('deployment', 'environments', environment, 'services', filename);
 }
 
+/**
+ * @returns {any}
+ */
 export function readServiceYaml(environment, filename) {
   const filePath = getServiceFilePath(environment, filename);
   const content = fs.readFileSync(filePath, 'utf8');
@@ -297,7 +300,7 @@ export async function checkKubectlVersion(minVersion = 'v1.19.0') {
       );
     }
   } catch (e) {
-    console.error(e);
+    error(e);
     exit('Error: failed to parse kubectl version');
   }
 }

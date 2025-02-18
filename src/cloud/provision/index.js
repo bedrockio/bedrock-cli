@@ -4,7 +4,7 @@ import kleur from 'kleur';
 
 import { prompt } from '../../utils/prompt.js';
 import { exec, execSyncInherit, withDir } from '../../utils/shell.js';
-import { exit } from '../../utils/exit.js';
+import { exit } from '../../utils/flow.js';
 import { assertBedrockRoot } from '../../utils/dir.js';
 import { checkGCloudProject } from '../authorize.js';
 import { readConfig, checkEnvironment } from '../utils.js';

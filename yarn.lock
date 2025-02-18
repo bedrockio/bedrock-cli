@@ -10,10 +10,10 @@
     "@jridgewell/gen-mapping" "^0.3.5"
     "@jridgewell/trace-mapping" "^0.3.24"
 
-"@anthropic-ai/sdk@^0.33.1":
-  version "0.33.1"
-  resolved "https://registry.yarnpkg.com/@anthropic-ai/sdk/-/sdk-0.33.1.tgz#83be59ad8cbd6634f48155b0aa4b7287cfba1b8a"
-  integrity sha512-VrlbxiAdVRGuKP2UQlCnsShDHJKWepzvfRCkZMpU+oaUdKLpOfmylLMRojGrAgebV+kDtPjewCVP0laHXg+vsA==
+"@anthropic-ai/sdk@^0.36.3":
+  version "0.36.3"
+  resolved "https://registry.yarnpkg.com/@anthropic-ai/sdk/-/sdk-0.36.3.tgz#0ca754f047e2847c8b1d064550f05e9a8e7e16b3"
+  integrity sha512-+c0mMLxL/17yFZ4P5+U6bTWiCSFZUKJddrv01ud2aFBWnTPLdRncYV76D3q1tqfnL7aCnhRtykFnoCFzvr4U3Q==
   dependencies:
     "@types/node" "^18.11.18"
     "@types/node-fetch" "^2.6.4"
@@ -914,16 +914,16 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
-"@bedrockio/ai@^0.2.1":
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/@bedrockio/ai/-/ai-0.2.1.tgz#408a4cf147c0459703e49eb9128e3ffdb4b3715d"
-  integrity sha512-lf/knWlyHhZoRV6Jm6BE4AqTChAzCU89PkPYYjIzUjgUS2T+c7Vf+qSvcIUZ4JSLESBLkyfR2KH7Gey44hXKsg==
+"@bedrockio/ai@^0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@bedrockio/ai/-/ai-0.3.0.tgz#55b68161c50cf13e1d4c6f5e75c68dbc0a1a5c21"
+  integrity sha512-3dyb+0T1bWBiaRWvuLqfya4WQmHhpqC5OjeYYAdfqferE6J4BavogWsAfEAE0Pb2vdTZCb29WT5mni7mvz6ypw==
   dependencies:
-    "@anthropic-ai/sdk" "^0.33.1"
+    "@anthropic-ai/sdk" "^0.36.3"
     "@google/generative-ai" "^0.21.0"
     glob "^11.0.1"
     mustache "^4.2.0"
-    openai "^4.79.1"
+    openai "^4.83.0"
 
 "@bedrockio/eslint-plugin@^1.1.7":
   version "1.1.7"
@@ -4935,10 +4935,10 @@ open@^7.3.0:
     is-docker "^2.0.0"
     is-wsl "^2.1.1"
 
-openai@^4.79.1:
-  version "4.84.0"
-  resolved "https://registry.yarnpkg.com/openai/-/openai-4.84.0.tgz#986d3d99168988681ace3cd58f9220f9977bb41c"
-  integrity sha512-Smu45QjqWcPXkTHAI7GSeW+sI9ZOqB9VW4wiuhBvWLGHYC9dn/3rIpG8PUysbCT+ciVyDdEdsx0zkgKQDoOx9Q==
+openai@^4.83.0:
+  version "4.85.1"
+  resolved "https://registry.yarnpkg.com/openai/-/openai-4.85.1.tgz#639058653cca92bebd74939751858e7958257670"
+  integrity sha512-jkX2fntHljUvSH3MkWh4jShl10oNkb+SsCj4auKlbu2oF4KWAnmHLNR5EpnUHK1ZNW05Rp0fjbJzYwQzMsH8ZA==
   dependencies:
     "@types/node" "^18.11.18"
     "@types/node-fetch" "^2.6.4"

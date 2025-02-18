@@ -10,7 +10,7 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@bedrockio/ai": "^0.2.1",
+    "@bedrockio/ai": "^0.3.0",
     "commander": "^13.1.0",
     "compare-versions": "^3.6.0",
     "execa": "^4.0.3",

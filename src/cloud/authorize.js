@@ -10,38 +10,31 @@ import { getSecretInfo, setSecret } from './secret/index.js';
 import { checkEnvironment, readConfig } from './utils.js';
 
 export async function setGCloudConfig(config = {}) {
-  const { project, computeZone, computeRegion, kubernetes } = config;
-  if (!kubernetes) exit('Missing kubernetes settings in config');
-  try {
-    // gcloud returns output on stderr
-    if (!project) exit('Missing project');
+  let { project, computeZone, computeRegion, kubernetes } = config;
+  if (!kubernetes) {
+    exit('Missing kubernetes settings in config');
+  }
 
+  computeRegion ||= getComputeRegion(computeZone);
+
+  if (!project) {
+    exit('Missing project');
+  } else if (!computeZone) {
+    exit('You must provide a computeZone.');
+  }
+
+  try {
     await execSyncInherit(`gcloud config set project ${project}`);
 
-    await execSyncInherit(`gcloud config unset compute/region`);
-    await execSyncInherit(`gcloud config unset compute/zone`);
-
-    if (computeRegion) {
-      await execSyncInherit(`gcloud config set compute/region ${computeRegion}`);
-    }
-
-    if (computeZone) {
-      await execSyncInherit(`gcloud config set compute/zone ${computeZone}`);
-    }
-
-    if (!computeRegion && !computeZone) {
-      exit(
-        `You must provide either a computeRegion or a computeZone. Use computeRegion for Regional clusters, and computeZone for Zonal clusters.`,
-      );
-    }
+    // Suppress stupid warnings about validation here.
+    await execSyncInherit(`gcloud config set compute/region ${computeRegion} 2> /dev/null`);
+    await execSyncInherit(`gcloud config set compute/zone ${computeZone} 2> /dev/null`);
 
     const { clusterName } = kubernetes;
     if (!clusterName) exit('Missing kubernetes.clusterName');
 
     try {
-      await execSyncInherit(
-        `gcloud container clusters get-credentials --zone ${computeRegion || computeZone} ${clusterName}`,
-      );
+      await execSyncInherit(`gcloud container clusters get-credentials --zone ${computeZone} ${clusterName}`);
     } catch (e) {
       exit(e.message);
     }
@@ -196,4 +189,8 @@ export async function checkConfig(options) {
     }
   }
   await checkSecrets(environment);
+}
+
+function getComputeRegion(zone) {
+  return zone.replace(/-[a-z]$/, '');
 }

@@ -159,6 +159,10 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
     }
   }
 
+  // Revoke ADC after bootstrap is finished as it will constantly
+  // complain when switching projects about default quotas.
+  await execSyncInherit('gcloud auth application-default revoke');
+
   console.info(green('Done!'));
 }
 

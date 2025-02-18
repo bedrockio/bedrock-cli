@@ -3,13 +3,14 @@ import { assertPath } from '../utils/file.js';
 import { assertBedrockApi } from '../utils/dir.js';
 import { queueTask, runTasks } from '../utils/tasks.js';
 import { getExample, readLocalFile } from './utils/files.js';
-import { generateLocalFiles } from './utils/ai.js';
+import { createAiClient, generateLocalFiles } from './utils/ai.js';
 import { kebabPlural } from './utils/inflections.js';
 
 const ROUTES_DIR = 'src/routes';
 
 export async function routes(options) {
   await assertBedrockApi();
+  await createAiClient(options);
 
   const routesDir = await assertPath(ROUTES_DIR);
 

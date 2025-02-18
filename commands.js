@@ -667,6 +667,10 @@ export default {
       ],
     },
     {
+      name: 'config',
+      description: 'Updates CLI configs and credentials.',
+    },
+    {
       name: 'update',
       description: 'Updates this script.',
     },

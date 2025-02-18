@@ -2,11 +2,12 @@ import { loadModels } from './utils/model.js';
 import { assertBedrockWeb } from '../utils/dir.js';
 import { queueTask, runTasks } from '../utils/tasks.js';
 import { readLocalFile } from './utils/files.js';
-import { generateLocalFiles } from './utils/ai.js';
+import { createAiClient, generateLocalFiles } from './utils/ai.js';
 import { readDirectory } from '../utils/file.js';
 
 export async function screens(options) {
   await assertBedrockWeb();
+  await createAiClient(options);
 
   const { dir } = options;
   const filenames = await readDirectory(dir, '**/*.js');

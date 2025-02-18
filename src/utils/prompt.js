@@ -5,21 +5,28 @@ import { lowerFirst } from 'lodash-es';
 import { validateEnum, validateEmail, validateDomain, validateString, validateRepository } from './validation.js';
 
 export async function promptFill(answers, options = []) {
+  // Using the override here will skip prompts
+  // that also have associated answer keys.
   prompts.override(answers);
+
+  await promptConfirm(answers, options);
+}
+
+export async function promptConfirm(answers, options = []) {
   const filled = await prompts(
     // @ts-ignore
     options
       .filter((option) => {
-        return option.prompt;
+        return option.prompt || option.confirm;
       })
       .map((option) => {
-        let { name } = option;
+        let { name, confirm } = option;
         name ||= option.flags?.match(/--(\w+)/)[1];
         const answer = answers[name];
         const validator = getWrappedValidator(option);
         const isValid = validator(answer) === true;
         const promptOptions = getPromptOptions(option);
-        if (isValid && answer) {
+        if (isValid && answer && !confirm) {
           let { message } = promptOptions;
           message = message.replace(/\?$/, ':');
           const answerStr = Array.isArray(answer) ? answer.join(', ') : answer;

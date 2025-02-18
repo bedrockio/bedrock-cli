@@ -1,30 +1,10 @@
-import { MultiClient } from '@bedrockio/ai';
+import { Client } from '@bedrockio/ai';
+
+import { loadConfig } from '../../utils/config.js';
 
 import { getRelativeFile, writeFile } from '../../utils/file.js';
 
-const client = new MultiClient({
-  templates: getRelativeFile(import.meta, '../templates'),
-  platforms: [
-    {
-      name: 'openai',
-      apiKey:
-        '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',
-    },
-    {
-      name: 'claude',
-      apiKey:
-        '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',
-    },
-    {
-      name: 'gemini',
-      apiKey: 'AIzaSyB--MVzmiqAgqX6pJRdxqDvyiGUlnERjBU',
-    },
-    {
-      name: 'grok',
-      apiKey: 'xai-AWVUcOFxEufIa28aehQEGKtJh0FsCh8HaowyjWtQU00zWkYyyBfMi4MLAmW7BdfuxC1OKpgBtgfvefGD',
-    },
-  ],
-});
+let client;
 
 export async function ejectTemplate(options) {
   const { file, exit } = options;
@@ -35,6 +15,41 @@ export async function ejectTemplate(options) {
   if (exit) {
     console.info(`Template written to "${filename}". Use --template to pass back in to this script.`);
     process.exit(0);
+  }
+}
+
+export async function createAiClient(options) {
+  const { platform } = options;
+
+  if (!platform) {
+    throw new Error('Platform not provided.');
+  }
+
+  const config = await loadConfig();
+  const name = getConfigForPlatform(platform);
+  const apiKey = config[name];
+
+  if (!apiKey) {
+    throw new Error(`API key not found for ${platform}. Use bedrock config to set.`);
+  }
+
+  client = new Client({
+    templates: getRelativeFile(import.meta, '../templates'),
+    platform,
+    apiKey,
+  });
+}
+
+function getConfigForPlatform(platform) {
+  switch (platform) {
+    case 'openai':
+      return 'OPENAI_API_KEY';
+    case 'anthropic':
+      return 'ANTHROPIC_API_KEY';
+    case 'gemini':
+      return 'GEMINI_API_KEY';
+    case 'xai':
+      return 'XAI_API_KEY';
   }
 }
 

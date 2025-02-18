@@ -1,15 +1,16 @@
 import { assertPath } from '../utils/file.js';
 import { assertBedrockApi } from '../utils/dir.js';
-import { generateLocalFiles, ejectTemplate } from './utils/ai.js';
-import { kebabSingular } from './utils/inflections.js';
-import { queueTask, runTasks } from '../utils/tasks.js';
 import { getExample } from './utils/files.js';
 import { prompt } from '../utils/prompt.js';
+import { kebabSingular } from './utils/inflections.js';
+import { queueTask, runTasks } from '../utils/tasks.js';
+import { createAiClient, generateLocalFiles, ejectTemplate } from './utils/ai.js';
 
 const MODELS_DIR = 'src/models/definitions';
 
 export async function model(options) {
   await assertBedrockApi();
+  await createAiClient(options);
 
   const modelsDir = await assertPath(MODELS_DIR);
 

@@ -3,12 +3,13 @@ import { assertPath } from '../utils/file.js';
 import { assertBedrockWeb } from '../utils/dir.js';
 import { queueTask, runTasks } from '../utils/tasks.js';
 import { getExample } from './utils/files.js';
-import { generateLocalFiles } from './utils/ai.js';
+import { createAiClient, generateLocalFiles } from './utils/ai.js';
 
 const MODALS_DIR = 'src/modals';
 
 export async function modal(options) {
   await assertBedrockWeb();
+  await createAiClient(options);
 
   const modalsDir = await assertPath(MODALS_DIR);
 

@@ -5,3 +5,4 @@ credentials.json
 deployment
 .DS_Store
 .vscode
+config.json

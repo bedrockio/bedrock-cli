@@ -3,7 +3,7 @@
 import path from 'path';
 import fs from 'fs';
 
-import kleur from 'kleur';
+import { yellow } from 'kleur/colors';
 import { program, Option } from 'commander';
 import { camelCase } from 'lodash-es';
 
@@ -56,7 +56,7 @@ async function addCommand(command, descriptor) {
               const { name } = sub.arguments[i];
               options[name] = arg;
             } else {
-              console.info(kleur.yellow(`Warning: "${arg}" argument not used`));
+              console.info(yellow(`Warning: "${arg}" argument not used`));
             }
           });
         }

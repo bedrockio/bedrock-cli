@@ -18,6 +18,7 @@ export async function exec(commands, std = 'stdout') {
     const { stderr = '', stdout = '' } = err;
     const message = (stderr || stdout).split('\n').join(' ') || err.message;
     const error = new Error(message);
+    // @ts-ignore
     error.original = err.message;
     throw error;
   }
@@ -34,15 +35,5 @@ export async function withDir(dir, fn) {
   const lastDir = process.cwd();
   process.chdir(dir);
   await fn();
-  process.chdir(lastDir);
-}
-
-// Synchronous form is needed to be used inside concurrent tasks. Using withDir
-// inside concurrent tasks isn't recommended as process.chdir introduces state,
-// however may be required when combined with require().
-export function withDirSync(dir, fn) {
-  const lastDir = process.cwd();
-  process.chdir(dir);
-  fn();
   process.chdir(lastDir);
 }

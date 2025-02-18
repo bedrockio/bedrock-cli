@@ -1,19 +1,17 @@
-import kleur from 'kleur';
+import { green } from 'kleur/colors';
 
-import { exit } from '../utils/flow.js';
+import { exit, warn } from '../utils/flow.js';
 import { exec, execSyncInherit } from '../utils/shell.js';
 
 async function pushImage(project, image, tag, gcrPrefix = '') {
   const gcrTag = `gcr.io/${project}/${gcrPrefix + image}:${tag}`;
-  console.info(kleur.green(`Pushing ${gcrTag}`));
+  console.info(green(`Pushing ${gcrTag}`));
   await exec(`docker tag ${image}:${tag} ${gcrTag}`);
   try {
     await execSyncInherit(`docker push ${gcrTag}`);
   } catch (e) {
-    console.info(
-      kleur.yellow(
-        "If You don't have the needed permissions to perform this operation, then run: 'gcloud auth configure-docker'",
-      ),
+    warn(
+      "If You don't have the needed permissions to perform this operation, then run: 'gcloud auth configure-docker'",
     );
     exit(e.message);
   }
@@ -39,7 +37,7 @@ export async function dockerPush(options) {
       images = repositories.filter((repo) => repo.startsWith(`${platformName}-services-`));
     }
 
-    images.length ? console.info(kleur.yellow('\n=> Pushing images:')) : console.info(kleur.yellow('No images found'));
+    warn(images.length ? '\n=> Pushing images:' : 'No images found');
     images.forEach((image) => console.info('-', image));
 
     for (const image of images) {

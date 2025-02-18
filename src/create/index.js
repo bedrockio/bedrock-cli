@@ -1,6 +1,6 @@
 import { randomBytes } from 'crypto';
 
-import kleur from 'kleur';
+import { yellow } from 'kleur/colors';
 import { kebabCase, snakeCase, startCase } from 'lodash-es';
 
 import { cloneRepository, initializeRepository } from '../utils/git.js';
@@ -88,7 +88,7 @@ export default async function create(options) {
   await runTasks();
 
   console.info(
-    kleur.yellow(`
+    yellow(`
   Installation Completed!
   New Bedrock project has been created:
 

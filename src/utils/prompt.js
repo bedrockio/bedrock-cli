@@ -1,5 +1,5 @@
 import prompts from 'prompts';
-import kleur from 'kleur';
+import { gray } from 'kleur/colors';
 import { lowerFirst } from 'lodash-es';
 
 import { validateEnum, validateEmail, validateDomain, validateString, validateRepository } from './validation.js';
@@ -23,7 +23,7 @@ export async function promptFill(answers, options = []) {
           let { message } = promptOptions;
           message = message.replace(/\?$/, ':');
           const answerStr = Array.isArray(answer) ? answer.join(', ') : answer;
-          console.info(kleur.grey(`? ${message} ${answerStr}`));
+          console.info(gray(`? ${message} ${answerStr}`));
         }
         return {
           name,
@@ -61,7 +61,7 @@ function getPromptOptions(option) {
   if (optionType === 'multiple') {
     return {
       type: 'multiselect',
-      instructions: kleur.grey('(select multiple)'),
+      instructions: gray('(select multiple)'),
       message: `Select ${msg}:`,
       choices: choices.map((choice) => {
         const { title, value, selected, description } = choice;

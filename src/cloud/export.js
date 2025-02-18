@@ -1,5 +1,3 @@
-import { yellow } from 'kleur/colors';
-
 import { exit } from '../utils/flow.js';
 import { checkConfig } from './authorize.js';
 import { assertBedrockRoot } from '../utils/dir.js';

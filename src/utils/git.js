@@ -9,6 +9,10 @@ export async function getRef() {
   return ref;
 }
 
+export async function getBranch() {
+  return await exec('git branch --show-current');
+}
+
 export async function cloneRepository(dir, repo) {
   await exec(`git clone --single-branch --depth 1 https://github.com/${repo}.git ${dir}`);
 }

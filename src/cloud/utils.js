@@ -10,7 +10,7 @@ import { red, yellow, dim } from 'kleur/colors';
 import { prompt } from '../utils/prompt.js';
 import { exit, error } from '../utils/flow.js';
 import { exec } from '../utils/shell.js';
-import { getConfig } from '../utils/git.js';
+import { getConfig, getBranch } from '../utils/git.js';
 import { loadJson } from '../utils/file.js';
 
 export function getDeployment(options) {
@@ -162,7 +162,7 @@ const KNOWN_BRANCHES = ['master', 'main', 'develop', 'development', 'staging', '
 
 export async function checkSubdeployment(options) {
   if (!options.subdeployment) {
-    const branch = await exec('git branch --show-current');
+    const branch = await getBranch();
     if (!KNOWN_BRANCHES.includes(branch) && !branch.includes('/')) {
       if (
         await prompt({

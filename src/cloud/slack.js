@@ -1,5 +1,4 @@
-import { getConfig, getRef } from '../utils/git.js';
-import { exec } from '../utils/shell.js';
+import { getConfig, getRef, getBranch } from '../utils/git.js';
 
 export function getSlackWebhook(config) {
   if (config && config.slack && config.slack.webhook) {
@@ -23,7 +22,7 @@ export async function postSlackMessage(hook, message) {
 export async function createDeployMessage(environment, project, services) {
   const author = await getConfig('user.name', 'Anonymous');
   const gitRef = await getRef();
-  const branch = await exec('git branch --show-current');
+  const branch = await getBranch();
   const ts = Math.floor(Date.now() / 1000);
   const text = services
     .map((service) => {

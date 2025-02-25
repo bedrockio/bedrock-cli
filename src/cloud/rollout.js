@@ -5,14 +5,14 @@ import { yellow } from 'kleur/colors';
 
 import { exit } from '../utils/flow.js';
 import { getConfig } from '../utils/git.js';
-import { getRef } from '../utils/git.js';
+import { getRef, getBranch } from '../utils/git.js';
 import { exec, execSyncInherit } from '../utils/shell.js';
 import { getArchitecture, getDeployment, readServiceYaml } from './utils.js';
 
 async function getMetaData() {
   const date = new Date().toUTCString();
   const author = await getConfig('user.name', 'Anonymous');
-  const branch = await exec('git branch --show-current');
+  const branch = await getBranch();
   const git = await getRef();
   const arch = getArchitecture();
 

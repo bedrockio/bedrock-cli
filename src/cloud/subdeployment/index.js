@@ -10,7 +10,8 @@ import { prompt } from '../../utils/prompt.js';
 import { assertBedrockRoot } from '../../utils/dir.js';
 import { validateSimpleName } from '../../utils/validation.js';
 import { readServiceYaml, writeServiceYaml, getServiceFilePath, getDeployment, checkService } from '../utils.js';
-import { exec, execSyncInherit } from '../../utils/shell.js';
+import { execSyncInherit } from '../../utils/shell.js';
+import { getBranch } from '../../utils/git.js';
 import { checkConfig } from '../authorize.js';
 
 const TAG_REG = /(:\w+)?$/;
@@ -205,7 +206,7 @@ export async function destroy(options) {
   await checkService(options);
 
   if (!options.name) {
-    const branch = await exec('git branch --show-current');
+    const branch = await getBranch();
     if (branch !== 'master' && branch !== 'main') {
       if (
         await prompt({

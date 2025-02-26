@@ -125,9 +125,11 @@ export async function checkService(options) {
 
 function getDirectories(folder) {
   if (fs.existsSync(folder)) {
-    return fs.readdirSync(folder).filter((file) => {
-      const filePath = path.resolve(folder, file);
-      return fs.lstatSync(filePath).isDirectory();
+    return fs.readdirSync(folder).filter((entry) => {
+      if (entry.startsWith('.')) {
+        return false;
+      }
+      return fs.lstatSync(path.resolve(folder, entry)).isDirectory();
     });
   }
   return [];

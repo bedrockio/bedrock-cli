@@ -5,13 +5,13 @@ import path from 'path';
 
 import yaml from 'js-yaml';
 import compareVersions from 'compare-versions';
-import { red, yellow, dim } from 'kleur/colors';
+import { red, yellow, gray, dim } from 'kleur/colors';
 
 import { prompt } from '../utils/prompt.js';
 import { exit, error } from '../utils/flow.js';
-import { exec } from '../utils/shell.js';
-import { getConfig, getBranch } from '../utils/git.js';
 import { loadJson } from '../utils/file.js';
+import { getConfig, getBranch } from '../utils/git.js';
+import { exec, execSyncInherit } from '../utils/shell.js';
 
 export function getDeployment(options) {
   const { service, subservice, subdeployment } = options;
@@ -320,6 +320,16 @@ export async function checkKubectlVersion(minVersion = 'v1.19.0') {
     error(e);
     exit('Error: failed to parse kubectl version');
   }
+}
+
+export function getRemoteCommand(pod, command) {
+  return `kubectl exec -it ${pod} -- /bin/bash -c "${command}"`;
+}
+
+export async function runCommand(title, command) {
+  console.info(yellow(title));
+  console.info(gray(command));
+  await execSyncInherit(command);
 }
 
 export async function getSlackWebhook(config) {

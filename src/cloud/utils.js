@@ -291,6 +291,21 @@ export async function getAllSecretsPrompt() {
   });
 }
 
+export async function getCliPodName() {
+  const podsJSON = await exec(`kubectl get pods -o json --ignore-not-found`);
+  if (!podsJSON) {
+    exit(`No running pods`);
+  }
+  const pods = JSON.parse(podsJSON).items;
+
+  const pod = pods.find((pod) => pod.metadata.name.startsWith('api-cli-deployment'));
+
+  if (!pod) {
+    exit(`CLI pod is not running.`);
+  }
+  return pod.metadata.name;
+}
+
 export async function checkKubectlVersion(minVersion = 'v1.19.0') {
   try {
     const kubectlVersion = await exec('kubectl version --client -o json');

@@ -313,6 +313,58 @@ export default {
           ],
         },
         {
+          name: 'database',
+          description: 'Tools for importing database.',
+          commands: [
+            {
+              name: 'import',
+              arguments: [
+                {
+                  name: 'environment',
+                  type: 'string',
+                  description: 'Environment (e.g. staging)',
+                },
+              ],
+              options: [
+                {
+                  flags: '-a, --created-after [date]',
+                  description: 'Limit to users created after a certain date. Can be any parseable date.',
+                },
+                {
+                  flags: '-b, --created-before [date]',
+                  description: 'Limit to users created before a certain date. Can be any parseable date.',
+                },
+                {
+                  flags: '-l, --limit [number]',
+                  description: 'Limit to a fixed number of users from the most recently created.',
+                },
+                {
+                  flags: '-u, --user-id [string...]',
+                  description: 'Limit to users by ID (can be multiple).',
+                },
+
+                {
+                  flags: '-m, --email [string...]',
+                  description: 'Limit to users by email (can be multiple).',
+                },
+                {
+                  flags: '-e, --exclude [string...]',
+                  description: 'Exclude collections. (default: [])',
+                },
+                {
+                  flags: '-r, --raw [boolean]',
+                  default: false,
+                  description: 'Skip sanitizations. Only use this when necessary.',
+                },
+                {
+                  flags: '-o, --out [string]',
+                  description: 'The directory to export the export to. (default: "export")',
+                },
+              ],
+            },
+          ],
+        },
+        {
           name: 'info',
           description: 'Deployment info',
           arguments: [

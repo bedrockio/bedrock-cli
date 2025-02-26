@@ -1,7 +1,8 @@
 import { exit } from '../utils/flow.js';
 import { checkConfig } from './authorize.js';
 import { assertBedrockRoot } from '../utils/dir.js';
-import { exec, execSyncInherit } from '../utils/shell.js';
+import { execSyncInherit } from '../utils/shell.js';
+import { getCliPodName } from './utils.js';
 
 export default async function exportDocuments(options) {
   await assertBedrockRoot();
@@ -23,19 +24,4 @@ export default async function exportDocuments(options) {
   } catch (error) {
     exit(error.original);
   }
-}
-
-async function getCliPodName() {
-  const podsJSON = await exec(`kubectl get pods -o json --ignore-not-found`);
-  if (!podsJSON) {
-    exit(`No running pods`);
-  }
-  const pods = JSON.parse(podsJSON).items;
-
-  const pod = pods.find((pod) => pod.metadata.name.startsWith('api-cli-deployment'));
-
-  if (!pod) {
-    exit(`CLI pod is not running.`);
-  }
-  return pod.metadata.name;
 }

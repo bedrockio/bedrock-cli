@@ -28,6 +28,7 @@ export async function tests(options) {
       const plural = kebabPlural(model.name);
       const expectedFilename = `${testsDir}/${plural}.js`;
       const routesContent = await readLocalFile(`${routesDir}/${plural}.js`);
+      const modelDefinition = model.definition;
 
       await generateLocalFiles({
         file: options.template || 'tests',
@@ -35,6 +36,7 @@ export async function tests(options) {
         platform: options.platform,
         params: {
           expectedFilename,
+          modelDefinition,
           routesContent,
           testsExample,
         },

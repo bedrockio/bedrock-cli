@@ -34,6 +34,11 @@ Use the following rules which follow the example file:
 - If routes do NOT rely on the time then do not import these helpers.
 - Do NOT add unknown fields to request blocks unless they are in the example file.
 
+Here is the model definition file:
+
+```
+{{{modelDefinition}}}
+```
 
 Here is the routes file:
 

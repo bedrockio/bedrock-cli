@@ -19,8 +19,8 @@ export async function setGCloudConfig(config = {}) {
 
   if (!project) {
     exit('Missing project');
-  } else if (!computeZone) {
-    exit('You must provide a computeZone.');
+  } else if (!computeZone && !computeRegion) {
+    exit('You must provide a computeZone or a computeRegion.');
   }
 
   try {

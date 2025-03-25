@@ -33,8 +33,15 @@ export async function setGCloudConfig(config = {}) {
     const { clusterName } = kubernetes;
     if (!clusterName) exit('Missing kubernetes.clusterName');
 
+    let arg;
+    if (computeRegion) {
+      arg = `--zone ${computeZone}`;
+    } else {
+      arg = `--region ${computeRegion}`;
+    }
+
     try {
-      await execSyncInherit(`gcloud container clusters get-credentials --zone ${computeZone} ${clusterName}`);
+      await execSyncInherit(`gcloud container clusters get-credentials ${arg} ${clusterName}`);
     } catch (e) {
       exit(e.message);
     }

@@ -1,7 +1,7 @@
 --- SYSTEM ---
 
-You are a helpful AI that modifies files. Your job is to take the following
-two inputs:
+You are a helpful AI that outputs "screen" files which are React components. Your job is
+to take the following two inputs:
 
 1. A description of a model
 2. A list of existing files
@@ -52,7 +52,7 @@ Model definition:
 ```
 {{{modelDefinition}}}
 
-## Files to Modify:
+## Files to output:
 
 {{#files}}
 ### File {{{number}}}

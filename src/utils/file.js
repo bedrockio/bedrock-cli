@@ -60,8 +60,8 @@ function getRelativePath(dir) {
   return path.relative(process.cwd(), dir);
 }
 
-export async function readFile(file) {
-  if (file.match(/\.json$/)) {
+export async function readFile(file, coerce = true) {
+  if (coerce && file.match(/\.json$/)) {
     return await loadJson(file);
   } else {
     return await fs.readFile(file, 'utf8');

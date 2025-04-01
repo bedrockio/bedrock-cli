@@ -46,6 +46,7 @@ export default {
         {
           flags: '-d, --domain <domain>',
           description: 'Domain',
+          type: 'domain',
           required: true,
           downcase: true,
           prompt: true,
@@ -53,6 +54,7 @@ export default {
         {
           flags: '-r, --repository [repository]',
           description: 'Git repository',
+          type: 'repository',
           prompt: true,
         },
         {
@@ -342,7 +344,6 @@ export default {
                   flags: '-u, --user-id [string...]',
                   description: 'Limit to users by ID (can be multiple).',
                 },
-
                 {
                   flags: '-m, --email [string...]',
                   description: 'Limit to users by email (can be multiple).',

@@ -8,25 +8,32 @@ import { queueTask, runTasks } from '../utils/tasks.js';
 import { removeFiles } from '../utils/file.js';
 import { replaceAll } from '../utils/replace.js';
 import { exec, withDir } from '../utils/shell.js';
+import { exit } from '../utils/flow.js';
 import { getEnvironments, updateServiceYamlEnv } from '../cloud/utils.js';
 
 const BEDROCK_REPO = 'bedrockio/bedrock-core';
 
 export default async function create(options) {
-  const { project } = options;
+  let {
+    project,
+    domain,
+    repository,
+    address,
+    staging: stagingId,
+    production: productionId,
+    password: adminPassword,
+  } = options;
 
+  if (!domain) {
+    exit('Domain required.');
+  }
   // "project" will accept any casing
   const kebab = kebabCase(project);
   const under = snakeCase(project);
 
-  const {
-    domain = '',
-    repository = '',
-    address = '',
-    stagingProjectId = `${kebab}-staging`,
-    productionProjectId = `${kebab}-production`,
-    'admin-password': adminPassword = '',
-  } = options;
+  repository ||= kebab;
+  stagingId ||= `${kebab}-staging`;
+  productionId ||= `${kebab}-production`;
 
   queueTask('Clone Repository', async () => {
     await cloneRepository(kebab, BEDROCK_REPO);
@@ -35,15 +42,19 @@ export default async function create(options) {
 
   queueTask('Configure', async () => {
     const appName = startCase(project);
+
     const JWT_SECRET = await exec('openssl rand -base64 30');
     const ADMIN_PASSWORD = adminPassword || randomBytes(8).toString('hex');
 
-    await replaceAll('*.{js,md,yml,tf,conf,json,env}', (str) => {
+    await replaceAll('**/*.{js,md,yml,tf,conf,json,env}', (str, basename) => {
+      if (basename !== '.env') {
+        str = str.replace(/ADMIN_PASSWORD=(.+)/g, `ADMIN_PASSWORD=${ADMIN_PASSWORD}`);
+      }
+
       str = str.replace(/APP_COMPANY_ADDRESS=(.+)/g, `APP_COMPANY_ADDRESS=${address}`);
       str = str.replace(/JWT_SECRET=(.+)/g, `JWT_SECRET=${JWT_SECRET}`);
-      str = str.replace(/ADMIN_PASSWORD=(.+)/g, `ADMIN_PASSWORD=${ADMIN_PASSWORD}`);
-      str = str.replace(/bedrock-foundation-production/g, productionProjectId);
-      str = str.replace(/bedrock-foundation-staging/g, stagingProjectId);
+      str = str.replace(/bedrock-foundation-production/g, productionId);
+      str = str.replace(/bedrock-foundation-staging/g, stagingId);
       str = str.replace(/bedrockio\/bedrock-core/g, repository);
       str = str.replace(/bedrock-foundation/g, kebab);
       str = str.replace(/bedrock\.foundation/g, domain);

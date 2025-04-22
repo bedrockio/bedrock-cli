@@ -13,6 +13,10 @@ const generateBaseOptions = [
     default: 'openai',
     choices: ['openai', 'claude', 'gemini', 'grok'],
   },
+  {
+    flags: '--ai-model [name]',
+    description: 'The AI model to use.',
+  },
 ];
 
 const generateSingleResourceOptions = [

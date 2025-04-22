@@ -37,6 +37,9 @@ export async function createAiClient(options) {
     templates: getRelativeFile(import.meta, '../templates'),
     platform,
     apiKey,
+    ...(options.aiModel && {
+      model: options.aiModel,
+    }),
   });
 }
 

@@ -10,7 +10,6 @@ const generateBaseOptions = [
   {
     flags: '-p, --platform [name]',
     description: 'The AI platform to use.',
-    default: 'openai',
     choices: ['openai', 'claude', 'gemini', 'grok'],
   },
   {

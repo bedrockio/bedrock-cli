@@ -19,17 +19,14 @@ export async function ejectTemplate(options) {
 }
 
 export async function createAiClient(options) {
-  const { platform } = options;
-
-  if (!platform) {
-    throw new Error('Platform not provided.');
-  }
-
   const config = await loadConfig();
+  const { DEFAULT_AI_PLATFORM: platform = 'openai' } = config;
   const name = getConfigForPlatform(platform);
   const apiKey = config[name];
 
-  if (!apiKey) {
+  if (!platform) {
+    throw new Error('Platform not provided.');
+  } else if (!apiKey) {
     throw new Error(`API key not found for ${platform}. Use bedrock config to set.`);
   }
 

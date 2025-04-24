@@ -91,6 +91,11 @@ function getPromptOptions(option) {
       type: 'password',
       message: `Enter ${msg}${required ? '' : ' (optional)'}:`,
     };
+  } else if (optionType === 'select') {
+    return {
+      message: `Enter ${msg}${required ? '' : ' (optional)'}:`,
+      ...option,
+    };
   } else {
     return {
       type: 'text',

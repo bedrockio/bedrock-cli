@@ -107,7 +107,7 @@ export default async function create(options) {
 
   To run the stack with Docker:
 
-  docker-compose up
+  docker compose up
 
   To prepare for deployment:
 

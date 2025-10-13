@@ -1,35 +1,3 @@
-const generateBaseOptions = [
-  {
-    flags: '--eject',
-    description: 'Write the AI template to disk to allow tweaking.',
-  },
-  {
-    flags: '--template [file]',
-    description: 'Use with "eject" to tweak and pass back in a template.',
-  },
-  {
-    flags: '-p, --platform [name]',
-    description: 'The AI platform to use.',
-    choices: ['openai', 'claude', 'gemini', 'grok'],
-  },
-  {
-    flags: '--ai-model [name]',
-    description: 'The AI model to use.',
-  },
-];
-
-const generateSingleResourceOptions = [
-  {
-    flags: '-m, --model [name...]',
-    description: 'Model(s) to generate for. May be multiple.',
-  },
-  {
-    flags: '--example [file]',
-    description: 'File to serve as example input. Defaults to "shops" file.',
-  },
-  ...generateBaseOptions,
-];
-
 export default {
   name: 'bedrock',
   description: 'Command line interface for working with Bedrock projects.',
@@ -81,50 +49,6 @@ export default {
           description: 'Admin password',
           downcase: true,
           prompt: true,
-        },
-      ],
-    },
-    {
-      name: 'generate',
-      description: 'Generate new Bedrock resources with AI.',
-      commands: [
-        {
-          name: 'model',
-          description: 'Generate Mongoose models.',
-          options: generateBaseOptions,
-        },
-        {
-          name: 'routes',
-          description: 'Generate API routes.',
-          options: generateSingleResourceOptions,
-        },
-        {
-          name: 'tests',
-          description: 'Generate tests for an API route.',
-          options: generateSingleResourceOptions,
-        },
-        {
-          name: 'screens',
-          description: 'Generate top level screens.',
-          options: [
-            {
-              flags: '-m, --model [name...]',
-              description: 'Model(s) to generate for. May be multiple.',
-            },
-            ...generateBaseOptions,
-          ],
-          arguments: [
-            {
-              name: 'dir',
-              description: 'Path to example screens.',
-              required: true,
-            },
-          ],
-        },
-        {
-          name: 'modal',
-          description: 'Generate modal for resource create/update.',
-          options: generateSingleResourceOptions,
         },
       ],
     },

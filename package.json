@@ -10,7 +10,6 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@bedrockio/ai": "^0.3.0",
     "commander": "^13.1.0",
     "compare-versions": "^3.6.0",
     "execa": "^4.0.3",
@@ -21,8 +20,7 @@
     "lodash-es": "^4.17.21",
     "open": "^7.3.0",
     "pluralize": "^8.0.0",
-    "prompts": "^2.4.2",
-    "server-destroy": "^1.0.1"
+    "prompts": "^2.4.2"
   },
   "devDependencies": {
     "@babel/core": "^7.26.8",
@@ -39,7 +37,7 @@
     "node": ">=20.18.1"
   },
   "volta": {
-    "node": "22.14.0",
+    "node": "22.20.0",
     "yarn": "1.22.22"
   }
 }

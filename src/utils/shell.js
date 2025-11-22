@@ -31,6 +31,10 @@ export function execSyncInherit(command) {
   execSync(command, { stdio: 'inherit' });
 }
 
+export function execSyncInheritQuiet(command) {
+  execSync(command, { stdio: 'ignore' });
+}
+
 export async function withDir(dir, fn) {
   const lastDir = process.cwd();
   process.chdir(dir);

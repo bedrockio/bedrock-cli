@@ -5,7 +5,7 @@ import { yellow, green } from 'kleur/colors';
 
 import { exit } from '../utils/flow.js';
 import { prompt } from '../utils/prompt.js';
-import { exec, execSyncInherit } from '../utils/shell.js';
+import { exec, execSyncInherit, execSyncInheritQuiet } from '../utils/shell.js';
 import { getSecretInfo, setSecret } from './secret/index.js';
 import { checkEnvironment, readConfig } from './utils.js';
 
@@ -24,6 +24,7 @@ export async function setGCloudConfig(config = {}) {
   }
 
   try {
+    await execSyncInheritQuiet(`gcloud auth application-default set-quota-project --quiet ${project}`);
     await execSyncInherit(`gcloud config set project ${project}`);
 
     // Suppress stupid warnings about validation here.

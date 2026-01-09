@@ -58,11 +58,10 @@ export function readServiceYaml(environment, filename) {
   const data = content.split(/^---$/gm).map((str) => {
     return yaml.load(str);
   });
-  if (data.length === 1) {
-    return data[0];
-  } else {
-    return data;
-  }
+
+  // Always assume the first block is the actual config
+  // for the given filename even when there are multiple.
+  return data[0];
 }
 
 export function writeServiceYaml(environment, filename, docs) {

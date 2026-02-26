@@ -10,7 +10,9 @@ export async function exec(commands, std = 'stdout') {
     let output = '';
     for (let command of commands) {
       const [first, ...rest] = command.match(/".+"|\S+/g);
-      const execResult = await execa(first, rest);
+      const execResult = await execa(first, rest, {
+        shell: true,
+      });
       output = std == 'stderr' ? execResult.stderr : execResult.stdout;
     }
     return output;

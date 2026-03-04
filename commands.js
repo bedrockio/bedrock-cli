@@ -356,6 +356,17 @@ export default {
           ],
         },
         {
+          name: 'tag',
+          description: 'Set GCP environment tag on project',
+          arguments: [
+            {
+              name: 'environment',
+              type: 'string',
+              description: 'Environment (e.g. staging)',
+            },
+          ],
+        },
+        {
           name: 'bootstrap',
           description: 'Bootstrap GKE cluster',
           arguments: [

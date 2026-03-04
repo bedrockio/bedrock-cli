@@ -7,6 +7,7 @@ import { prompt } from '../utils/prompt.js';
 import { exec, execSyncInherit } from '../utils/shell.js';
 import { writeConfig, readServiceYaml, writeServiceYaml } from './utils.js';
 import { checkTerraformCommand, terraformInit, terraformApply } from './provision/index.js';
+import { setEnvironmentTag } from './tag.js';
 
 import { authorize, deploy, status } from './index.js';
 
@@ -61,6 +62,13 @@ export async function bootstrapProjectEnvironment(project, environment, config) 
   await execSyncInherit('gcloud services enable compute.googleapis.com');
   console.info(yellow('=> Enabling Kubernetes services'));
   await execSyncInherit('gcloud services enable container.googleapis.com');
+
+  console.info(yellow('=> Setting environment tag'));
+  try {
+    await setEnvironmentTag(project, environment);
+  } catch {
+    console.info(yellow('Warning: Could not set environment tag. You can retry with "bedrock cloud tag".'));
+  }
 
   console.info(yellow('=> Configure deployment GCR paths'));
   for (const service of ['api', 'api-cli', 'api-jobs', 'web']) {

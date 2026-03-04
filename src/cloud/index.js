@@ -23,6 +23,7 @@ import {
   checkEnvironment,
 } from './utils.js';
 import { bootstrapProjectEnvironment } from './bootstrap.js';
+import { setEnvironmentTag } from './tag.js';
 import { slackStartedDeploy, slackFinishedDeploy } from './slack.js';
 import { error } from '../utils/flow.js';
 
@@ -382,6 +383,20 @@ export async function logs(options) {
   });
   if (!confirmed) process.exit(0);
   await open(url);
+}
+
+export async function tag(options) {
+  await assertBedrockRoot();
+  await checkEnvironment(options);
+  const { environment } = options;
+  const config = await readConfig(environment);
+  const { project } = config.gcloud;
+  try {
+    await setEnvironmentTag(project, environment);
+  } catch {
+    // Error details already printed by setEnvironmentTag
+    process.exit(1);
+  }
 }
 
 export async function bootstrap(options) {

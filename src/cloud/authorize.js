@@ -24,7 +24,16 @@ export async function setGCloudConfig(config = {}) {
   }
 
   try {
-    await execSyncInheritQuiet(`gcloud auth application-default set-quota-project --quiet ${project}`);
+    try {
+      await execSyncInheritQuiet(`gcloud auth application-default set-quota-project --quiet ${project}`);
+    } catch {
+      console.info(
+        yellow(
+          `Warning: Could not set quota project. Your application default credentials may be invalid.\n` +
+            `Try running: gcloud auth application-default login`,
+        ),
+      );
+    }
     await execSyncInherit(`gcloud config set project ${project}`);
 
     // Suppress stupid warnings about validation here.
@@ -35,7 +44,7 @@ export async function setGCloudConfig(config = {}) {
     if (!clusterName) exit('Missing kubernetes.clusterName');
 
     let arg;
-    if (computeRegion) {
+    if (computeZone) {
       arg = `--zone ${computeZone}`;
     } else {
       arg = `--region ${computeRegion}`;

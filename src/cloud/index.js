@@ -387,9 +387,8 @@ export async function logs(options) {
 
 export async function tag(options) {
   await assertBedrockRoot();
-  await checkEnvironment(options);
-  const { environment } = options;
-  const config = await readConfig(environment);
+  await checkConfig(options);
+  const { environment, config } = options;
   const { project } = config.gcloud;
   try {
     await setEnvironmentTag(project, environment);

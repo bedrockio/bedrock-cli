@@ -9,6 +9,23 @@ import { exec, execSyncInherit, execSyncInheritQuiet } from '../utils/shell.js';
 import { getSecretInfo, setSecret } from './secret/index.js';
 import { checkEnvironment, readConfig } from './utils.js';
 
+// Running this through "exec" means gcloud has no terminal, so when the session has
+// expired it fails instead of falling back to its own password challenge, which asks
+// for the Google account password with no indication that it isn't the machine one.
+async function ensureAuthenticated() {
+  try {
+    await exec('gcloud auth print-access-token');
+  } catch (error) {
+    if (!/reauth/i.test(error.message)) {
+      // Any other failure here (no credentials at all, no network) gets a clearer
+      // message from the gcloud commands below, so let it fall through.
+      return;
+    }
+    console.info(yellow('Your Google Cloud session has expired. Opening a browser to sign in again.'));
+    await execSyncInherit('gcloud auth login');
+  }
+}
+
 export async function setGCloudConfig(config = {}) {
   let { project, computeZone, computeRegion, kubernetes } = config;
   if (!kubernetes) {
@@ -22,6 +39,8 @@ export async function setGCloudConfig(config = {}) {
   } else if (!computeZone && !computeRegion) {
     exit('You must provide a computeZone or a computeRegion.');
   }
+
+  await ensureAuthenticated();
 
   try {
     try {

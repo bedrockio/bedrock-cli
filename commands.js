@@ -511,7 +511,7 @@ export default {
             {
               name: 'edit',
               functionName: 'secretEdit',
-              description: 'Edit Secret key by key with hidden prompts; nothing is written to disk',
+              description: 'Edit Secret key by key with prompts; nothing is written to disk',
               arguments: [
                 {
                   name: 'environment',

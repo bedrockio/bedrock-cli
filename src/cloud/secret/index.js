@@ -80,8 +80,8 @@ async function viewSecretValues(secretName, data) {
 }
 
 /**
- * Edits a secret key by key through hidden prompts. Values live only in process
- * memory: nothing is written to disk, shown on screen or passed as an argument.
+ * Edits a secret key by key through prompts. Values live only in process memory:
+ * nothing is written to disk or passed as a command argument.
  */
 export async function editSecret(environment, secretName) {
   const secret = await getSecretInfo(secretName);
@@ -97,7 +97,7 @@ export async function editSecret(environment, secretName) {
       type: 'select',
       message: `Secret "${secretName}" (${keys.length} keys):`,
       choices: [
-        ...keys.map((key) => ({ title: `Change ${key}`, value: { key } })),
+        ...(keys.length ? [{ title: 'Change key', value: 'change' }] : []),
         { title: 'Add key', value: 'add' },
         ...(keys.length
           ? [
@@ -149,7 +149,11 @@ export async function editSecret(environment, secretName) {
                   ? `"${value}" already exists`
                   : true,
           })
-        : action.key;
+        : await prompt({
+            type: 'select',
+            message: 'Change key:',
+            choices: keys.map((key) => ({ title: key, value: key })),
+          });
     const message = `Value for ${key}${action === 'add' ? '' : ' (empty keeps current)'}:`;
     const value = await prompt({ type: 'text', message });
     // Visible while typing; erased once entered so it doesn't stay in scrollback.

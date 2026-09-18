@@ -155,13 +155,18 @@ export async function editSecret(environment, secretName) {
             choices: keys.map((key) => ({ title: key, value: key })),
           });
     const message = `Value for ${key}${action === 'add' ? '' : ' (empty keeps current)'}:`;
-    const value = await prompt({ type: 'text', message });
-    // Visible while typing; erased once entered so it doesn't stay in scrollback.
-    if (process.stdout.isTTY) {
-      const rows = Math.ceil((message.length + value.length + 5) / process.stdout.columns);
+    // Visible while typing; erased once entered, or on Esc/Ctrl-C via the exit handler, so it doesn't stay in scrollback.
+    let typed = '';
+    const erase = () => {
+      if (!process.stdout.isTTY) return;
+      const rows = Math.ceil((message.length + typed.length + 5) / process.stdout.columns);
       process.stdout.write(`\x1b[${rows}A\x1b[0J`);
-      console.info(green(`✔ ${value ? `${key} updated` : `${key} unchanged`}`));
-    }
+    };
+    process.once('exit', erase);
+    const value = await prompt({ type: 'text', message, onState: (state) => (typed = state.value || '') });
+    process.removeListener('exit', erase);
+    erase();
+    if (process.stdout.isTTY) console.info(green(`✔ ${value ? `${key} updated` : `${key} unchanged`}`));
     if (value) {
       data[key] = Buffer.from(value, 'utf8').toString('base64');
       changed = true;
@@ -183,21 +188,14 @@ async function deleteEmptySecret(secret, secretName) {
 
 // Returns false when the upload failed but the edits can be retried.
 function uploadSecret(secret, secretName, data) {
-  // The last-applied annotation holds a copy of the old data, so it is not carried over.
-  const { 'kubectl.kubernetes.io/last-applied-configuration': _, ...annotations } = secret?.metadata?.annotations || {};
-  const manifest = {
-    apiVersion: 'v1',
-    kind: 'Secret',
-    type: secret?.type || 'Opaque',
-    metadata: {
-      name: secretName,
-      labels: secret?.metadata?.labels,
-      annotations,
-      // Makes replace fail instead of overwriting changes someone else saved meanwhile.
-      resourceVersion: secret?.metadata?.resourceVersion,
-    },
-    data,
-  };
+  let manifest = { apiVersion: 'v1', kind: 'Secret', type: 'Opaque', metadata: { name: secretName }, data };
+  if (secret) {
+    // Swap only data so every other field survives; the kept resourceVersion makes replace fail on concurrent saves.
+    // The last-applied annotation holds a copy of the old data, so it is not carried over.
+    const { managedFields: _managedFields, ...metadata } = secret.metadata;
+    const { 'kubectl.kubernetes.io/last-applied-configuration': _lastApplied, ...annotations } = metadata.annotations || {};
+    manifest = { ...secret, metadata: { ...metadata, annotations }, data };
+  }
   try {
     execSync(`kubectl ${secret ? 'replace' : 'create'} -f -`, {
       input: JSON.stringify(manifest),

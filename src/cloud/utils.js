@@ -138,10 +138,6 @@ export function getEnvironments() {
   return getDirectories(path.resolve('deployment', 'environments')).reverse();
 }
 
-export function getSecretsDirectory(environment) {
-  return path.resolve('deployment', 'environments', environment, 'secrets');
-}
-
 export async function checkEnvironment(options) {
   const environments = getEnvironments();
   if (options.environment) {
@@ -242,7 +238,7 @@ export async function getTerraformPrompt() {
 }
 
 export async function getSecretSubCommandPrompt() {
-  const secretCommands = ['edit', 'get', 'set', 'info', 'delete'];
+  const secretCommands = ['edit', 'info', 'delete'];
   return await prompt({
     type: 'select',
     message: 'Select secret command:',

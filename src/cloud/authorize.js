@@ -1,12 +1,8 @@
-import fs from 'fs';
-import path from 'path';
-
 import { yellow, green } from 'kleur/colors';
 
 import { exit } from '../utils/flow.js';
 import { prompt } from '../utils/prompt.js';
 import { exec, execSyncInherit, execSyncInheritQuiet } from '../utils/shell.js';
-import { getSecretInfo, setSecret } from './secret/index.js';
 import { checkEnvironment, readConfig } from './utils.js';
 
 // Running this through "exec" means gcloud has no terminal, so when the session has
@@ -164,40 +160,8 @@ async function checkGCloudConfig(environment, config = {}, quiet) {
   }
 }
 
-async function checkSecrets(environment) {
-  const secretsDir = path.resolve('deployment', 'environments', environment, 'secrets');
-  if (fs.existsSync(secretsDir)) {
-    const secretFilesLS = await exec(`ls ${secretsDir}`);
-    const secretFiles = secretFilesLS.split('\n').filter((file) => file.endsWith('.conf'));
-    for (const secretFile of secretFiles) {
-      const secretName = secretFile.slice(0, -5);
-      const secretInfo = await getSecretInfo(secretName);
-      if (!secretInfo) {
-        console.info(
-          yellow(
-            `Warning: Found secret file deployment/environments/${environment}/secrets/${secretFile} that has not been created on the cluster.`,
-          ),
-        );
-        let confirmed = await prompt({
-          type: 'confirm',
-          name: 'subcommand',
-          message: `Would you like to create secret "${secretName}" now?`,
-          initial: true,
-        });
-        if (confirmed) await setSecret(environment, secretName);
-      } else {
-        console.info(
-          yellow(
-            `Warning: Found secret file deployment/environments/${environment}/secrets/${secretFile} - make sure to remove this file!`,
-          ),
-        );
-      }
-    }
-  }
-}
-
 // TODO: rename to something more understandable
-export async function checkConfig(options, { skipSecretsCheck = false } = {}) {
+export async function checkConfig(options) {
   await checkEnvironment(options);
 
   options.config = await readConfig(options.environment);
@@ -224,7 +188,6 @@ export async function checkConfig(options, { skipSecretsCheck = false } = {}) {
       await setGCloudConfig(config.gcloud);
     }
   }
-  if (!skipSecretsCheck) await checkSecrets(environment);
 }
 
 function getComputeRegion(zone) {

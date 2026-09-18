@@ -506,8 +506,25 @@ export default {
         },
         {
           name: 'secret',
-          description: 'Deploy and update Secrets (subcommands: <get>, <set>, <info> and <delete>)',
+          description: 'Deploy and update Secrets (subcommands: <edit>, <get>, <set>, <info> and <delete>)',
           commands: [
+            {
+              name: 'edit',
+              functionName: 'secretEdit',
+              description: 'Edit Secret in $EDITOR via a temp file outside the project, then upload it',
+              arguments: [
+                {
+                  name: 'environment',
+                  type: 'string',
+                  description: 'Environment (e.g. staging)',
+                },
+                {
+                  name: 'name',
+                  type: 'string',
+                  description: 'Secret name (e.g. credentials)',
+                },
+              ],
+            },
             {
               name: 'get',
               functionName: 'secretGet',

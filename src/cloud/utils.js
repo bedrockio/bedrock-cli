@@ -242,7 +242,7 @@ export async function getTerraformPrompt() {
 }
 
 export async function getSecretSubCommandPrompt() {
-  const secretCommands = ['get', 'set', 'info', 'delete'];
+  const secretCommands = ['edit', 'get', 'set', 'info', 'delete'];
   return await prompt({
     type: 'select',
     message: 'Select secret command:',

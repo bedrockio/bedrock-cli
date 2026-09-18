@@ -506,29 +506,12 @@ export default {
         },
         {
           name: 'secret',
-          description: 'Deploy and update Secrets (subcommands: <get>, <set>, <info> and <delete>)',
+          description: 'Deploy and update Secrets (subcommands: <edit>, <info> and <delete>)',
           commands: [
             {
-              name: 'get',
-              functionName: 'secretGet',
-              description: 'Get Secret from cluster and store in local <secret-name>.conf file',
-              arguments: [
-                {
-                  name: 'environment',
-                  type: 'string',
-                  description: 'Environment (e.g. staging)',
-                },
-                {
-                  name: 'name',
-                  type: 'string',
-                  description: 'Secret name (e.g. credentials)',
-                },
-              ],
-            },
-            {
-              name: 'set',
-              functionName: 'secretSet',
-              description: 'Push secret to cluster from local <secret-name>.conf file',
+              name: 'edit',
+              functionName: 'secretEdit',
+              description: 'Edit Secret key by key with prompts; nothing is written to disk',
               arguments: [
                 {
                   name: 'environment',

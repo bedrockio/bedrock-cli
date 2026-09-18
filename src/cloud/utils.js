@@ -138,10 +138,6 @@ export function getEnvironments() {
   return getDirectories(path.resolve('deployment', 'environments')).reverse();
 }
 
-export function getSecretsDirectory(environment) {
-  return path.resolve('deployment', 'environments', environment, 'secrets');
-}
-
 export async function checkEnvironment(options) {
   const environments = getEnvironments();
   if (options.environment) {
@@ -242,10 +238,10 @@ export async function getTerraformPrompt() {
 }
 
 export async function getSecretSubCommandPrompt() {
-  const secretCommands = ['get', 'set'];
+  const secretCommands = ['edit', 'info', 'delete'];
   return await prompt({
     type: 'select',
-    message: 'Select "get" or "set" secret:',
+    message: 'Select secret command:',
     choices: secretCommands.map((value) => {
       return { title: value, value };
     }),
@@ -253,14 +249,22 @@ export async function getSecretSubCommandPrompt() {
 }
 
 export async function getSecretNamePrompt() {
+  const names = (await getAllSecrets()).map(({ metadata }) => metadata?.name).filter(Boolean);
+  if (names.length) {
+    const name = await prompt({
+      type: 'select',
+      message: 'Select secret:',
+      choices: [...names.map((name) => ({ title: name, value: name })), { title: 'New secret', value: '' }],
+    });
+    if (name) return name;
+  }
   return await prompt({
     type: 'text',
-    message: 'Enter secret name:',
-    initial: 'credentials',
+    message: 'Enter new secret name:',
     validate: (value) =>
-      !value.match(/[^a-z0-9_-]/gim)
-        ? `Name may contain only letters, numbers, dashes, or the underscore character.`
-        : true,
+      /^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$/.test(value)
+        ? true
+        : `Name may contain only lowercase letters, numbers, dashes, or dots, and must start and end with a letter or number.`,
   });
 }
 
@@ -277,16 +281,21 @@ async function getAllSecrets() {
 }
 
 export async function getAllSecretsPrompt() {
+  const choices = (await getAllSecrets())
+    .map(({ metadata }) => {
+      if (!metadata || !metadata.name) return false;
+      const { name } = metadata;
+      return { title: name, value: name };
+    })
+    .filter(Boolean);
+  if (!choices.length) {
+    const context = await exec('kubectl config current-context');
+    exit(`No secrets found in kubectl context "${context}".`);
+  }
   return await prompt({
     type: 'select',
     message: 'Select secret:',
-    choices: (await getAllSecrets())
-      .map(({ metadata }) => {
-        if (!metadata || !metadata.name) return false;
-        const { name } = metadata;
-        return { title: name, value: name };
-      })
-      .filter(Boolean),
+    choices,
   });
 }
 

@@ -1,22 +1,16 @@
-import path from 'path';
-import { existsSync, unlinkSync, mkdirSync, writeFileSync } from 'fs';
+import { execSync } from 'child_process';
 
 import { red, green, yellow } from 'kleur/colors';
 
 import { exit } from '../../utils/flow.js';
 import { prompt } from '../../utils/prompt.js';
-import { getSecretsDirectory } from '../utils.js';
 import { assertBedrockRoot } from '../../utils/dir.js';
 import { exec, execSyncInherit } from '../../utils/shell.js';
-import { getSecretNamePrompt, getAllSecretsPrompt } from '../utils.js';
+import { getSecretNamePrompt, getAllSecretsPrompt, getSecretSubCommandPrompt } from '../utils.js';
 import { checkConfig } from '../authorize.js';
 
-export async function secretGet(options) {
-  await secret(options, 'get');
-}
-
-export async function secretSet(options) {
-  await secret(options, 'set');
+export async function secretEdit(options) {
+  await secret(options, 'edit');
 }
 
 export async function secretInfo(options) {
@@ -30,15 +24,13 @@ export async function secretDelete(options) {
 export default async function secret(options, subcommand) {
   await assertBedrockRoot();
   await checkConfig(options);
-  const { environment } = options;
 
-  if (subcommand == 'get') {
-    const secretName = options.name || (await getAllSecretsPrompt());
-    console.info(yellow(`=> Retrieving secret`));
-    await getSecret(environment, secretName);
-  } else if (subcommand == 'set') {
+  // Invoked as `bedrock cloud secret`, the CLI passes the command descriptor instead of a subcommand name.
+  if (typeof subcommand !== 'string') subcommand = await getSecretSubCommandPrompt();
+
+  if (subcommand == 'edit') {
     const secretName = options.name || (await getSecretNamePrompt());
-    await setSecret(environment, secretName);
+    await editSecret(options.environment, secretName);
   } else if (subcommand == 'info') {
     const secretName = options.name || (await getAllSecretsPrompt());
     console.info(yellow(`=> Retrieving secret`));
@@ -47,7 +39,7 @@ export default async function secret(options, subcommand) {
       secretInfo.dataKeys = Object.keys(secretInfo.data || {});
       secretInfo.data = `*** hidden to avoid sensitive information in your shell history ***`;
       console.info(secretInfo);
-      console.info(yellow(`Note: Run 'bedrock cloud secret get' to retrieve decrypted data into local file`));
+      console.info(yellow(`Note: Run 'bedrock cloud secret edit' to view or change values`));
     } else {
       console.info(yellow(`Could not find secret "${secretName}"`));
     }
@@ -55,16 +47,6 @@ export default async function secret(options, subcommand) {
     const secretName = options.name || (await getAllSecretsPrompt());
     await deleteSecret(secretName);
   }
-}
-
-export function decryptSecretData(secret) {
-  let decryptedData = {};
-  for (const field of Object.keys(secret.data)) {
-    let buff = Buffer.from(secret.data[field], 'base64');
-    let value = buff.toString('ascii');
-    decryptedData[field] = value;
-  }
-  return decryptedData;
 }
 
 export async function getSecretInfo(secretName) {
@@ -78,67 +60,156 @@ export async function getSecretInfo(secretName) {
   }
 }
 
-export async function getSecret(environment, secretName) {
-  const secret = await getSecretInfo(secretName);
-  if (!secret) {
-    return console.info(yellow(`Could not find secret "${secretName}"`));
+const KEY_PATTERN = /^[-._a-zA-Z0-9]+$/;
+
+// Refusing non-TTY output keeps values out of pipes, logs and agent shells; the
+// alternate screen keeps them out of scrollback once dismissed.
+async function viewSecretValues(secretName, data) {
+  if (!process.stdin.isTTY || !process.stdout.isTTY) exit('Viewing values requires an interactive terminal.');
+  const leaveAltScreen = () => process.stdout.write('\x1b[?1049l');
+  process.once('exit', leaveAltScreen);
+  process.stdout.write('\x1b[?1049h\x1b[H');
+  console.info(yellow(`Secret "${secretName}"\n`));
+  for (const [key, value] of Object.entries(data)) {
+    console.info(`${key}=${Buffer.from(value, 'base64').toString('utf8')}`);
   }
-  if (!secret.data) return console.info(yellow(`Secret.data is empty"`));
-
-  const secretInfo = { ...secret };
-  secretInfo.dataKeys = Object.keys(secretInfo.data);
-  secretInfo.data = `*** hidden to avoid sensitive information in your shell history ***`;
-  console.info(secretInfo);
-
-  // mkdir (if not exists)
-  const secretDir = getSecretsDirectory(environment);
-
-  if (!existsSync(secretDir)) {
-    console.info(yellow('=> Creating secrets folder'));
-    mkdirSync(secretDir);
-  }
-  // write to file
-  const filePath = path.join(secretDir, `${secretName}.conf`);
-  console.info(yellow(`=> Creating ${secretName}.conf`));
-
-  const decryptedData = decryptSecretData(secret);
-
-  let data = '';
-  for (const field of Object.keys(decryptedData)) {
-    data += `${field}=${decryptedData[field]}\n`;
-  }
-
-  writeFileSync(filePath, data);
-  console.info(green(`Saved secret to "${filePath}" - make sure to REMOVE THE FILE once you've made your changes`));
+  console.info('');
+  await prompt({ type: 'invisible', message: 'Press Enter to hide values' });
+  leaveAltScreen();
+  process.removeListener('exit', leaveAltScreen);
 }
 
-export async function setSecret(environment, secretName, confirmPrompt = true) {
-  const secretJoinedPath = path.join('deployment', 'environments', environment, 'secrets', `${secretName}.conf`);
-  const secretFilePath = path.resolve(secretJoinedPath);
+/**
+ * Edits a secret key by key through prompts. Values live only in process memory:
+ * nothing is written to disk or passed as a command argument.
+ */
+export async function editSecret(environment, secretName) {
+  const secret = await getSecretInfo(secretName);
+  // Unchanged values keep their original base64, so they are never decoded.
+  const data = { ...(secret?.data || {}) };
+  let changed = false;
 
-  if (existsSync(secretFilePath)) {
-    console.info(yellow(`=> Creating secret`));
-    await execSyncInherit(`kubectl delete secret ${secretName} --ignore-not-found`);
-    await execSyncInherit(`kubectl create secret generic ${secretName} --from-env-file=${secretFilePath}`);
-    console.info(green(`Uploaded secrets from ${secretJoinedPath}`));
-    if (confirmPrompt) {
-      let confirmed = await prompt({
+  console.info(yellow(secret ? `=> Editing secret "${secretName}"` : `=> Creating secret "${secretName}"`));
+
+  while (true) {
+    const keys = Object.keys(data);
+    const action = await prompt({
+      type: 'select',
+      message: `Secret "${secretName}" (${keys.length} keys${changed ? ", unsaved changes" : ""}):`,
+      choices: [
+        ...(keys.length ? [{ title: 'Change key', value: 'change' }] : []),
+        { title: 'Add key', value: 'add' },
+        ...(keys.length
+          ? [
+              { title: 'Remove key', value: 'remove' },
+              { title: 'View all', value: 'view' },
+            ]
+          : []),
+        { title: 'Save', value: 'save' },
+      ],
+    });
+
+    if (action === 'save') {
+      if (!changed) return console.info(yellow('No changes'));
+      if (!Object.keys(data).length) return await deleteEmptySecret(secret, secretName);
+      const confirmed = await prompt({
         type: 'confirm',
-        name: 'delete',
-        message:
-          'We suggest to delete your secret locally. You can always retrieve it again with "bedrock cloud secret get <secretName>". Do you like to delete it now?',
+        name: 'save',
+        message: `Save changes to secret "${secretName}" on ${environment}?`,
         initial: true,
       });
-      if (!confirmed) process.exit(0);
+      if (confirmed && uploadSecret(secret, secretName, data)) return console.info(green(`Saved secret "${secretName}"`));
+      continue;
     }
-    try {
-      unlinkSync(secretFilePath);
-    } catch {
-      exit(`Failed to deleted ${secretFilePath}`);
+    if (action === 'view') {
+      await viewSecretValues(secretName, data);
+      continue;
     }
-    console.info(green(`Deleted ${secretJoinedPath}`));
-  } else {
-    exit(`Could not find secret, file path: "${secretFilePath}"`);
+
+    if (action === 'remove') {
+      const key = await prompt({
+        type: 'select',
+        message: 'Remove key:',
+        choices: keys.map((key) => ({ title: key, value: key })),
+      });
+      delete data[key];
+      changed = true;
+      continue;
+    }
+
+    const key =
+      action === 'add'
+        ? await prompt({
+            type: 'text',
+            message: 'Key name:',
+            validate: (value) =>
+              !KEY_PATTERN.test(value)
+                ? 'Use only letters, numbers, "-", "_" or "."'
+                : keys.includes(value)
+                  ? `"${value}" already exists`
+                  : true,
+          })
+        : await prompt({
+            type: 'select',
+            message: 'Change key:',
+            choices: keys.map((key) => ({ title: key, value: key })),
+          });
+    const message = `Value for ${key}${action === 'add' ? '' : ' (empty keeps current)'}:`;
+    // Visible while typing; erased once entered, or on Esc/Ctrl-C via the exit handler, so it doesn't stay in scrollback.
+    let typed = '';
+    const erase = () => {
+      if (!process.stdout.isTTY) return;
+      const rows = Math.ceil((message.length + typed.length + 5) / process.stdout.columns);
+      process.stdout.write(`\x1b[${rows}A\x1b[0J`);
+    };
+    process.once('exit', erase);
+    const value = await prompt({ type: 'text', message, onState: (state) => (typed = state.value || '') });
+    process.removeListener('exit', erase);
+    erase();
+    if (process.stdout.isTTY) console.info(green(`✔ ${value ? `${key} updated` : `${key} unchanged`}`));
+    if (value) {
+      data[key] = Buffer.from(value, 'utf8').toString('base64');
+      changed = true;
+    }
+  }
+}
+
+async function deleteEmptySecret(secret, secretName) {
+  if (!secret) return console.info(yellow('Secret has no keys, nothing created'));
+  const confirmed = await prompt({
+    type: 'confirm',
+    name: 'delete',
+    message: `Secret "${secretName}" has no keys left. Delete it from the cluster?`,
+    initial: false,
+  });
+  if (confirmed) await deleteSecret(secretName);
+  else console.info(yellow('Discarded changes'));
+}
+
+// Returns false when the upload failed but the edits can be retried.
+function uploadSecret(secret, secretName, data) {
+  let manifest = { apiVersion: 'v1', kind: 'Secret', type: 'Opaque', metadata: { name: secretName }, data };
+  if (secret) {
+    // Swap only data so every other field survives; the kept resourceVersion makes replace fail on concurrent saves.
+    // The last-applied annotation holds a copy of the old data, so it is not carried over.
+    const { managedFields: _managedFields, ...metadata } = secret.metadata;
+    const { 'kubectl.kubernetes.io/last-applied-configuration': _lastApplied, ...annotations } = metadata.annotations || {};
+    manifest = { ...secret, metadata: { ...metadata, annotations }, data };
+  }
+  try {
+    execSync(`kubectl ${secret ? 'replace' : 'create'} -f -`, {
+      input: JSON.stringify(manifest),
+      stdio: ['pipe', 'inherit', 'pipe'],
+    });
+    return true;
+  } catch (err) {
+    const message = err.stderr?.toString().trim() || err.message;
+    if (/Conflict|AlreadyExists|has been modified|already exists/.test(message)) {
+      exit(`Secret "${secretName}" was changed by someone else while you were editing. Nothing was saved; run edit again.`);
+    }
+    console.error(red(message));
+    console.info(yellow('Nothing was saved. Your changes are kept; choose Save to try again.'));
+    return false;
   }
 }
 

@@ -152,7 +152,18 @@ export async function editSecret(secretName) {
   }
 
   if (!changed) return console.info(yellow('No changes'));
-  if (!Object.keys(data).length) exit('Secret has no keys, nothing uploaded. Use "bedrock cloud secret delete" to remove it.');
+  if (!Object.keys(data).length) {
+    if (!secret) return console.info(yellow('Secret has no keys, nothing created'));
+    const confirmed = await prompt({
+      type: 'confirm',
+      name: 'delete',
+      message: `Secret "${secretName}" has no keys left. Delete it from the cluster?`,
+      initial: false,
+    });
+    if (confirmed) await deleteSecret(secretName);
+    else console.info(yellow('Discarded changes'));
+    return;
+  }
 
   // replace/create send the full object without a last-applied annotation, which would hold a copy of the data.
   const manifest = { apiVersion: 'v1', kind: 'Secret', type: 'Opaque', metadata: { name: secretName }, data };

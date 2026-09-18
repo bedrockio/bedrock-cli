@@ -30,7 +30,7 @@ export default async function secret(options, subcommand) {
 
   if (subcommand == 'edit') {
     const secretName = options.name || (await getSecretNamePrompt());
-    await editSecret(secretName);
+    await editSecret(options.environment, secretName);
   } else if (subcommand == 'info') {
     const secretName = options.name || (await getAllSecretsPrompt());
     console.info(yellow(`=> Retrieving secret`));
@@ -83,7 +83,7 @@ async function viewSecretValues(secretName, data) {
  * Edits a secret key by key through hidden prompts. Values live only in process
  * memory: nothing is written to disk, shown on screen or passed as an argument.
  */
-export async function editSecret(secretName) {
+export async function editSecret(environment, secretName) {
   const secret = await getSecretInfo(secretName);
   // Unchanged values keep their original base64, so they are never decoded.
   const data = { ...(secret?.data || {}) };
@@ -105,13 +105,24 @@ export async function editSecret(secretName) {
               { title: 'View values', value: 'view' },
             ]
           : []),
-        { title: 'Save and upload', value: 'save' },
+        { title: 'Save', value: 'save' },
         { title: 'Cancel', value: 'cancel' },
       ],
     });
 
     if (action === 'cancel') return console.info(yellow('Discarded changes'));
-    if (action === 'save') break;
+    if (action === 'save') {
+      // No changes and removing every key are handled after the loop.
+      if (!changed || !Object.keys(data).length) break;
+      const confirmed = await prompt({
+        type: 'confirm',
+        name: 'save',
+        message: `Save changes to secret "${secretName}" on ${environment}?`,
+        initial: true,
+      });
+      if (confirmed) break;
+      continue;
+    }
     if (action === 'view') {
       await viewSecretValues(secretName, data);
       continue;
@@ -171,7 +182,7 @@ export async function editSecret(secretName) {
     input: JSON.stringify(manifest),
     stdio: ['pipe', 'inherit', 'inherit'],
   });
-  console.info(green(`Uploaded secret "${secretName}"`));
+  console.info(green(`Saved secret "${secretName}"`));
 }
 
 export async function deleteSecret(secretName) {

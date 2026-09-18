@@ -102,7 +102,7 @@ export async function editSecret(environment, secretName) {
         ...(keys.length
           ? [
               { title: 'Remove key', value: 'remove' },
-              { title: 'View values', value: 'view' },
+              { title: 'View all', value: 'view' },
             ]
           : []),
         { title: 'Save', value: 'save' },

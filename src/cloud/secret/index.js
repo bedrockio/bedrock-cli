@@ -80,7 +80,7 @@ async function viewSecretValues(secretName, data) {
 }
 
 /**
- * Edits a secret key by key through masked prompts. Values live only in process
+ * Edits a secret key by key through hidden prompts. Values live only in process
  * memory: nothing is written to disk, shown on screen or passed as an argument.
  */
 export async function editSecret(secretName) {
@@ -142,7 +142,7 @@ export async function editSecret(secretName) {
           })
         : action.key;
     const value = await prompt({
-      type: 'password',
+      type: 'invisible',
       message: `Value for ${key}${action === 'add' ? '' : ' (empty keeps current)'}:`,
     });
     if (value) {

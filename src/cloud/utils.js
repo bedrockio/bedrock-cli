@@ -249,10 +249,18 @@ export async function getSecretSubCommandPrompt() {
 }
 
 export async function getSecretNamePrompt() {
+  const names = (await getAllSecrets()).map(({ metadata }) => metadata?.name).filter(Boolean);
+  if (names.length) {
+    const name = await prompt({
+      type: 'select',
+      message: 'Select secret:',
+      choices: [...names.map((name) => ({ title: name, value: name })), { title: 'New secret', value: '' }],
+    });
+    if (name) return name;
+  }
   return await prompt({
     type: 'text',
-    message: 'Enter secret name:',
-    initial: 'credentials',
+    message: 'Enter new secret name:',
     validate: (value) =>
       /^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$/.test(value)
         ? true

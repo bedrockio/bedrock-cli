@@ -507,6 +507,13 @@ export default {
         {
           name: 'secret',
           description: 'Deploy and update Secrets (subcommands: <edit>, <info> and <delete>)',
+          arguments: [
+            {
+              name: 'environment',
+              type: 'string',
+              description: 'Environment (e.g. staging)',
+            },
+          ],
           commands: [
             {
               name: 'edit',

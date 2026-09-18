@@ -277,16 +277,21 @@ async function getAllSecrets() {
 }
 
 export async function getAllSecretsPrompt() {
+  const choices = (await getAllSecrets())
+    .map(({ metadata }) => {
+      if (!metadata || !metadata.name) return false;
+      const { name } = metadata;
+      return { title: name, value: name };
+    })
+    .filter(Boolean);
+  if (!choices.length) {
+    const context = await exec('kubectl config current-context');
+    exit(`No secrets found in kubectl context "${context}".`);
+  }
   return await prompt({
     type: 'select',
     message: 'Select secret:',
-    choices: (await getAllSecrets())
-      .map(({ metadata }) => {
-        if (!metadata || !metadata.name) return false;
-        const { name } = metadata;
-        return { title: name, value: name };
-      })
-      .filter(Boolean),
+    choices,
   });
 }
 

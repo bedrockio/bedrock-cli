@@ -124,6 +124,23 @@ function toEnvFile(data) {
 
 const KEY_PATTERN = /^[-._a-zA-Z0-9]+$/;
 
+// Refusing non-TTY output keeps values out of pipes, logs and agent shells; the
+// alternate screen keeps them out of scrollback once dismissed.
+async function viewSecretValues(secretName, data) {
+  if (!process.stdin.isTTY || !process.stdout.isTTY) exit('Viewing values requires an interactive terminal.');
+  const leaveAltScreen = () => process.stdout.write('\x1b[?1049l');
+  process.once('exit', leaveAltScreen);
+  process.stdout.write('\x1b[?1049h\x1b[H');
+  console.info(yellow(`Secret "${secretName}"\n`));
+  for (const [key, value] of Object.entries(data)) {
+    console.info(`${key}=${Buffer.from(value, 'base64').toString('utf8')}`);
+  }
+  console.info('');
+  await prompt({ type: 'invisible', message: 'Press Enter to hide values' });
+  leaveAltScreen();
+  process.removeListener('exit', leaveAltScreen);
+}
+
 /**
  * Edits a secret key by key through masked prompts. Values live only in process
  * memory: nothing is written to disk, shown on screen or passed as an argument.
@@ -144,7 +161,12 @@ export async function editSecret(secretName) {
       choices: [
         ...keys.map((key) => ({ title: `Change ${key}`, value: { key } })),
         { title: 'Add key', value: 'add' },
-        ...(keys.length ? [{ title: 'Remove key', value: 'remove' }] : []),
+        ...(keys.length
+          ? [
+              { title: 'Remove key', value: 'remove' },
+              { title: 'View values', value: 'view' },
+            ]
+          : []),
         { title: 'Save and upload', value: 'save' },
         { title: 'Cancel', value: 'cancel' },
       ],
@@ -152,6 +174,10 @@ export async function editSecret(secretName) {
 
     if (action === 'cancel') return console.info(yellow('Discarded changes'));
     if (action === 'save') break;
+    if (action === 'view') {
+      await viewSecretValues(secretName, data);
+      continue;
+    }
 
     if (action === 'remove') {
       const key = await prompt({

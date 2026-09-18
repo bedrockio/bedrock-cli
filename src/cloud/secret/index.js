@@ -106,11 +106,9 @@ export async function editSecret(environment, secretName) {
             ]
           : []),
         { title: 'Save', value: 'save' },
-        { title: 'Cancel', value: 'cancel' },
       ],
     });
 
-    if (action === 'cancel') return console.info(yellow('Discarded changes'));
     if (action === 'save') {
       // No changes and removing every key are handled after the loop.
       if (!changed || !Object.keys(data).length) break;

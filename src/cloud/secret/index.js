@@ -110,15 +110,15 @@ export async function editSecret(environment, secretName) {
     });
 
     if (action === 'save') {
-      // No changes and removing every key are handled after the loop.
-      if (!changed || !Object.keys(data).length) break;
+      if (!changed) return console.info(yellow('No changes'));
+      if (!Object.keys(data).length) return await deleteEmptySecret(secret, secretName);
       const confirmed = await prompt({
         type: 'confirm',
         name: 'save',
         message: `Save changes to secret "${secretName}" on ${environment}?`,
         initial: true,
       });
-      if (confirmed) break;
+      if (confirmed && uploadSecret(secret, secretName, data)) return console.info(green(`Saved secret "${secretName}"`));
       continue;
     }
     if (action === 'view') {
@@ -167,28 +167,52 @@ export async function editSecret(environment, secretName) {
       changed = true;
     }
   }
+}
 
-  if (!changed) return console.info(yellow('No changes'));
-  if (!Object.keys(data).length) {
-    if (!secret) return console.info(yellow('Secret has no keys, nothing created'));
-    const confirmed = await prompt({
-      type: 'confirm',
-      name: 'delete',
-      message: `Secret "${secretName}" has no keys left. Delete it from the cluster?`,
-      initial: false,
-    });
-    if (confirmed) await deleteSecret(secretName);
-    else console.info(yellow('Discarded changes'));
-    return;
-  }
-
-  // replace/create send the full object without a last-applied annotation, which would hold a copy of the data.
-  const manifest = { apiVersion: 'v1', kind: 'Secret', type: 'Opaque', metadata: { name: secretName }, data };
-  execSync(`kubectl ${secret ? 'replace' : 'create'} -f -`, {
-    input: JSON.stringify(manifest),
-    stdio: ['pipe', 'inherit', 'inherit'],
+async function deleteEmptySecret(secret, secretName) {
+  if (!secret) return console.info(yellow('Secret has no keys, nothing created'));
+  const confirmed = await prompt({
+    type: 'confirm',
+    name: 'delete',
+    message: `Secret "${secretName}" has no keys left. Delete it from the cluster?`,
+    initial: false,
   });
-  console.info(green(`Saved secret "${secretName}"`));
+  if (confirmed) await deleteSecret(secretName);
+  else console.info(yellow('Discarded changes'));
+}
+
+// Returns false when the upload failed but the edits can be retried.
+function uploadSecret(secret, secretName, data) {
+  // The last-applied annotation holds a copy of the old data, so it is not carried over.
+  const { 'kubectl.kubernetes.io/last-applied-configuration': _, ...annotations } = secret?.metadata?.annotations || {};
+  const manifest = {
+    apiVersion: 'v1',
+    kind: 'Secret',
+    type: secret?.type || 'Opaque',
+    metadata: {
+      name: secretName,
+      labels: secret?.metadata?.labels,
+      annotations,
+      // Makes replace fail instead of overwriting changes someone else saved meanwhile.
+      resourceVersion: secret?.metadata?.resourceVersion,
+    },
+    data,
+  };
+  try {
+    execSync(`kubectl ${secret ? 'replace' : 'create'} -f -`, {
+      input: JSON.stringify(manifest),
+      stdio: ['pipe', 'inherit', 'pipe'],
+    });
+    return true;
+  } catch (err) {
+    const message = err.stderr?.toString().trim() || err.message;
+    if (/Conflict|AlreadyExists|has been modified|already exists/.test(message)) {
+      exit(`Secret "${secretName}" was changed by someone else while you were editing. Nothing was saved; run edit again.`);
+    }
+    console.error(red(message));
+    console.info(yellow('Nothing was saved. Your changes are kept; choose Save to try again.'));
+    return false;
+  }
 }
 
 export async function deleteSecret(secretName) {

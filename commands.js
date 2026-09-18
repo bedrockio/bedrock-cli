@@ -511,7 +511,7 @@ export default {
             {
               name: 'edit',
               functionName: 'secretEdit',
-              description: 'Edit Secret in $EDITOR via a temp file outside the project, then upload it',
+              description: 'Edit Secret key by key with masked prompts; nothing is written to disk',
               arguments: [
                 {
                   name: 'environment',

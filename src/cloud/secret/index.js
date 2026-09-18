@@ -1,7 +1,6 @@
-import os from 'os';
 import path from 'path';
-import { spawnSync } from 'child_process';
-import { existsSync, unlinkSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'fs';
+import { execSync } from 'child_process';
+import { existsSync, unlinkSync, mkdirSync, writeFileSync } from 'fs';
 
 import { red, green, yellow } from 'kleur/colors';
 
@@ -59,7 +58,7 @@ export default async function secret(options, subcommand) {
       secretInfo.dataKeys = Object.keys(secretInfo.data || {});
       secretInfo.data = `*** hidden to avoid sensitive information in your shell history ***`;
       console.info(secretInfo);
-      console.info(yellow(`Note: Run 'bedrock cloud secret edit' to change the secret without writing it to the project folder`));
+      console.info(yellow(`Note: Run 'bedrock cloud secret edit' to change the secret without writing it to disk`));
     } else {
       console.info(yellow(`Could not find secret "${secretName}"`));
     }
@@ -123,53 +122,81 @@ function toEnvFile(data) {
     .join('');
 }
 
-function openEditor(filePath) {
-  const editor = process.env.VISUAL || process.env.EDITOR || 'vi';
-  const { status } = spawnSync(`${editor} "${filePath}"`, { stdio: 'inherit', shell: true });
-  if (status !== 0) exit(`Editor "${editor}" exited with code ${status}`);
-}
+const KEY_PATTERN = /^[-._a-zA-Z0-9]+$/;
 
 /**
- * Edits a secret through a private temp file outside the project, so plaintext
- * never lands where editors and AI tools index files.
+ * Edits a secret key by key through masked prompts. Values live only in process
+ * memory: nothing is written to disk, shown on screen or passed as an argument.
  */
 export async function editSecret(secretName) {
   const secret = await getSecretInfo(secretName);
-  const original = secret?.data ? toEnvFile(decryptSecretData(secret)) : '';
+  // Unchanged values keep their original base64, so they are never decoded.
+  const data = { ...(secret?.data || {}) };
+  let changed = false;
 
-  const dir = mkdtempSync(path.join(os.tmpdir(), 'bedrock-secret-'));
-  const filePath = path.join(dir, `${secretName}.conf`);
-  const cleanup = () => rmSync(dir, { recursive: true, force: true });
-  // process.exit (from exit() or a cancelled prompt) skips the finally block.
-  process.once('exit', cleanup);
-  process.once('SIGINT', () => process.exit(130));
+  console.info(yellow(secret ? `=> Editing secret "${secretName}"` : `=> Creating secret "${secretName}"`));
 
-  try {
-    writeFileSync(filePath, original, { mode: 0o600 });
-    console.info(yellow(secret ? `=> Editing secret "${secretName}"` : `=> Creating secret "${secretName}"`));
-    openEditor(filePath);
-
-    // Also lets non-blocking editors (e.g. `code` without --wait) finish before the file is read.
-    const confirmed = await prompt({
-      type: 'confirm',
-      name: 'upload',
-      message: `Upload changes to secret "${secretName}"?`,
-      initial: true,
+  while (true) {
+    const keys = Object.keys(data);
+    const action = await prompt({
+      type: 'select',
+      message: `Secret "${secretName}" (${keys.length} keys):`,
+      choices: [
+        ...keys.map((key) => ({ title: `Change ${key}`, value: { key } })),
+        { title: 'Add key', value: 'add' },
+        ...(keys.length ? [{ title: 'Remove key', value: 'remove' }] : []),
+        { title: 'Save and upload', value: 'save' },
+        { title: 'Cancel', value: 'cancel' },
+      ],
     });
-    if (!confirmed) return console.info(yellow('Discarded changes'));
 
-    const edited = readFileSync(filePath, 'utf8');
-    if (edited === original) return console.info(yellow('No changes'));
-    if (!edited.trim()) exit('File is empty, nothing uploaded. Use "bedrock cloud secret delete" to remove a secret.');
+    if (action === 'cancel') return console.info(yellow('Discarded changes'));
+    if (action === 'save') break;
 
-    // Server-side apply updates in place without a last-applied annotation, which would hold a copy of the data.
-    execSyncInherit(
-      `kubectl create secret generic ${secretName} --from-env-file="${filePath}" --dry-run=client -o yaml | kubectl apply --server-side --force-conflicts -f -`,
-    );
-    console.info(green(`Uploaded secret "${secretName}"`));
-  } finally {
-    cleanup();
+    if (action === 'remove') {
+      const key = await prompt({
+        type: 'select',
+        message: 'Remove key:',
+        choices: keys.map((key) => ({ title: key, value: key })),
+      });
+      delete data[key];
+      changed = true;
+      continue;
+    }
+
+    const key =
+      action === 'add'
+        ? await prompt({
+            type: 'text',
+            message: 'Key name:',
+            validate: (value) =>
+              !KEY_PATTERN.test(value)
+                ? 'Use only letters, numbers, "-", "_" or "."'
+                : keys.includes(value)
+                  ? `"${value}" already exists`
+                  : true,
+          })
+        : action.key;
+    const value = await prompt({
+      type: 'password',
+      message: `Value for ${key}${action === 'add' ? '' : ' (empty keeps current)'}:`,
+    });
+    if (value) {
+      data[key] = Buffer.from(value, 'utf8').toString('base64');
+      changed = true;
+    }
   }
+
+  if (!changed) return console.info(yellow('No changes'));
+  if (!Object.keys(data).length) exit('Secret has no keys, nothing uploaded. Use "bedrock cloud secret delete" to remove it.');
+
+  // replace/create send the full object without a last-applied annotation, which would hold a copy of the data.
+  const manifest = { apiVersion: 'v1', kind: 'Secret', type: 'Opaque', metadata: { name: secretName }, data };
+  execSync(`kubectl ${secret ? 'replace' : 'create'} -f -`, {
+    input: JSON.stringify(manifest),
+    stdio: ['pipe', 'inherit', 'inherit'],
+  });
+  console.info(green(`Uploaded secret "${secretName}"`));
 }
 
 export async function setSecret(environment, secretName, confirmPrompt = true) {

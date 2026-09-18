@@ -95,7 +95,7 @@ export async function editSecret(environment, secretName) {
     const keys = Object.keys(data);
     const action = await prompt({
       type: 'select',
-      message: `Secret "${secretName}" (${keys.length} keys):`,
+      message: `Secret "${secretName}" (${keys.length} keys${changed ? ", unsaved changes" : ""}):`,
       choices: [
         ...(keys.length ? [{ title: 'Change key', value: 'change' }] : []),
         { title: 'Add key', value: 'add' },

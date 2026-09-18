@@ -150,10 +150,14 @@ export async function editSecret(environment, secretName) {
                   : true,
           })
         : action.key;
-    const value = await prompt({
-      type: 'invisible',
-      message: `Value for ${key}${action === 'add' ? '' : ' (empty keeps current)'}:`,
-    });
+    const message = `Value for ${key}${action === 'add' ? '' : ' (empty keeps current)'}:`;
+    const value = await prompt({ type: 'text', message });
+    // Visible while typing; erased once entered so it doesn't stay in scrollback.
+    if (process.stdout.isTTY) {
+      const rows = Math.ceil((message.length + value.length + 5) / process.stdout.columns);
+      process.stdout.write(`\x1b[${rows}A\x1b[0J`);
+      console.info(green(`✔ ${value ? `${key} updated` : `${key} unchanged`}`));
+    }
     if (value) {
       data[key] = Buffer.from(value, 'utf8').toString('base64');
       changed = true;

@@ -197,7 +197,7 @@ async function checkSecrets(environment) {
 }
 
 // TODO: rename to something more understandable
-export async function checkConfig(options) {
+export async function checkConfig(options, { skipSecretsCheck = false } = {}) {
   await checkEnvironment(options);
 
   options.config = await readConfig(options.environment);
@@ -224,7 +224,7 @@ export async function checkConfig(options) {
       await setGCloudConfig(config.gcloud);
     }
   }
-  await checkSecrets(environment);
+  if (!skipSecretsCheck) await checkSecrets(environment);
 }
 
 function getComputeRegion(zone) {

@@ -8,7 +8,7 @@ import { prompt } from '../../utils/prompt.js';
 import { getSecretsDirectory } from '../utils.js';
 import { assertBedrockRoot } from '../../utils/dir.js';
 import { exec, execSyncInherit } from '../../utils/shell.js';
-import { getSecretNamePrompt, getAllSecretsPrompt } from '../utils.js';
+import { getSecretNamePrompt, getAllSecretsPrompt, getSecretSubCommandPrompt } from '../utils.js';
 import { checkConfig } from '../authorize.js';
 
 export async function secretGet(options) {
@@ -29,8 +29,11 @@ export async function secretDelete(options) {
 
 export default async function secret(options, subcommand) {
   await assertBedrockRoot();
-  await checkConfig(options);
+  await checkConfig(options, { skipSecretsCheck: true });
   const { environment } = options;
+
+  // Invoked as `bedrock cloud secret`, the CLI passes the command descriptor instead of a subcommand name.
+  if (typeof subcommand !== 'string') subcommand = await getSecretSubCommandPrompt();
 
   if (subcommand == 'get') {
     const secretName = options.name || (await getAllSecretsPrompt());
@@ -83,7 +86,7 @@ export async function getSecret(environment, secretName) {
   if (!secret) {
     return console.info(yellow(`Could not find secret "${secretName}"`));
   }
-  if (!secret.data) return console.info(yellow(`Secret.data is empty"`));
+  if (!secret.data) return console.info(yellow(`Secret.data is empty`));
 
   const secretInfo = { ...secret };
   secretInfo.dataKeys = Object.keys(secretInfo.data);

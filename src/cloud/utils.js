@@ -242,10 +242,10 @@ export async function getTerraformPrompt() {
 }
 
 export async function getSecretSubCommandPrompt() {
-  const secretCommands = ['get', 'set'];
+  const secretCommands = ['get', 'set', 'info', 'delete'];
   return await prompt({
     type: 'select',
-    message: 'Select "get" or "set" secret:',
+    message: 'Select secret command:',
     choices: secretCommands.map((value) => {
       return { title: value, value };
     }),
@@ -258,9 +258,9 @@ export async function getSecretNamePrompt() {
     message: 'Enter secret name:',
     initial: 'credentials',
     validate: (value) =>
-      !value.match(/[^a-z0-9_-]/gim)
-        ? `Name may contain only letters, numbers, dashes, or the underscore character.`
-        : true,
+      /^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$/.test(value)
+        ? true
+        : `Name may contain only lowercase letters, numbers, dashes, or dots, and must start and end with a letter or number.`,
   });
 }
 

@@ -513,6 +513,16 @@ export default {
               type: 'string',
               description: 'Environment (e.g. staging)',
             },
+            {
+              name: 'command',
+              type: 'string',
+              description: 'Subcommand (edit, info or delete)',
+            },
+            {
+              name: 'name',
+              type: 'string',
+              description: 'Secret name (e.g. credentials)',
+            },
           ],
           commands: [
             {

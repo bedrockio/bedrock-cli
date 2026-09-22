@@ -9,7 +9,7 @@ import { exit } from '../../utils/flow.js';
 import { prompt } from '../../utils/prompt.js';
 import { assertBedrockRoot } from '../../utils/dir.js';
 import { execSyncInherit } from '../../utils/shell.js';
-import { getSecretNamePrompt, getAllSecretsPrompt, getSecretSubCommandPrompt, runKubectl } from '../utils.js';
+import { getSecretNamePrompt, getAllSecretsPrompt, getSecretSubCommandPrompt, runKubectl, SECRET_COMMANDS } from '../utils.js';
 import { checkConfig } from '../authorize.js';
 
 export async function secretEdit(options) {
@@ -28,8 +28,14 @@ export default async function secret(options, subcommand) {
   await assertBedrockRoot();
   await checkConfig(options);
 
-  // Invoked as `bedrock cloud secret`, the CLI passes the command descriptor instead of a subcommand name.
-  if (typeof subcommand !== 'string') subcommand = await getSecretSubCommandPrompt();
+  // Invoked as `bedrock cloud secret [environment] [command]`, the CLI passes the
+  // command descriptor instead of a subcommand name.
+  if (typeof subcommand !== 'string') {
+    subcommand = options.command || (await getSecretSubCommandPrompt());
+    if (!SECRET_COMMANDS.includes(subcommand)) {
+      exit(`Unknown secret command "${subcommand}". Use ${SECRET_COMMANDS.join(', ')}.`);
+    }
+  }
 
   if (subcommand == 'edit') {
     const secretName = options.name || (await getSecretNamePrompt());

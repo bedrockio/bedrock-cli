@@ -237,12 +237,13 @@ export async function getTerraformPrompt() {
   });
 }
 
+export const SECRET_COMMANDS = ['edit', 'info', 'delete'];
+
 export async function getSecretSubCommandPrompt() {
-  const secretCommands = ['edit', 'info', 'delete'];
   return await prompt({
     type: 'select',
     message: 'Select secret command:',
-    choices: secretCommands.map((value) => {
+    choices: SECRET_COMMANDS.map((value) => {
       return { title: value, value };
     }),
   });

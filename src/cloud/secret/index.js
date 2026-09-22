@@ -89,10 +89,8 @@ const EDITORS = {
   vi: ['-n', '-i', 'NONE'],
   vim: ['-n', '-i', 'NONE'],
   nvim: ['-n', '-i', 'NONE'],
+  // -I ignores nanorc, so a "set backup" there cannot leave a copy behind.
   nano: ['-I'],
-  micro: [],
-  hx: [],
-  helix: [],
 };
 
 function getEditor() {

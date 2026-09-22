@@ -1,6 +1,7 @@
+import os from 'os';
 import path from 'path';
 import { execSync, spawn } from 'child_process';
-import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'fs';
+import { mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'fs';
 
 import { red, green, yellow } from 'kleur/colors';
 
@@ -66,7 +67,7 @@ const KEY_PATTERN = /^[-._a-zA-Z0-9]+$/;
 const TEMP_PREFIX = 'bedrock-secret-';
 
 // Terminal editors only: GUI editors keep their own copy of every file they save,
-// outside the RAM disk bedrock releases.
+// outside the directory bedrock removes.
 const EDITORS = {
   vi: ['-n', '-i', 'NONE'],
   vim: ['-n', '-i', 'NONE'],
@@ -101,38 +102,17 @@ function parseEnvFile(content) {
   return { data };
 }
 
-// A RAM disk keeps the file the editor writes out of the physical disk entirely.
-function createMemoryDir(name) {
-  if (process.platform === 'linux' && existsSync('/dev/shm')) {
-    const dir = path.join('/dev/shm', name);
-    mkdirSync(dir, { mode: 0o700 });
-    return { dir, release: () => rmSync(dir, { recursive: true, force: true }) };
-  }
-  if (process.platform !== 'darwin') exit('Editing secrets needs a RAM disk, which needs macOS or Linux.');
-  // 4096 blocks of 512 bytes; APFS rejects a volume this small, HFS+ does not.
-  const device = execSync('hdiutil attach -nomount ram://4096').toString().trim().split(/\s+/)[0];
-  execSync(`diskutil erasevolume HFS+ ${name} ${device}`, { stdio: 'ignore' });
-  return { dir: path.join('/Volumes', name), release: () => execSync(`hdiutil detach ${device}`, { stdio: 'ignore' }) };
-}
-
-// Leftovers from a run that was killed before it could release its RAM disk.
-function sweepMemoryDirs() {
-  const parent = process.platform === 'darwin' ? '/Volumes' : '/dev/shm';
-  if (!existsSync(parent)) return;
-  for (const entry of readdirSync(parent)) {
-    if (!entry.startsWith(TEMP_PREFIX)) continue;
-    try {
-      if (process.platform === 'darwin') execSync(`hdiutil detach "${path.join(parent, entry)}"`, { stdio: 'ignore' });
-      else rmSync(path.join(parent, entry), { recursive: true, force: true });
-    } catch {
-      // A volume someone else is using; leave it alone.
-    }
+// Leftovers from a run that was killed before it could remove its own directory.
+function sweepTempDirs() {
+  for (const entry of readdirSync(os.tmpdir())) {
+    if (entry.startsWith(TEMP_PREFIX)) rmSync(path.join(os.tmpdir(), entry), { recursive: true, force: true });
   }
 }
 
 /**
- * Opens every key in a terminal editor on a RAM disk, so the values never reach the
- * physical disk, and uploads the file once the editor is closed.
+ * Opens every key in a terminal editor and uploads the file once the editor is
+ * closed. The values are on disk only while the editor is open, in a private
+ * directory removed straight afterwards.
  */
 export async function editSecret(environment, secretName) {
   const secret = await getSecretInfo(secretName);
@@ -149,9 +129,10 @@ export async function editSecret(environment, secretName) {
 
   console.info(yellow(`=> ${secret ? 'Editing' : 'Creating'} secret "${secretName}" on ${environment}`));
 
-  sweepMemoryDirs();
-  const { dir, release } = createMemoryDir(`${TEMP_PREFIX}${process.pid}`);
+  sweepTempDirs();
+  const dir = mkdtempSync(path.join(os.tmpdir(), TEMP_PREFIX));
   const filePath = path.join(dir, `${secretName}.conf`);
+  const release = () => rmSync(dir, { recursive: true, force: true });
   // Signals and process.exit (from exit() or a cancelled prompt) skip the finally block.
   process.once('exit', release);
   for (const signal of ['SIGINT', 'SIGTERM', 'SIGHUP']) process.once(signal, () => process.exit(130));

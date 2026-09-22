@@ -1,4 +1,7 @@
-import { execSync } from 'child_process';
+import os from 'os';
+import path from 'path';
+import { execSync, spawnSync } from 'child_process';
+import { mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'fs';
 
 import { red, green, yellow } from 'kleur/colors';
 
@@ -61,6 +64,7 @@ export async function getSecretInfo(secretName) {
 }
 
 const KEY_PATTERN = /^[-._a-zA-Z0-9]+$/;
+const TEMP_PREFIX = 'bedrock-secret-';
 
 // Refusing non-TTY output keeps values out of pipes, logs and agent shells; the
 // alternate screen keeps them out of scrollback once dismissed.
@@ -77,6 +81,98 @@ async function viewSecretValues(secretName, data) {
   await prompt({ type: 'invisible', message: 'Press Enter to hide values' });
   leaveAltScreen();
   process.removeListener('exit', leaveAltScreen);
+}
+
+// Terminal editors only: GUI editors keep their own copy of every file they save,
+// outside the temp directory bedrock cleans up.
+const EDITORS = {
+  vi: ['-n', '-i', 'NONE'],
+  vim: ['-n', '-i', 'NONE'],
+  nvim: ['-n', '-i', 'NONE'],
+  nano: ['-I'],
+  micro: [],
+  hx: [],
+  helix: [],
+};
+
+function getEditor() {
+  const command = process.env.VISUAL || process.env.EDITOR || 'vi';
+  const [program, ...args] = command.split(/\s+/);
+  const name = path.basename(program);
+  if (!(name in EDITORS)) {
+    console.info(yellow(`Editor "${command}" is not supported. Set EDITOR to vim or nano, or edit key by key.`));
+    return;
+  }
+  // Swap, backup, undo and history files would hold the values; vim writes them next
+  // to the file unless configured otherwise, so they land in the temp directory too.
+  const settings = name === 'nano' ? [] : ['-c', 'set nobackup nowritebackup noundofile noswapfile'];
+  return [program, [...args, ...EDITORS[name], ...settings]];
+}
+
+// Leftovers from a previous run that was killed before it could clean up.
+function sweepTempDirs() {
+  for (const entry of readdirSync(os.tmpdir())) {
+    if (entry.startsWith(TEMP_PREFIX)) rmSync(path.join(os.tmpdir(), entry), { recursive: true, force: true });
+  }
+}
+
+function parseEnvFile(content) {
+  const data = {};
+  for (const [index, line] of content.split('\n').entries()) {
+    if (!line.trim() || line.trimStart().startsWith('#')) continue;
+    const position = line.indexOf('=');
+    const key = position === -1 ? '' : line.slice(0, position).trim();
+    if (!KEY_PATTERN.test(key)) {
+      console.info(red(`Line ${index + 1} is not KEY=value, nothing was changed`));
+      return;
+    }
+    data[key] = Buffer.from(line.slice(position + 1), 'utf8').toString('base64');
+  }
+  return data;
+}
+
+/**
+ * Edits all keys at once in a terminal editor. The values touch disk for as long as
+ * the editor is open, in a private temp directory removed straight afterwards.
+ */
+function editInEditor(secretName, data) {
+  const binary = Object.entries(data).find(([, value]) => {
+    return Buffer.from(Buffer.from(value, 'base64').toString('utf8'), 'utf8').toString('base64') !== value;
+  });
+  if (binary) {
+    console.info(yellow(`"${binary[0]}" holds binary data that an editor would corrupt. Change keys one by one.`));
+    return;
+  }
+  const editor = getEditor();
+  if (!editor) return;
+
+  sweepTempDirs();
+  const dir = mkdtempSync(path.join(os.tmpdir(), TEMP_PREFIX));
+  const filePath = path.join(dir, `${secretName}.conf`);
+  const cleanup = () => rmSync(dir, { recursive: true, force: true });
+  // Signals and process.exit (from exit() or a cancelled prompt) skip the finally block.
+  process.once('exit', cleanup);
+  for (const signal of ['SIGINT', 'SIGTERM', 'SIGHUP']) process.once(signal, () => process.exit(130));
+
+  try {
+    const original = Object.entries(data)
+      .map(([key, value]) => `${key}=${Buffer.from(value, 'base64').toString('utf8')}\n`)
+      .join('');
+    writeFileSync(filePath, original, { mode: 0o600 });
+    const [program, args] = editor;
+    const { status } = spawnSync(program, [...args, filePath], { stdio: 'inherit' });
+    if (status !== 0) {
+      console.info(yellow(`Editor exited with code ${status}, nothing was changed`));
+      return;
+    }
+    const content = readFileSync(filePath, 'utf8');
+    if (content === original) return { data, changed: false };
+    const edited = parseEnvFile(content);
+    return edited && { data: edited, changed: true };
+  } finally {
+    cleanup();
+    process.removeListener('exit', cleanup);
+  }
 }
 
 /**
@@ -105,6 +201,7 @@ export async function editSecret(environment, secretName) {
               { title: 'View all', value: 'view' },
             ]
           : []),
+        { title: 'Open in editor', value: 'editor' },
         { title: 'Save', value: 'save' },
       ],
     });
@@ -123,6 +220,15 @@ export async function editSecret(environment, secretName) {
     }
     if (action === 'view') {
       await viewSecretValues(secretName, data);
+      continue;
+    }
+    if (action === 'editor') {
+      const edited = editInEditor(secretName, data);
+      if (edited) {
+        for (const key of Object.keys(data)) delete data[key];
+        Object.assign(data, edited.data);
+        changed = changed || edited.changed;
+      }
       continue;
     }
 

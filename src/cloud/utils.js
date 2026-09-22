@@ -268,8 +268,24 @@ export async function getSecretNamePrompt() {
   });
 }
 
+// kubectl prints pages of Go logging when credentials fail; none of it helps here.
+export async function runKubectl(command) {
+  try {
+    return await exec(command);
+  } catch (error) {
+    const { message } = error;
+    if (/reauth|auth login/i.test(message)) {
+      exit('Your Google Cloud session has expired. Run "gcloud auth login" and try again.');
+    }
+    if (/Unable to connect to the server|couldn't get current server API group list/.test(message)) {
+      exit('Could not reach the cluster. Check your connection and that kubectl points at the right cluster.');
+    }
+    exit(message.slice(0, 300));
+  }
+}
+
 async function getAllSecrets() {
-  const secretsJSON = await exec('kubectl get secret -o json --ignore-not-found');
+  const secretsJSON = await runKubectl('kubectl get secret -o json --ignore-not-found');
   if (!secretsJSON) return [];
   try {
     const secrets = JSON.parse(secretsJSON);

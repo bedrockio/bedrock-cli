@@ -7,8 +7,8 @@ import { red, green, yellow } from 'kleur/colors';
 import { exit } from '../../utils/flow.js';
 import { prompt } from '../../utils/prompt.js';
 import { assertBedrockRoot } from '../../utils/dir.js';
-import { exec, execSyncInherit } from '../../utils/shell.js';
-import { getSecretNamePrompt, getAllSecretsPrompt, getSecretSubCommandPrompt } from '../utils.js';
+import { execSyncInherit } from '../../utils/shell.js';
+import { getSecretNamePrompt, getAllSecretsPrompt, getSecretSubCommandPrompt, runKubectl } from '../utils.js';
 import { checkConfig } from '../authorize.js';
 
 export async function secretEdit(options) {
@@ -52,7 +52,7 @@ export default async function secret(options, subcommand) {
 }
 
 export async function getSecretInfo(secretName) {
-  const secretJSON = await exec(`kubectl get secret ${secretName} -o json --ignore-not-found`);
+  const secretJSON = await runKubectl(`kubectl get secret ${secretName} -o json --ignore-not-found`);
   if (!secretJSON) return;
   try {
     return JSON.parse(secretJSON);

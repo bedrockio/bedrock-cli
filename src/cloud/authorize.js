@@ -8,7 +8,7 @@ import { checkEnvironment, readConfig } from './utils.js';
 // Running this through "exec" means gcloud has no terminal, so when the session has
 // expired it fails instead of falling back to its own password challenge, which asks
 // for the Google account password with no indication that it isn't the machine one.
-async function ensureAuthenticated() {
+export async function ensureAuthenticated() {
   try {
     await exec('gcloud auth print-access-token');
   } catch (error) {
@@ -163,6 +163,8 @@ async function checkGCloudConfig(environment, config = {}, quiet) {
 // TODO: rename to something more understandable
 export async function checkConfig(options) {
   await checkEnvironment(options);
+  // kubectl uses these credentials too, so refresh them even when the config is valid.
+  await ensureAuthenticated();
 
   options.config = await readConfig(options.environment);
   const { config, environment, force, quiet } = options;

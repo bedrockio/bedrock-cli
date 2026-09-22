@@ -138,10 +138,6 @@ export function getEnvironments() {
   return getDirectories(path.resolve('deployment', 'environments')).reverse();
 }
 
-export function getSecretsDirectory(environment) {
-  return path.resolve('deployment', 'environments', environment, 'secrets');
-}
-
 export async function checkEnvironment(options) {
   const environments = getEnvironments();
   if (options.environment) {
@@ -241,31 +237,56 @@ export async function getTerraformPrompt() {
   });
 }
 
+export const SECRET_COMMANDS = ['edit', 'info', 'delete'];
+
 export async function getSecretSubCommandPrompt() {
-  const secretCommands = ['get', 'set'];
   return await prompt({
     type: 'select',
-    message: 'Select "get" or "set" secret:',
-    choices: secretCommands.map((value) => {
+    message: 'Select secret command:',
+    choices: SECRET_COMMANDS.map((value) => {
       return { title: value, value };
     }),
   });
 }
 
 export async function getSecretNamePrompt() {
+  const names = (await getAllSecrets()).map(({ metadata }) => metadata?.name).filter(Boolean);
+  if (names.length) {
+    const name = await prompt({
+      type: 'select',
+      message: 'Select secret:',
+      choices: [...names.map((name) => ({ title: name, value: name })), { title: 'New secret', value: '' }],
+    });
+    if (name) return name;
+  }
   return await prompt({
     type: 'text',
-    message: 'Enter secret name:',
-    initial: 'credentials',
+    message: 'Enter new secret name:',
     validate: (value) =>
-      !value.match(/[^a-z0-9_-]/gim)
-        ? `Name may contain only letters, numbers, dashes, or the underscore character.`
-        : true,
+      /^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$/.test(value)
+        ? true
+        : `Name may contain only lowercase letters, numbers, dashes, or dots, and must start and end with a letter or number.`,
   });
 }
 
+// kubectl prints pages of Go logging when credentials fail; none of it helps here.
+export async function runKubectl(command) {
+  try {
+    return await exec(command);
+  } catch (error) {
+    const { message } = error;
+    if (/reauth|auth login/i.test(message)) {
+      exit('Your Google Cloud session has expired. Run "gcloud auth login" and try again.');
+    }
+    if (/Unable to connect to the server|couldn't get current server API group list/.test(message)) {
+      exit('Could not reach the cluster. Check your connection and that kubectl points at the right cluster.');
+    }
+    exit(message.slice(0, 300));
+  }
+}
+
 async function getAllSecrets() {
-  const secretsJSON = await exec('kubectl get secret -o json --ignore-not-found');
+  const secretsJSON = await runKubectl('kubectl get secret -o json --ignore-not-found');
   if (!secretsJSON) return [];
   try {
     const secrets = JSON.parse(secretsJSON);
@@ -277,16 +298,21 @@ async function getAllSecrets() {
 }
 
 export async function getAllSecretsPrompt() {
+  const choices = (await getAllSecrets())
+    .map(({ metadata }) => {
+      if (!metadata || !metadata.name) return false;
+      const { name } = metadata;
+      return { title: name, value: name };
+    })
+    .filter(Boolean);
+  if (!choices.length) {
+    const context = await exec('kubectl config current-context');
+    exit(`No secrets found in kubectl context "${context}".`);
+  }
   return await prompt({
     type: 'select',
     message: 'Select secret:',
-    choices: (await getAllSecrets())
-      .map(({ metadata }) => {
-        if (!metadata || !metadata.name) return false;
-        const { name } = metadata;
-        return { title: name, value: name };
-      })
-      .filter(Boolean),
+    choices,
   });
 }
 

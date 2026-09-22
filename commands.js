@@ -506,29 +506,29 @@ export default {
         },
         {
           name: 'secret',
-          description: 'Deploy and update Secrets (subcommands: <get>, <set>, <info> and <delete>)',
-          commands: [
+          description: 'Deploy and update Secrets (subcommands: <edit>, <info> and <delete>)',
+          arguments: [
             {
-              name: 'get',
-              functionName: 'secretGet',
-              description: 'Get Secret from cluster and store in local <secret-name>.conf file',
-              arguments: [
-                {
-                  name: 'environment',
-                  type: 'string',
-                  description: 'Environment (e.g. staging)',
-                },
-                {
-                  name: 'name',
-                  type: 'string',
-                  description: 'Secret name (e.g. credentials)',
-                },
-              ],
+              name: 'environment',
+              type: 'string',
+              description: 'Environment (e.g. staging)',
             },
             {
-              name: 'set',
-              functionName: 'secretSet',
-              description: 'Push secret to cluster from local <secret-name>.conf file',
+              name: 'command',
+              type: 'string',
+              description: 'Subcommand (edit, info or delete)',
+            },
+            {
+              name: 'name',
+              type: 'string',
+              description: 'Secret name (e.g. credentials)',
+            },
+          ],
+          commands: [
+            {
+              name: 'edit',
+              functionName: 'secretEdit',
+              description: 'Edit Secret in $EDITOR (vim or nano); the file is removed when the editor closes',
               arguments: [
                 {
                   name: 'environment',

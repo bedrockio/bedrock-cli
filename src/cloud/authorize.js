@@ -1,21 +1,21 @@
-import fs from 'fs';
-import path from 'path';
-
 import { yellow, green } from 'kleur/colors';
 
 import { exit } from '../utils/flow.js';
 import { prompt } from '../utils/prompt.js';
 import { exec, execSyncInherit, execSyncInheritQuiet } from '../utils/shell.js';
-import { getSecretInfo, setSecret } from './secret/index.js';
 import { checkEnvironment, readConfig } from './utils.js';
 
 // Running this through "exec" means gcloud has no terminal, so when the session has
 // expired it fails instead of falling back to its own password challenge, which asks
 // for the Google account password with no indication that it isn't the machine one.
-async function ensureAuthenticated() {
+export async function ensureAuthenticated(quiet) {
   try {
     await exec('gcloud auth print-access-token');
   } catch (error) {
+    // Signing in writes to stdout, which would corrupt a command streaming data there.
+    if (quiet && /reauth/i.test(error.message)) {
+      exit('Your Google Cloud session has expired. Run "gcloud auth login" and try again.');
+    }
     if (!/reauth/i.test(error.message)) {
       // Any other failure here (no credentials at all, no network) gets a clearer
       // message from the gcloud commands below, so let it fall through.
@@ -164,41 +164,11 @@ async function checkGCloudConfig(environment, config = {}, quiet) {
   }
 }
 
-async function checkSecrets(environment) {
-  const secretsDir = path.resolve('deployment', 'environments', environment, 'secrets');
-  if (fs.existsSync(secretsDir)) {
-    const secretFilesLS = await exec(`ls ${secretsDir}`);
-    const secretFiles = secretFilesLS.split('\n').filter((file) => file.endsWith('.conf'));
-    for (const secretFile of secretFiles) {
-      const secretName = secretFile.slice(0, -5);
-      const secretInfo = await getSecretInfo(secretName);
-      if (!secretInfo) {
-        console.info(
-          yellow(
-            `Warning: Found secret file deployment/environments/${environment}/secrets/${secretFile} that has not been created on the cluster.`,
-          ),
-        );
-        let confirmed = await prompt({
-          type: 'confirm',
-          name: 'subcommand',
-          message: `Would you like to create secret "${secretName}" now?`,
-          initial: true,
-        });
-        if (confirmed) await setSecret(environment, secretName);
-      } else {
-        console.info(
-          yellow(
-            `Warning: Found secret file deployment/environments/${environment}/secrets/${secretFile} - make sure to remove this file!`,
-          ),
-        );
-      }
-    }
-  }
-}
-
 // TODO: rename to something more understandable
 export async function checkConfig(options) {
   await checkEnvironment(options);
+  // kubectl uses these credentials too, so refresh them even when the config is valid.
+  await ensureAuthenticated(options.quiet);
 
   options.config = await readConfig(options.environment);
   const { config, environment, force, quiet } = options;
@@ -224,7 +194,6 @@ export async function checkConfig(options) {
       await setGCloudConfig(config.gcloud);
     }
   }
-  await checkSecrets(environment);
 }
 
 function getComputeRegion(zone) {

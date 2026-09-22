@@ -528,7 +528,7 @@ export default {
             {
               name: 'edit',
               functionName: 'secretEdit',
-              description: 'Edit Secret key by key with prompts; nothing is written to disk',
+              description: 'Edit Secret in $EDITOR (vim or nano); the file is removed when the editor closes',
               arguments: [
                 {
                   name: 'environment',

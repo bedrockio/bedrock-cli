@@ -47,6 +47,8 @@ export default async function secret(options, subcommand) {
     if (secretInfo) {
       secretInfo.dataKeys = Object.keys(secretInfo.data || {});
       secretInfo.data = `*** hidden to avoid sensitive information in your shell history ***`;
+      // kubectl apply leaves a full copy of the secret, values included, in this annotation.
+      delete secretInfo.metadata?.annotations?.['kubectl.kubernetes.io/last-applied-configuration'];
       console.info(secretInfo);
       console.info(yellow(`Note: Run 'bedrock cloud secret edit' to view or change values`));
     } else {
@@ -151,7 +153,12 @@ export async function editSecret(environment, secretName) {
   try {
     writeFileSync(filePath, original, { mode: 0o600 });
     const [program, args] = editor;
-    await new Promise((resolve) => spawn(program, [...args, filePath], { stdio: 'inherit' }).on('close', resolve));
+    const failure = await new Promise((resolve) => {
+      spawn(program, [...args, filePath], { stdio: 'inherit' })
+        .on('error', (err) => resolve(err))
+        .on('close', () => resolve());
+    });
+    if (failure) return exit(`Could not start editor "${program}": ${failure.message}`);
     content = readFileSync(filePath, 'utf8');
   } finally {
     release();

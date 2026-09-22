@@ -1,7 +1,6 @@
-import os from 'os';
 import path from 'path';
-import { execSync, spawnSync } from 'child_process';
-import { mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'fs';
+import { execSync, spawn } from 'child_process';
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, unwatchFile, watchFile, writeFileSync } from 'fs';
 
 import { red, green, yellow } from 'kleur/colors';
 
@@ -66,23 +65,6 @@ export async function getSecretInfo(secretName) {
 const KEY_PATTERN = /^[-._a-zA-Z0-9]+$/;
 const TEMP_PREFIX = 'bedrock-secret-';
 
-// Refusing non-TTY output keeps values out of pipes, logs and agent shells; the
-// alternate screen keeps them out of scrollback once dismissed.
-async function viewSecretValues(secretName, data) {
-  if (!process.stdin.isTTY || !process.stdout.isTTY) exit('Viewing values requires an interactive terminal.');
-  const leaveAltScreen = () => process.stdout.write('\x1b[?1049l');
-  process.once('exit', leaveAltScreen);
-  process.stdout.write('\x1b[?1049h\x1b[H');
-  console.info(yellow(`Secret "${secretName}"\n`));
-  for (const [key, value] of Object.entries(data)) {
-    console.info(`${key}=${Buffer.from(value, 'base64').toString('utf8')}`);
-  }
-  console.info('');
-  await prompt({ type: 'invisible', message: 'Press Enter to hide values' });
-  leaveAltScreen();
-  process.removeListener('exit', leaveAltScreen);
-}
-
 // Terminal editors only: GUI editors keep their own copy of every file they save,
 // outside the temp directory bedrock cleans up.
 const EDITORS = {
@@ -98,7 +80,7 @@ function getEditor() {
   const [program, ...args] = command.split(/\s+/);
   const name = path.basename(program);
   if (!(name in EDITORS)) {
-    console.info(yellow(`Editor "${command}" is not supported. Set EDITOR to vim or nano, or edit key by key.`));
+    console.info(yellow(`Editor "${command}" is not supported. Set EDITOR to vim or nano.`));
     return;
   }
   // Swap, backup, undo and history files would hold the values; vim writes them next
@@ -107,175 +89,114 @@ function getEditor() {
   return [program, [...args, ...EDITORS[name], ...settings]];
 }
 
-// Leftovers from a previous run that was killed before it could clean up.
-function sweepTempDirs() {
-  for (const entry of readdirSync(os.tmpdir())) {
-    if (entry.startsWith(TEMP_PREFIX)) rmSync(path.join(os.tmpdir(), entry), { recursive: true, force: true });
-  }
-}
-
 function parseEnvFile(content) {
   const data = {};
   for (const [index, line] of content.split('\n').entries()) {
     if (!line.trim() || line.trimStart().startsWith('#')) continue;
     const position = line.indexOf('=');
     const key = position === -1 ? '' : line.slice(0, position).trim();
-    if (!KEY_PATTERN.test(key)) {
-      console.info(red(`Line ${index + 1} is not KEY=value, nothing was changed`));
-      return;
-    }
+    if (!KEY_PATTERN.test(key)) return { error: `line ${index + 1} is not KEY=value` };
     data[key] = Buffer.from(line.slice(position + 1), 'utf8').toString('base64');
   }
-  return data;
+  return { data };
+}
+
+// A RAM disk keeps the file the editor writes out of the physical disk entirely.
+function createMemoryDir(name) {
+  if (process.platform === 'linux' && existsSync('/dev/shm')) {
+    const dir = path.join('/dev/shm', name);
+    mkdirSync(dir, { mode: 0o700 });
+    return { dir, release: () => rmSync(dir, { recursive: true, force: true }) };
+  }
+  if (process.platform !== 'darwin') exit('Editing secrets needs a RAM disk, which needs macOS or Linux.');
+  // 4096 blocks of 512 bytes; APFS rejects a volume this small, HFS+ does not.
+  const device = execSync('hdiutil attach -nomount ram://4096').toString().trim().split(/\s+/)[0];
+  execSync(`diskutil erasevolume HFS+ ${name} ${device}`, { stdio: 'ignore' });
+  return { dir: path.join('/Volumes', name), release: () => execSync(`hdiutil detach ${device}`, { stdio: 'ignore' }) };
+}
+
+// Leftovers from a run that was killed before it could release its RAM disk.
+function sweepMemoryDirs() {
+  const parent = process.platform === 'darwin' ? '/Volumes' : '/dev/shm';
+  if (!existsSync(parent)) return;
+  for (const entry of readdirSync(parent)) {
+    if (!entry.startsWith(TEMP_PREFIX)) continue;
+    try {
+      if (process.platform === 'darwin') execSync(`hdiutil detach "${path.join(parent, entry)}"`, { stdio: 'ignore' });
+      else rmSync(path.join(parent, entry), { recursive: true, force: true });
+    } catch {
+      // A volume someone else is using; leave it alone.
+    }
+  }
 }
 
 /**
- * Edits all keys at once in a terminal editor. The values touch disk for as long as
- * the editor is open, in a private temp directory removed straight afterwards.
+ * Opens every key in a terminal editor on a RAM disk, uploading on each write, so
+ * `:w` syncs to the cluster and the values never reach the physical disk.
  */
-function editInEditor(secretName, data) {
+export async function editSecret(environment, secretName) {
+  let secret = await getSecretInfo(secretName);
+  // Unchanged values keep their original base64, so they are never decoded.
+  const data = { ...(secret?.data || {}) };
+
   const binary = Object.entries(data).find(([, value]) => {
     return Buffer.from(Buffer.from(value, 'base64').toString('utf8'), 'utf8').toString('base64') !== value;
   });
-  if (binary) {
-    console.info(yellow(`"${binary[0]}" holds binary data that an editor would corrupt. Change keys one by one.`));
-    return;
-  }
+  if (binary) return exit(`"${binary[0]}" holds binary data that an editor would corrupt. Edit it with kubectl instead.`);
+
   const editor = getEditor();
   if (!editor) return;
 
-  sweepTempDirs();
-  const dir = mkdtempSync(path.join(os.tmpdir(), TEMP_PREFIX));
+  console.info(yellow(`=> ${secret ? 'Editing' : 'Creating'} secret "${secretName}" on ${environment}`));
+  console.info(yellow('Write in the editor (:w) to upload, quit to finish.'));
+
+  sweepMemoryDirs();
+  const { dir, release } = createMemoryDir(`${TEMP_PREFIX}${process.pid}`);
   const filePath = path.join(dir, `${secretName}.conf`);
-  const cleanup = () => rmSync(dir, { recursive: true, force: true });
   // Signals and process.exit (from exit() or a cancelled prompt) skip the finally block.
-  process.once('exit', cleanup);
+  process.once('exit', release);
   for (const signal of ['SIGINT', 'SIGTERM', 'SIGHUP']) process.once(signal, () => process.exit(130));
 
+  let content = Object.entries(data)
+    .map(([key, value]) => `${key}=${Buffer.from(value, 'base64').toString('utf8')}\n`)
+    .join('');
+  let uploads = 0;
+  let problem;
+  let empty = false;
+
+  // Each write is uploaded on its own, so the editor needs no save step of its own.
+  const sync = () => {
+    const written = readFileSync(filePath, 'utf8');
+    if (written === content) return;
+    content = written;
+    const { data: edited, error } = parseEnvFile(written);
+    if (error) return (problem = `A write was skipped: ${error}.`);
+    empty = !Object.keys(edited).length;
+    if (empty) return (problem = undefined);
+    const result = uploadSecret(secret, secretName, edited);
+    if (result.error) return (problem = result.error);
+    secret = result.secret;
+    uploads++;
+    problem = undefined;
+  };
+
   try {
-    const original = Object.entries(data)
-      .map(([key, value]) => `${key}=${Buffer.from(value, 'base64').toString('utf8')}\n`)
-      .join('');
-    writeFileSync(filePath, original, { mode: 0o600 });
+    writeFileSync(filePath, content, { mode: 0o600 });
     const [program, args] = editor;
-    const { status } = spawnSync(program, [...args, filePath], { stdio: 'inherit' });
-    if (status !== 0) {
-      console.info(yellow(`Editor exited with code ${status}, nothing was changed`));
-      return;
-    }
-    const content = readFileSync(filePath, 'utf8');
-    if (content === original) return { data, changed: false };
-    const edited = parseEnvFile(content);
-    return edited && { data: edited, changed: true };
+    // Async spawn: a sync one would block the event loop, so no write would be seen until the editor quits.
+    watchFile(filePath, { interval: 300 }, sync);
+    await new Promise((resolve) => spawn(program, [...args, filePath], { stdio: 'inherit' }).on('close', resolve));
+    unwatchFile(filePath, sync);
+    sync();
   } finally {
-    cleanup();
-    process.removeListener('exit', cleanup);
+    release();
+    process.removeListener('exit', release);
   }
-}
 
-/**
- * Edits a secret key by key through prompts. Values live only in process memory:
- * nothing is written to disk or passed as a command argument.
- */
-export async function editSecret(environment, secretName) {
-  const secret = await getSecretInfo(secretName);
-  // Unchanged values keep their original base64, so they are never decoded.
-  const data = { ...(secret?.data || {}) };
-  let changed = false;
-
-  console.info(yellow(secret ? `=> Editing secret "${secretName}"` : `=> Creating secret "${secretName}"`));
-
-  while (true) {
-    const keys = Object.keys(data);
-    const action = await prompt({
-      type: 'select',
-      message: `Secret "${secretName}" (${keys.length} keys${changed ? ", unsaved changes" : ""}):`,
-      choices: [
-        ...(keys.length ? [{ title: 'Change key', value: 'change' }] : []),
-        { title: 'Add key', value: 'add' },
-        ...(keys.length
-          ? [
-              { title: 'Remove key', value: 'remove' },
-              { title: 'View all', value: 'view' },
-            ]
-          : []),
-        { title: 'Open in editor', value: 'editor' },
-        { title: 'Save', value: 'save' },
-      ],
-    });
-
-    if (action === 'save') {
-      if (!changed) return console.info(yellow('No changes'));
-      if (!Object.keys(data).length) return await deleteEmptySecret(secret, secretName);
-      const confirmed = await prompt({
-        type: 'confirm',
-        name: 'save',
-        message: `Save changes to secret "${secretName}" on ${environment}?`,
-        initial: true,
-      });
-      if (confirmed && uploadSecret(secret, secretName, data)) return console.info(green(`Saved secret "${secretName}"`));
-      continue;
-    }
-    if (action === 'view') {
-      await viewSecretValues(secretName, data);
-      continue;
-    }
-    if (action === 'editor') {
-      const edited = editInEditor(secretName, data);
-      if (edited) {
-        for (const key of Object.keys(data)) delete data[key];
-        Object.assign(data, edited.data);
-        changed = changed || edited.changed;
-      }
-      continue;
-    }
-
-    if (action === 'remove') {
-      const key = await prompt({
-        type: 'select',
-        message: 'Remove key:',
-        choices: keys.map((key) => ({ title: key, value: key })),
-      });
-      delete data[key];
-      changed = true;
-      continue;
-    }
-
-    const key =
-      action === 'add'
-        ? await prompt({
-            type: 'text',
-            message: 'Key name:',
-            validate: (value) =>
-              !KEY_PATTERN.test(value)
-                ? 'Use only letters, numbers, "-", "_" or "."'
-                : keys.includes(value)
-                  ? `"${value}" already exists`
-                  : true,
-          })
-        : await prompt({
-            type: 'select',
-            message: 'Change key:',
-            choices: keys.map((key) => ({ title: key, value: key })),
-          });
-    const message = `Value for ${key}${action === 'add' ? '' : ' (empty keeps current)'}:`;
-    // Visible while typing; erased once entered, or on Esc/Ctrl-C via the exit handler, so it doesn't stay in scrollback.
-    let typed = '';
-    const erase = () => {
-      if (!process.stdout.isTTY) return;
-      const rows = Math.ceil((message.length + typed.length + 5) / process.stdout.columns);
-      process.stdout.write(`\x1b[${rows}A\x1b[0J`);
-    };
-    process.once('exit', erase);
-    const value = await prompt({ type: 'text', message, onState: (state) => (typed = state.value || '') });
-    process.removeListener('exit', erase);
-    erase();
-    if (process.stdout.isTTY) console.info(green(`✔ ${value ? `${key} updated` : `${key} unchanged`}`));
-    if (value) {
-      data[key] = Buffer.from(value, 'utf8').toString('base64');
-      changed = true;
-    }
-  }
+  if (problem) console.error(red(problem));
+  if (empty) return await deleteEmptySecret(secret, secretName);
+  if (uploads) console.info(green(`Saved secret "${secretName}"`));
+  else if (!problem) console.info(yellow('No changes'));
 }
 
 async function deleteEmptySecret(secret, secretName) {
@@ -290,7 +211,7 @@ async function deleteEmptySecret(secret, secretName) {
   else console.info(yellow('Discarded changes'));
 }
 
-// Returns false when the upload failed but the edits can be retried.
+// Returns { secret } with the stored object, or { error } describing why it was refused.
 function uploadSecret(secret, secretName, data) {
   let manifest = { apiVersion: 'v1', kind: 'Secret', type: 'Opaque', metadata: { name: secretName }, data };
   if (secret) {
@@ -301,19 +222,18 @@ function uploadSecret(secret, secretName, data) {
     manifest = { ...secret, metadata: { ...metadata, annotations }, data };
   }
   try {
-    execSync(`kubectl ${secret ? 'replace' : 'create'} -f -`, {
+    // The returned object carries the new resourceVersion, which the next write needs.
+    const stored = execSync(`kubectl ${secret ? 'replace' : 'create'} -f - -o json`, {
       input: JSON.stringify(manifest),
-      stdio: ['pipe', 'inherit', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'],
     });
-    return true;
+    return { secret: JSON.parse(stored.toString()) };
   } catch (err) {
     const message = err.stderr?.toString().trim() || err.message;
     if (/Conflict|AlreadyExists|has been modified|already exists/.test(message)) {
-      exit(`Secret "${secretName}" was changed by someone else while you were editing. Nothing was saved; run edit again.`);
+      return { error: `Secret "${secretName}" was changed by someone else, so that write was refused. Quit and run edit again.` };
     }
-    console.error(red(message));
-    console.info(yellow('Nothing was saved. Your changes are kept; choose Save to try again.'));
-    return false;
+    return { error: `Nothing was saved: ${message}` };
   }
 }
 

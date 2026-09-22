@@ -1,6 +1,6 @@
 import path from 'path';
 import { execSync, spawn } from 'child_process';
-import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, unwatchFile, watchFile, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'fs';
 
 import { red, green, yellow } from 'kleur/colors';
 
@@ -66,7 +66,7 @@ const KEY_PATTERN = /^[-._a-zA-Z0-9]+$/;
 const TEMP_PREFIX = 'bedrock-secret-';
 
 // Terminal editors only: GUI editors keep their own copy of every file they save,
-// outside the temp directory bedrock cleans up.
+// outside the RAM disk bedrock releases.
 const EDITORS = {
   vi: ['-n', '-i', 'NONE'],
   vim: ['-n', '-i', 'NONE'],
@@ -131,11 +131,11 @@ function sweepMemoryDirs() {
 }
 
 /**
- * Opens every key in a terminal editor on a RAM disk, uploading on each write, so
- * `:w` syncs to the cluster and the values never reach the physical disk.
+ * Opens every key in a terminal editor on a RAM disk, so the values never reach the
+ * physical disk, and uploads the file once the editor is closed.
  */
 export async function editSecret(environment, secretName) {
-  let secret = await getSecretInfo(secretName);
+  const secret = await getSecretInfo(secretName);
   // Unchanged values keep their original base64, so they are never decoded.
   const data = { ...(secret?.data || {}) };
 
@@ -148,7 +148,6 @@ export async function editSecret(environment, secretName) {
   if (!editor) return;
 
   console.info(yellow(`=> ${secret ? 'Editing' : 'Creating'} secret "${secretName}" on ${environment}`));
-  console.info(yellow('Write in the editor (:w) to upload, quit to finish.'));
 
   sweepMemoryDirs();
   const { dir, release } = createMemoryDir(`${TEMP_PREFIX}${process.pid}`);
@@ -157,46 +156,29 @@ export async function editSecret(environment, secretName) {
   process.once('exit', release);
   for (const signal of ['SIGINT', 'SIGTERM', 'SIGHUP']) process.once(signal, () => process.exit(130));
 
-  let content = Object.entries(data)
+  const original = Object.entries(data)
     .map(([key, value]) => `${key}=${Buffer.from(value, 'base64').toString('utf8')}\n`)
     .join('');
-  let uploads = 0;
-  let problem;
-  let empty = false;
-
-  // Each write is uploaded on its own, so the editor needs no save step of its own.
-  const sync = () => {
-    const written = readFileSync(filePath, 'utf8');
-    if (written === content) return;
-    content = written;
-    const { data: edited, error } = parseEnvFile(written);
-    if (error) return (problem = `A write was skipped: ${error}.`);
-    empty = !Object.keys(edited).length;
-    if (empty) return (problem = undefined);
-    const result = uploadSecret(secret, secretName, edited);
-    if (result.error) return (problem = result.error);
-    secret = result.secret;
-    uploads++;
-    problem = undefined;
-  };
+  let content;
 
   try {
-    writeFileSync(filePath, content, { mode: 0o600 });
+    writeFileSync(filePath, original, { mode: 0o600 });
     const [program, args] = editor;
-    // Async spawn: a sync one would block the event loop, so no write would be seen until the editor quits.
-    watchFile(filePath, { interval: 300 }, sync);
     await new Promise((resolve) => spawn(program, [...args, filePath], { stdio: 'inherit' }).on('close', resolve));
-    unwatchFile(filePath, sync);
-    sync();
+    content = readFileSync(filePath, 'utf8');
   } finally {
     release();
     process.removeListener('exit', release);
   }
 
-  if (problem) console.error(red(problem));
-  if (empty) return await deleteEmptySecret(secret, secretName);
-  if (uploads) console.info(green(`Saved secret "${secretName}"`));
-  else if (!problem) console.info(yellow('No changes'));
+  if (content === original) return console.info(yellow('No changes'));
+  const { data: edited, error } = parseEnvFile(content);
+  if (error) return exit(`Nothing was saved: ${error}.`);
+  if (!Object.keys(edited).length) return await deleteEmptySecret(secret, secretName);
+
+  const result = uploadSecret(secret, secretName, edited);
+  if (result.error) return exit(result.error);
+  console.info(green(`Saved secret "${secretName}"`));
 }
 
 async function deleteEmptySecret(secret, secretName) {
@@ -231,7 +213,7 @@ function uploadSecret(secret, secretName, data) {
   } catch (err) {
     const message = err.stderr?.toString().trim() || err.message;
     if (/Conflict|AlreadyExists|has been modified|already exists/.test(message)) {
-      return { error: `Secret "${secretName}" was changed by someone else, so that write was refused. Quit and run edit again.` };
+      return { error: `Secret "${secretName}" was changed by someone else, so nothing was saved. Run edit again.` };
     }
     return { error: `Nothing was saved: ${message}` };
   }

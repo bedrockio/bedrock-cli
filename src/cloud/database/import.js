@@ -22,7 +22,7 @@ export default async function importDatabase(options) {
     cliPod,
   });
 
-  await runCommand('Transfering export...', `kubectl cp ${cliPod}:/export ./export`);
+  await runCommand('Transfering export...', `kubectl cp --retries=5 ${cliPod}:/export ./export`);
   await runCommand('Restoring export...', `mongorestore --drop --gzip --nsInclude="${db}.*" ./export`);
   await runCommand('Run remote cleanup...', getRemoteCommand(cliPod, `rm -rf /export`));
   await runCommand('Run local cleanup...', 'rm -rf ./export');

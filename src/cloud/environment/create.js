@@ -39,11 +39,11 @@ export default async function createEnvironment(options) {
     cliPod: prod.cliPod,
   });
 
-  await runCommand('Transfering export...', `kubectl cp ${prod.cliPod}:/export ./export`);
+  await runCommand('Transfering export...', `kubectl cp --retries=5 ${prod.cliPod}:/export ./export`);
 
   const staging = await useEnvironment('staging');
 
-  await runCommand('Transfering export...', `kubectl cp ./export ${staging.cliPod}:/export ./export`);
+  await runCommand('Transfering export...', `kubectl cp ./export ${staging.cliPod}:/export`);
 
   // Note: assuming mongo pod name and port here:
   const command = getRemoteCommand(

@@ -27,6 +27,11 @@ export default async function create(options) {
   if (!domain) {
     exit('Domain required.');
   }
+  try {
+    await exec('pnpm --version');
+  } catch {
+    exit('pnpm is required to install dependencies (https://pnpm.io/installation).');
+  }
   // "project" will accept any casing
   const kebab = kebabCase(project);
   const under = snakeCase(project);
@@ -81,13 +86,13 @@ export default async function create(options) {
   queueTask('Install Dependencies', async () => {
     queueTask('API', async () => {
       await withDir('services/api', async () => {
-        await exec('volta run yarn install');
+        await exec('pnpm install --frozen-lockfile');
       });
     });
 
     queueTask('Web', async () => {
       await withDir('services/web', async () => {
-        await exec('volta run yarn install');
+        await exec('pnpm install --frozen-lockfile');
       });
     });
   });
